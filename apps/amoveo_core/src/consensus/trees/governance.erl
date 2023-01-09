@@ -289,13 +289,15 @@ new(Id, Value, Lock) ->
 dict_write(Gov, Dict) ->
     Key = Gov#gov.id,
     dict:store({governance, Key},
-               serialize(Gov),
+               %serialize(Gov),
+               Gov,
                Dict).
 write(Gov, Tree) ->
     Key = Gov#gov.id,
     Serialized = serialize(Gov),
     trie:put(Key, Serialized, 0, Tree, ?name).
 
+%deserialize(G = #gov{}) -> G;
 deserialize(SerializedGov) ->
     <<Id:8, Value:16, Lock:8>> = SerializedGov,
     #gov{id = Id, value = Value, lock = Lock}.
@@ -340,7 +342,8 @@ dict_get(Key0, Dict, Height) ->
           end,
     case dict:find({governance, Key}, Dict) of
 	error -> empty;
-	{ok, X} -> deserialize(X)
+	%{ok, X} -> deserialize(X)
+	{ok, X} -> X
     end.
 
 

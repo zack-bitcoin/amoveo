@@ -25,6 +25,10 @@ dict_update(Pub, Dict, Amount, NewNonce, Bets) ->
                          NewNonce
                  end,
     NewBalance = Amount + Account#acc.balance,
+    if
+        NewBalance < 1 -> io:fwrite({Amount, Account#acc.balance, Account});
+        true -> ok
+    end,
     true = NewBalance > 0,
     BH = case Bets of
              0 -> Account#acc.bets_hash;
@@ -54,12 +58,21 @@ dict_get(Key, Dict, Height) ->
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} -> 
-            Y2 = deserialize(Y),
+            Y2 = dict_get_helper(Y),
             Y2#acc{bets = Meta};
         {ok, Y3} ->
-            Y4 = trees2:deserialize(1, Y3),
-            Y4
+            dict_get_helper(Y3)
     end.
+dict_get_helper(Y) -> Y;
+dict_get_helper(Y) ->
+    1=2,
+    V = size(Y) == 45,
+    if
+        V -> trees2:deserialize(1, Y);
+        true ->
+            deserialize(Y)
+    end.
+    
 get(Pub, Accounts) ->
     PubId = key_to_int(Pub),
     {RH, Leaf, Proof} = trie:get(PubId, Accounts, ?id),
@@ -67,7 +80,9 @@ get(Pub, Accounts) ->
                   empty -> empty;
                   Leaf ->
                       Account0 = deserialize(leaf:value(Leaf)),
+                      %Account0 = leaf:value(Leaf),
                       Meta = leaf:meta(Leaf),
+                      %io:fwrite(Account0),
                       Account0#acc{bets = Meta}
               end,
     {RH, Account, Proof}.
@@ -76,7 +91,8 @@ dict_write(Account, Dict) ->
 dict_write(Account, Meta, Dict) ->
     Pub = Account#acc.pubkey,
     Out = dict:store({accounts, Pub}, 
-                     {serialize(Account), Meta},
+                     %{serialize(Account), Meta},
+                     {Account, Meta},
                      Dict),
     Out.
 meta_get(A) -> A#acc.bets.

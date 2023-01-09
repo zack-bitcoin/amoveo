@@ -121,7 +121,7 @@ absorb_internal2(SignedTx, PID) ->
                     {CBTX, _} = coinbase_tx:make(constants:master_pub(), F#tx_pool.block_trees),
                     Txs2 = [SignedTx|Txs],
                     Querys = proofs:txs_to_querys([CBTX|Txs2], F#tx_pool.block_trees, Height+1),
-                    OldDict = lookup_merkel_proofs(F#tx_pool.dict, Querys, F#tx_pool.block_trees),
+                    OldDict = lookup_merkel_proofs(F#tx_pool.dict, Querys, F#tx_pool.block_trees, Height+1),
                     MinerReward = block:miner_fees(Txs2),
                     GovFees = block:gov_fees(Txs2, OldDict, Height),
                     X = txs:digest([SignedTx], OldDict, Height+1),
@@ -154,9 +154,10 @@ sum_cost([H|T], Dict, Trees) ->
                                 Dict, Trees))
            end,
     Cost + sum_cost(T, Dict, Trees).
-    
-lookup_merkel_proofs(Dict, [], _) -> Dict;
-lookup_merkel_proofs(Dict, [{orders, Key}|T], Trees) ->
+   
+%if the thing is already in the dict, then don't do anything. If it isn't in the dict, then get a copy out of the tree for it. 
+lookup_merkel_proofs(Dict, [], _, _) -> Dict;
+lookup_merkel_proofs(Dict, [{orders, Key}|T], Trees, Height) ->
     Dict2 = 
 	case dict:find({orders, Key}, Dict) of
 	    error ->
@@ -176,8 +177,8 @@ lookup_merkel_proofs(Dict, [{orders, Key}|T], Trees) ->
 		dict:store({orders, Key}, Val2, Dict);
 	    {ok, _} -> Dict
 	end,
-    lookup_merkel_proofs(Dict2, T, Trees);
-lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees) ->
+    lookup_merkel_proofs(Dict2, T, Trees, Height);
+lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees, Height) ->
     Dict2 = 
 	case dict:find({oracle_bets, Key}, Dict) of
 	    error ->
@@ -192,8 +193,8 @@ lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees) ->
 		dict:store({oracle_bets, Key}, Val2, Dict);
 	    {ok, _} -> Dict
 	end,
-    lookup_merkel_proofs(Dict2, T, Trees);
-lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees) ->
+    lookup_merkel_proofs(Dict2, T, Trees, Height);
+lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
     Dict2 = 
 	case dict:find({TreeID, Key}, Dict) of
 	    error ->
@@ -204,13 +205,20 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees) ->
                 PS = constants:pubkey_size() * 8,
 		Val2 = case Val of
 			   empty -> 0;
+                           {empty, _} -> 0;
                            {<<Head:PS>>, Many} ->
                                unmatched:serialize_head(<<Head:PS>>, Many);
 			   X -> 
                                if
                                    is_integer(X) -> X;
                                    true ->
-                                       TreeID:serialize(X)
+                                       B = Height > forks:get(52),
+                                       if
+                                           B -> 
+                                               trees2:serialize(X);
+                                           true ->
+                                               TreeID:serialize(X)
+                                       end
                                end
 		       end,
 		Foo = case TreeID of
@@ -221,7 +229,7 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees) ->
 		dict:store({TreeID, Key}, Foo, Dict);
 	    {ok, _} -> Dict
 	end,
-    lookup_merkel_proofs(Dict2, T, Trees).
+    lookup_merkel_proofs(Dict2, T, Trees, Height).
 
 ai2([]) -> ok;
 ai2([H|T]) ->

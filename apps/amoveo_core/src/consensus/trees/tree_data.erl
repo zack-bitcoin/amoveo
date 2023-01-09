@@ -131,7 +131,8 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash) ->
                       dict:fetch(Key, Dict),
                   case Key of
                       {accounts, Pub} ->
-                            accounts:deserialize(V);
+                          %accounts:deserialize(V);
+                          V;
                       _ -> io:fwrite({Key, V}),
                            1=2
                   end

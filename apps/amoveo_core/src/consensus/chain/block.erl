@@ -402,24 +402,27 @@ make(Header, Txs0, Trees, Pub) ->
     CB = coinbase_tx:make_dict(Pub),
     Txs = [CB|lists:reverse(Txs0)],
     Height = Header#header.height,
+%    if Height == 2 -> io:fwrite({Pub, CB});
+%       true -> ok end,
     Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
-    {Facts, Dict} = 
-        if
-            is_integer(Trees) ->
-                X = proofs:prove(
-                                 Querys, Trees),
-                {F1, Leaves} = X,
-                {{F1, Leaves},
-                 proofs:facts_to_dict(
-                   {F1, Leaves}, dict:new())};
-            true -> 
-                Facts2 =proofs:prove(Querys, Trees),
-                {Facts2,
-                 proofs:facts_to_dict(
-                   Facts2, dict:new())}
-        end,
+    Facts = proofs:prove(Querys, Trees),
+    Dict = proofs:facts_to_dict(Facts, dict:new()),
+%    if
+%        Height == 2 ->
+%            io:fwrite({Facts, dict, dict:fetch(hd(dict:fetch_keys(Dict)), Dict)});
+%        true -> ok
+%    end,
     %Dict = proofs:facts_to_dict(Facts, dict:new()),%todo. this should work even if facts is a verkle proof.
     NewDict0 = txs:digest(Txs, Dict, Height + 1),
+    if
+        true -> ok;
+        Height == 2 ->
+            io:fwrite({Facts, 
+                       dict, hd(dict:fetch_keys(Dict)), dict:fetch(hd(dict:fetch_keys(Dict)), Dict), 
+                       new_dict0, hd(dict:fetch_keys(NewDict0)), element(1, dict:fetch(hd(dict:fetch_keys(NewDict0)), NewDict0))});
+            %io:fwrite(NewDict0);
+        true -> ok
+    end,
     B = ((Height+1) == forks:get(5)),
     NewDict = if
 		B -> %
@@ -951,6 +954,18 @@ check3(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
+    io:fwrite("block, master account balance "),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), Dict)))),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), NewDict)))),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), NewDict2)))),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), NewDict3)))),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), NewDict4)))),
+    io:fwrite("\n"),
     {NewDict4, NewDict3, Dict, ProofTree}.
 
 
@@ -1615,8 +1630,8 @@ no_counterfeit(Old, New, Txs, Height) ->
     
     OK = dict:fetch_keys(Old),
     NK = dict:fetch_keys(New),
-    OA = sum_amounts(OK, Old, Old),
-    NA = sum_amounts(NK, New, Old),
+    OA = sum_amounts(OK, Old, Old, Height),
+    NA = sum_amounts(NK, New, Old, Height),
     BR = governance:dict_get_value(block_reward, Old, Height),
     %io:fwrite("block reward "),
     %io:fwrite(integer_to_list(BR)),
@@ -1663,19 +1678,19 @@ no_counterfeit(Old, New, Txs, Height) ->
     Diff.
 %    true = (Diff =< 0),
 %    ok.
-sum_amounts([], _, _) -> 
+sum_amounts([], _, _, _) -> 
     %io:fwrite("sum amount finish\n"),
     0;
-sum_amounts([{oracles, _}|T], Dict, OldDict) ->
-    sum_amounts(T, Dict, OldDict);
-sum_amounts([{existence, _}|T], Dict, Old) ->
-    sum_amounts(T, Dict, Old);
-sum_amounts([{governance, _}|T], Dict, Old) ->
-    sum_amounts(T, Dict, Old);
-sum_amounts([proof|T], Dict, Old) ->
-    sum_amounts(T, Dict, Old);
-sum_amounts([{Kind, A}|T], Dict, Old) ->
-    X = Kind:dict_get(A, Dict),
+sum_amounts([{oracles, _}|T], Dict, OldDict, Height) ->
+    sum_amounts(T, Dict, OldDict, Height);
+sum_amounts([{existence, _}|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([{governance, _}|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([proof|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([{Kind, A}|T], Dict, Old, Height) ->
+    X = Kind:dict_get(A, Dict, Height),
     B = sum_amounts_helper(Kind, X, Dict, Old, A),
     if
         false ->
@@ -1688,7 +1703,7 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
             io:fwrite("\n");
         true -> ok
     end,
-    B + sum_amounts(T, Dict, Old).
+    B + sum_amounts(T, Dict, Old, Height).
 %sum_amounts_helper(_, error, _, _, _) -> 0;
 sum_amounts_helper(_, empty, _, _, _) -> 0;
 sum_amounts_helper(receipts, Acc, Dict, _, _) ->

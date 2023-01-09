@@ -14,7 +14,7 @@ make(From, Trees) ->
 go(Tx, Dict, NewHeight) ->
     From = Tx#coinbase.from,
     X = accounts:dict_get(From, Dict),
-    %io:fwrite(Dict),%contains the key {governance, 1}, 
+    %io:fwrite(Dict),%contains the key {governance, 1},
     BlockReward = governance:dict_get_value(block_reward, Dict, NewHeight),
     Nacc = case X of
                empty -> accounts:new(From, BlockReward);
@@ -30,6 +30,30 @@ go(Tx, Dict, NewHeight) ->
             F49 -> DeveloperReward0 + 4958336858 + (50 * 60657);
             _ -> DeveloperReward0
         end,
-    M = accounts:dict_update(constants:master_pub(), Dict2, DeveloperReward, none),
-    accounts:dict_write(M, Dict2).
+    F52 = forks:get(52),
+    MP = constants:master_pub(),
+%    MP = if
+%             NewHeight > F52 ->
+%                trees2:compress_pub(
+%                  constants:master_pub());
+%             true -> constants:master_pub()
+%         end,
+    M = accounts:dict_update(
+          MP, Dict2, DeveloperReward, none),
+    Result = accounts:dict_write(M, Dict2),
+    if
+        true -> ok;
+        NewHeight == 3 ->
+            Key2 = hd(dict:fetch_keys(Dict)),
+            io:fwrite({%from, From, 
+                       acc, X, 
+                       %after_block_reward, Nacc, 
+                       %after_dev_reward, M, 
+                       %key2_before_update, dict:fetch(Key2, Dict), 
+                       %from_before_update, dict:fetch(Key2, Dict), 
+                       key2, Key2, keysize, size(element(2, Key2)),
+                       from, From});
+        true -> ok
+    end,
+    Result.
 

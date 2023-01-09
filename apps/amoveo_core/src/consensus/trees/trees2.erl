@@ -1,5 +1,5 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -313,6 +313,7 @@ deserialize(9, <<I:256, C1:256, C2:256, T1:16, T2:16,
 deserialize(10, <<T:256, P:264, N:32>>) ->
     P2 = decompress_pub(<<P:256>>),
     #receipt{tid = <<T:256>>, pubkey = P2, nonce = N};
+%deserialize(_, T) when is_tuple(T) -> T;
 deserialize(N, B) ->
     io:fwrite({N, B, size(B)}),
     1=2,
@@ -394,8 +395,6 @@ get_proof(Keys0, Loc, Type) ->
                                   {empty, K}
                           end
                   end, Keys30),
-    print_now(),
-    io:fwrite("remove leaves proof\n"),
     Proof2 = remove_leaves_proof(Proof),
 
     if
@@ -778,6 +777,7 @@ merkle2verkle(
                     trie:get_all(X, Type)),
               A ++ Leaves
       end, [], TypePairs),
+    %io:fwrite(AllLeaves),
     store_things(AllLeaves, Loc).
     
 

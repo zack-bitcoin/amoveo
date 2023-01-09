@@ -163,7 +163,8 @@ facts_to_dict([F|T], D) ->
           F#proof.value,
           F#proof.path),
     Key = F#proof.key,
-    Value0 = F#proof.value,
+    Value0_0 = F#proof.value,
+    Value0 = Tree:deserialize(Value0_0),
     Value3 = case Tree of
                  accounts -> {Value0, 0};
                  oracles -> {Value0, 0};
@@ -174,15 +175,38 @@ facts_to_dict([F|T], D) ->
 facts_to_dict({_VerkleProof, Leaves}, D) ->
     lists:foldl(
       fun(Leaf, Acc) ->
-              Key = trees2:key(Leaf),
+              %Key = trees2:key(Leaf),
+              Key = dict_key(Leaf),
               Tree0 = element(1, Leaf),
               Tree = leaf_type2tree(Tree0),
-              Value = trees2:serialize(Leaf),
-              dict:store({Tree, Key}, Value, Acc)
+              %Value = trees2:serialize(Leaf),
+              dict:store({Tree, Key}, Leaf, Acc)
       end, D, Leaves);
 facts_to_dict(A, _) ->
     io:fwrite(A),
     ok.
+
+-record(unmatched, {account, %pubkey of the account
+		    oracle, %oracle id
+		    amount,
+		    pointer}).
+-record(receipt, {id, tid, pubkey, nonce}).
+
+dict_key({empty, K}) -> K;
+dict_key(#acc{pubkey = Pub}) -> Pub;
+dict_key(#oracle{id = X}) -> X;
+dict_key(#matched{account = A, oracle = O}) -> 
+    {key, A, O};
+dict_key(#unmatched{account = A, oracle = O}) -> 
+    {key, A, O};
+dict_key(#sub_acc{pubkey = P, contract_id = CID, 
+                  type = T}) -> 
+    sub_accounts:make_key(P, CID, T);
+dict_key(C = #contract{}) -> 
+    contracts:make_id(C);
+dict_key(#trade{value = V}) -> V;
+dict_key(#market{id = X}) -> X;
+dict_key(#receipt{id = Z}) -> Z.
 
 hash(F) ->
     hash:doit(F).

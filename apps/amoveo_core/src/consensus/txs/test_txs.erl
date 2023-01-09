@@ -1,5 +1,5 @@
 -module(test_txs).
--export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1]).
+-export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1, restart_chain/0]).
  
 -include("../../records.hrl").
 contracts() ->
@@ -71,13 +71,16 @@ absorb(Tx) ->
     tx_pool_feeder:absorb(Tx).
 block_trees(X) ->
     X#block.trees.
+restart_chain() ->
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump().
 test(1) ->
     io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
-    BP = block:get_by_height(0),
+    restart_chain(),
+    mine_blocks(4),
+    BP = block:get_by_height(block:height()),
     PH = block:hash(BP),
     Trees = block_trees(BP),
     {NewPub,NewPriv} = signing:new_key(),
@@ -498,8 +501,11 @@ test(11) ->
     io:fwrite("test 11 1\n"),
     {Pub,Priv} = signing:new_key(),
     Amount = 1000000000,
+    %%BP = block:get_by_height(block:height()),
+    %Trees = block_trees(BP),
     Ctx0 = create_account_tx:make_dict(Pub, Amount, Fee, constants:master_pub()),
     Stx0 = keys:sign(Ctx0),
+    0 = many_txs(),
     absorb(Stx0),
     1 = many_txs(),
     mine_blocks(1),
@@ -4103,7 +4109,7 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10000),
-    timer:sleep(25),
+    timer:sleep(1000),
     mine_blocks(Many-1).
 
 test24(I) ->
