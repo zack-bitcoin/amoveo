@@ -127,7 +127,8 @@ deserialize(B) ->
 dict_write(Channel, Dict) ->
     ID = make_id(Channel),
     dict:store({contracts, ID},
-               serialize(Channel),
+               %serialize(Channel),
+               Channel,
                Dict).
 write(Channel, Root) ->
     ID = make_id(Channel),
@@ -162,12 +163,12 @@ dict_get(Key, Dict) ->
 	%error -> empty;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> 
-            SY = size(Y),
-            case SY of
-                153 -> trees2:deserialize(7, Y);
-                _ -> deserialize(Y)
-            end
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                153 -> trees2:deserialize(7, Y);
+%                _ -> deserialize(Y)
+%            end
     end.
 %deserialize 7
 get(ID, Channels) ->

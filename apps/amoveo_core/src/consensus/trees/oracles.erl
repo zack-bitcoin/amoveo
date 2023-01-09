@@ -156,7 +156,8 @@ dict_write(Oracle, Dict) ->
 dict_write(Oracle, Meta, Dict) ->
     Key = Oracle#oracle.id,
     dict:store({oracles, Key},
-               {serialize(Oracle), Meta},
+               %{serialize(Oracle), Meta},
+               {Oracle, Meta},
                Dict).
 meta_get(X) ->
     X#oracle.orders.
@@ -181,10 +182,11 @@ dict_get(ID, Dict, Height) ->
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {Y, Meta}} ->
-            Y2 = deserialize(Y),
+            %Y2 = deserialize(Y),
+            Y2 = Y,
             Y2#oracle{orders = Meta};
-        {ok, Y3} ->
-            trees2:deserialize(3, Y3)
+        {ok, Y3} -> Y3
+           %trees2:deserialize(3, Y3)
     end.
 key_to_int(X) -> 
     %<<Y:256>> = hash:doit(<<X:256>>),

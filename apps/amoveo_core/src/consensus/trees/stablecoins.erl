@@ -160,11 +160,11 @@ dict_get(Key, Dict) ->
         error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, Y} -> Y
     end.
 dict_write(M, Dict) ->
    dict:store({stablecoins, M#stablecoin.id},
-              serialize(M),
+              M,
               Dict).
     
     

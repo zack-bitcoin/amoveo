@@ -50,7 +50,8 @@ deserialize(<<T:256, P:520, N0/binary>>) ->
 
 dict_write(R, Dict) ->
     dict:store({receipts, R#receipt.id},
-               serialize(R),
+               %serialize(R),
+               R,
                Dict).
 write(R, Root) ->
     ID = R#receipt.id,
@@ -66,12 +67,12 @@ dict_get(Key, Dict) ->
 	error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> 
-            SY = size(Y),
-            case SY of
-                73 -> trees2:deserialize(10, Y);
-                _ -> deserialize(Y)
-            end
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                73 -> trees2:deserialize(10, Y);
+%                _ -> deserialize(Y)
+%            end
     end.
 %deserialize 10
 get(ID, Receipts) ->

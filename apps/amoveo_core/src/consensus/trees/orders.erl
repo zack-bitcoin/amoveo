@@ -84,7 +84,8 @@ dict_write(Order, OID, Dict) ->%
     Pub = aid(Order), %
     Key = {key, Pub, OID},%
     dict:store({orders, Key},%
-               serialize(Order),%
+               %serialize(Order),%
+               Order,%
                Dict).%
 write(X, Root) -> %
     V = serialize(X),%
@@ -97,7 +98,8 @@ dict_get(Key, Dict) ->%
     X = dict:fetch({orders, Key}, Dict),%
     case X of%
         0 -> empty;%
-        _ -> deserialize(X)%
+        %_ -> deserialize(X)%
+        _ -> X%
     end.%
 key_to_int(Pubkey) ->%
     accounts:key_to_int(Pubkey).%

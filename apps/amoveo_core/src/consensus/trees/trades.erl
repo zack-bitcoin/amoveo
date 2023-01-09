@@ -40,7 +40,8 @@ deserialize(<<V:256, R/binary>>) ->
 
 dict_write(T, Dict) ->
     dict:store({trades, T#trade.value},
-               serialize(T),
+               %serialize(T),
+               T,
                Dict).
 write(T, Root) ->
     ID = T#trade.value,
@@ -58,13 +59,13 @@ dict_get(Key, Dict) ->
 	error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> 
-            SY = size(Y),
-            case SY of
-                36 -> trees2:deserialize(8, Y);
-                _ ->
-                    deserialize(Y)
-            end
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                36 -> trees2:deserialize(8, Y);
+%                _ ->
+%                    deserialize(Y)
+%            end
     end.
 get(ID, Channels) ->
     <<_:256>> = ID,

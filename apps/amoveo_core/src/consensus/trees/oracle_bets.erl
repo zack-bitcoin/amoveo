@@ -67,7 +67,8 @@ deserialize(B) ->%
     #oracle_bet{true = True, false = False, bad = Bad, id = <<ID:HS>>}.%
 dict_write(X, Pub, Dict) ->%
     dict:store({oracle_bets, {key, Pub, X#oracle_bet.id}},%
-               serialize(X),%
+               %serialize(X),%
+               X,%
                Dict).%
 write(X, Tree) ->%
     Key = X#oracle_bet.id,%
@@ -79,7 +80,8 @@ dict_get(Key, Dict) ->%
     X = dict:fetch({oracle_bets, Key}, Dict),%
     case X of%
         0 -> empty;%
-        _ -> deserialize(X)%
+        %_ -> deserialize(X)%
+        _ -> X%
     end.%
 key_to_int(X) -> %
     <<Y:256>> = hash:doit(X),%

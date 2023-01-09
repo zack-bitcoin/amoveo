@@ -56,7 +56,9 @@ dict_get(Key, Dict) ->
         {ok, Y} ->
             deserialize_helper(Y)
     end.
+deserialize_helper(Y) -> Y;
 deserialize_helper(Y) ->
+    1=2,
     SY = size(Y),
     case SY of
         81 -> trees2:deserialize(6, Y);
@@ -76,7 +78,8 @@ get(Key, Accounts) ->
 dict_write(Account, Dict) ->
     Key = make_key(Account),
     Out = dict:store({?id, Key}, 
-                     {serialize(Account), 0},
+                     %{serialize(Account), 0},
+                     {Account, 0},
                      Dict),
     Out.
 write(Account, Root) ->

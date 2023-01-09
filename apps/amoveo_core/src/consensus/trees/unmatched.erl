@@ -122,13 +122,13 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
-        {ok, Y} -> 
-            SY = size(Y),
-            case SY of
-                138 -> trees2:deserialize(5, Y);
-                _ ->
-                    deserialize(Y)
-            end
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                138 -> trees2:deserialize(5, Y);
+%                _ ->
+%                    deserialize(Y)
+%            end
     end.
 key_to_int({key, Account, Oracle}) ->
     true = is_binary(Account),
@@ -157,7 +157,8 @@ dict_write(C, Dict) ->
     Account = C#unmatched.account,
     Oracle = C#unmatched.oracle,
     dict:store({unmatched, {key, Account, Oracle}},
-               serialize(C),
+               %serialize(C),
+               C,
                Dict).
 write(E, Tree) ->
     K = {key, E#unmatched.account, E#unmatched.oracle},

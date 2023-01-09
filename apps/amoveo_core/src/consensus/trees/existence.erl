@@ -38,7 +38,8 @@ dict_get(Hash, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
-        {ok, Y} -> deserialize(Y)
+        %{ok, Y} -> deserialize(Y)
+        {ok, Y} -> Y
     end.
 key_to_int(X) ->
     <<Y:256>> = hash:doit(X),
@@ -57,7 +58,8 @@ get(Hash, Tree) ->
 dict_write(C, Dict) ->
     Hash = C#exist.hash,
     dict:store({existence, Hash},
-               serialize(C),
+               %serialize(C),
+               C,
                Dict).
 write(E, Tree) ->
     Hash = E#exist.hash,

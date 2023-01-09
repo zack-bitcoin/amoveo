@@ -68,7 +68,8 @@ dict_write(X, Dict) ->
     Account = X#matched.account,
     Oracle = X#matched.oracle,
     dict:store({matched, {key, Account, Oracle}},
-               serialize(X),
+               %serialize(X),
+               X,
                Dict).
 write(E, Tree) ->
     K = {key, E#matched.account, E#matched.oracle},
@@ -94,13 +95,13 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
-        {ok, Y} -> 
-            SY = size(Y),
-            case SY of
-                89 -> trees2:deserialize(4, Y);
-                _ ->
-                    deserialize(Y)
-            end
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                89 -> trees2:deserialize(4, Y);
+%                _ ->
+%                    deserialize(Y)
+%            end
     end.
 
 key_to_int({key, Account, Oracle}) -> 
