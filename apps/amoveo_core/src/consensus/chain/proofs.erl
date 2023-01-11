@@ -48,7 +48,9 @@ int_to_tree(16) -> receipts;
 int_to_tree(17) -> stablecoins.
 
 leaf_type2tree(empty) -> empty;
+leaf_type2tree(accounts) -> accounts;
 leaf_type2tree(acc) -> accounts.
+
     
 
 %deterministic merge-sort    
@@ -199,7 +201,7 @@ facts_to_dict(A, _) ->
 		    pointer}).
 -record(receipt, {id, tid, pubkey, nonce}).
 
-dict_key({empty, K}) -> K;
+dict_key({_, K}) -> K;
 dict_key(#acc{pubkey = Pub}) -> Pub;
 dict_key(#oracle{id = X}) -> X;
 dict_key(#matched{account = A, oracle = O}) -> 

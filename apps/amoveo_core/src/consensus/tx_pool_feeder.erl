@@ -225,13 +225,13 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
 %                                       end
                                end
 		       end,
-		Foo = case TreeID of
-			  accounts -> {Val2, 0};
-			  oracles -> {Val2, 0};
-			  _ -> Val2
-		      end,
-		dict:store({TreeID, Key}, Foo, Dict);
-		%dict:store({TreeID, Key}, Val2, Dict);
+		%Foo = case TreeID of
+		%	  accounts -> {Val2, 0};
+		%	  oracles -> {Val2, 0};
+		%	  _ -> Val2
+		%      end,
+		%dict:store({TreeID, Key}, Foo, Dict);
+		dict:store({TreeID, Key}, Val2, Dict);
 	    {ok, _} -> Dict
 	end,
     lookup_merkel_proofs(Dict2, T, Trees, Height).

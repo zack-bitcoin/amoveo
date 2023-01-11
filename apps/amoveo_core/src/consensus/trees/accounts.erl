@@ -44,22 +44,8 @@ update_bets(Account, Bets) ->
 key_to_int(X) ->
     trees:hash2int(ensure_decoded_hashed(X)).
 dict_empty(Key, Dict) ->
-    case dict:find({accounts, Key}, Dict) of
-        error -> 
-            HashedKey = trees2:hash_key(accounts, Key),
-            case dict:find({empty, HashedKey}, Dict) of
-                error -> 1=2;
-                {ok, {empty, HashedKey}} -> 
-                    %io:fwrite("accounts dict empty, hashed key case\n"),
-                    empty
-            end;
-        %{ok, {empty,HK}} -> 
-        {ok, {0,0}} -> 
-            %tx pool feeder stores empty slots under the unhashed pubkey.
-            %HK = trees2:hash_key(accounts, Key),
-            %io:fwrite("accounts dict empty, 0,0 case\n"),
-            empty
-    end.
+    {ok, {accounts, Key}} = dict:find({accounts, Key}, Dict),
+    empty.
 dict_get(Key, Dict) ->
     dict_get(Key, Dict, 0).
 dict_get(Key, Dict, Height) ->
@@ -74,6 +60,9 @@ dict_get(Key, Dict, Height) ->
         error -> C;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
+        {ok, {accounts, Key}} -> 
+            io:fwrite("new empty case\n"),
+            empty;
         {ok, {Y, Meta}} -> 
             Y2 = dict_get_helper(Y),
             Bool = is_record(Y2, acc),
@@ -81,9 +70,9 @@ dict_get(Key, Dict, Height) ->
                 Bool -> ok;
                 true ->
                     Keys = dict:fetch_keys(Dict),
-                    io:fwrite(lists:map(fun(X) ->
+                    io:fwrite({Y, Meta, lists:map(fun(X) ->
                                                 {X, dict:fetch(X, Dict)}
-                                        end, Keys)),
+                                        end, Keys)}),
                     io:fwrite(Y2),
                     1=2
             end,

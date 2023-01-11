@@ -425,7 +425,8 @@ vget(TreeID, Key) ->
     Key2 = trees2:hash_key(TreeID, Key),
     32 = size(Key2),
     {_, Leaves} = 
-        trees2:get_proof([Key2], Loc, fast),
+        %trees2:get_proof([Key2], Loc, fast),
+        trees2:get_proof([{TreeID, Key}], Loc, fast),
     Leaves.
 get(TreeID, Key) ->
     H = block:height(),

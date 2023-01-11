@@ -1,5 +1,5 @@
-in accounts dict_empty, we need to support 2 different formats for the empty slots. this is weird, we should figure out why it is different and try to make it the same.
-which tx are they each failing on? maybe it is correctly failing to create the tx that wont be processed anyway?
+in accounts dict_empty, we need to support 2 different formats for the empty slots.
+we should make similar code for other trees in all the cases where we need to prove that it is empty. update the txs to support the new format.
 
 in test_txs:test(1), we can create a create_account_tx, but then we fail to make a spend tx in the same block because it thinks our nonce hasn't been updated. I guess the create_account_tx part isn't updating the correct slot in the dictionary.
 

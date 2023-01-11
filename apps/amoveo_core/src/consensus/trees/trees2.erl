@@ -325,12 +325,19 @@ to_keys([]) -> [];
 to_keys([Acc|T]) ->
     [key(Acc)|to_keys(T)].
 
-strip_tree_info([]) -> [];
-strip_tree_info([{Tree, X}|T]) -> 
+strip_tree_info([], R, D) -> {lists:reverse(R), D};
+strip_tree_info([{Tree, X}|T], R, D) -> 
+    %io:fwrite("strip tree info 2\n"),
     K = hash_key(Tree, X),
-    [K|strip_tree_info(T)];
-strip_tree_info([H|T]) -> 
-    [H|strip_tree_info(T)].
+    %D2 = dict:store(K, Tree, D),
+    D2 = dict:store(K, {Tree, X}, D),
+    strip_tree_info(T, [K|R], D2);
+strip_tree_info([H|T], R, D) -> 
+    io:fwrite("strip tree info 3\n"),
+    %io:fwrite({H}),
+    1=2,
+    strip_tree_info(T, [H|R], D).
+
 
 remove_repeats([]) ->
     [];
@@ -349,8 +356,9 @@ is_in(X, [_|T]) ->
 get_proof(Keys, Loc) ->
     get_proof(Keys, Loc, small).
 get_proof(Keys0, Loc, Type) ->
-    Keys3 = strip_tree_info(Keys0),%this is where we lose the tree info. it also hashes the keys.
-    Keys = remove_repeats(Keys3),
+    {Keys3, TreesDict} = 
+        strip_tree_info(Keys0, [], dict:new()),%this is where we lose the tree info. it also hashes the keys.
+    Keys = remove_repeats(Keys3),%this is a N^2 algorithm, it might end up being the bottleneck eventually.
     CFG = tree:cfg(amoveo),
     case Type of
         fast -> ok;
@@ -392,9 +400,15 @@ get_proof(Keys0, Loc, Type) ->
                               {ok, <<T, V:56>>} ->
                                   dump_get(T, V);
                               error ->
-                                  {empty, K}
+                                  {EmptyTree, UK} = 
+                                      dict:fetch(K, TreesDict),
+                                  %io:fwrite({EmptyTree, Keys0}),
+                                  %{empty, K}
+                                  true = is_binary(UK),
+                                  {EmptyTree, UK}
                           end
                   end, Keys30),
+
     Proof2 = remove_leaves_proof(Proof),
 
     if
