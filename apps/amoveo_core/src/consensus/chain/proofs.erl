@@ -47,6 +47,7 @@ int_to_tree(15) -> markets;
 int_to_tree(16) -> receipts;
 int_to_tree(17) -> stablecoins.
 
+leaf_type2tree(empty) -> empty;
 leaf_type2tree(acc) -> accounts.
     
 
@@ -178,6 +179,12 @@ facts_to_dict({_VerkleProof, Leaves}, D) ->
               %Key = trees2:key(Leaf),
               Key = dict_key(Leaf),
               Tree0 = element(1, Leaf),
+              if
+                  true -> ok;
+                  Tree0 == empty -> 
+                      io:fwrite({Leaves});
+                  true -> ok
+              end,
               Tree = leaf_type2tree(Tree0),
               %Value = trees2:serialize(Leaf),
               dict:store({Tree, Key}, Leaf, Acc)

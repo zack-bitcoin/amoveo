@@ -430,15 +430,10 @@ vget(TreeID, Key) ->
 get(TreeID, Key) ->
     H = block:height(),
     F52 = forks:get(52),
-    if
-        H < F52 ->
-            TP = tx_pool:get(),
-            Trees = TP#tx_pool.block_trees,
-            Dict = TP#tx_pool.dict,
-            get(TreeID, Key, Dict, Trees);
-        true ->
-            hd(vget(TreeID, Key))
-    end.
+    TP = tx_pool:get(),
+    Trees = TP#tx_pool.block_trees,
+    Dict = TP#tx_pool.dict,
+    get(TreeID, Key, Dict, Trees).
             
 get(governance, Key, Dict, Trees) 
   when is_integer(Trees) ->

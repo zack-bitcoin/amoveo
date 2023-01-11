@@ -91,6 +91,7 @@ test(1) ->
     0 = many_txs(),
     absorb(Stx),
     1 = many_txs(),
+    timer:sleep(500),
     Ctx2 = spend_tx:make_dict(NewPub, 10, Fee, constants:master_pub()),
     Stx2 = keys:sign(Ctx2),
     absorb(Stx2),

@@ -96,7 +96,7 @@ store_things(Things, Loc) ->
     %return the pointer to the new version of the verkle tree.
     CFG = tree:cfg(amoveo),
     V = cs2v(Things),
-    io:fwrite("store batch\n"),
+    %io:fwrite("store batch\n"),
     {P, _, _} = store_verkle:batch(V, Loc, CFG),
     P.
 hash_key(accounts, Pub) ->
@@ -349,7 +349,7 @@ is_in(X, [_|T]) ->
 get_proof(Keys, Loc) ->
     get_proof(Keys, Loc, small).
 get_proof(Keys0, Loc, Type) ->
-    Keys3 = strip_tree_info(Keys0),
+    Keys3 = strip_tree_info(Keys0),%this is where we lose the tree info. it also hashes the keys.
     Keys = remove_repeats(Keys3),
     CFG = tree:cfg(amoveo),
     case Type of

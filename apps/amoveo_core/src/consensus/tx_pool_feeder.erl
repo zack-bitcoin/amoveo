@@ -39,8 +39,8 @@ is_in(Tx, [STx2 | T]) ->
 absorb_internal(SignedTx) ->
     %io:fwrite("tx pool feeder absorb internal\n"),
     Wait = case application:get_env(amoveo_core, kind) of
-	       {ok, "production"} -> 200;
-	       _ -> 200
+	       {ok, "production"} -> 400;
+	       _ -> 400
 	   end,
     absorb_timeout(SignedTx, Wait).
 absorb_timeout(SignedTx, Wait) ->
@@ -130,7 +130,8 @@ absorb_internal2(SignedTx, PID) ->
                     
                     MinerAccount2 = accounts:dict_update(constants:master_pub(), X2, MinerReward - GovFees, none),
                     NewDict2 = accounts:dict_write(MinerAccount2, X2),
-                    Facts = proofs:prove(Querys, F#tx_pool.block_trees),
+                    %Facts = proofs:prove(Querys, F#tx_pool.block_trees),
+                    Facts = trees2:get_proof(Querys, F#tx_pool.block_trees, fast),
                     Dict = proofs:facts_to_dict(Facts, dict:new()),
                     NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height+1),
                     if
@@ -205,20 +206,23 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
                 PS = constants:pubkey_size() * 8,
 		Val2 = case Val of
 			   empty -> 0;
-                           {empty, _} -> 0;
+                           {empty, HashedKey} -> 0;
+                               %io:fwrite({Key, HashedKey}),
+                               %{empty, HashedKey};
                            {<<Head:PS>>, Many} ->
-                               unmatched:serialize_head(<<Head:PS>>, Many);
+                               %unmatched:serialize_head(<<Head:PS>>, Many);
+                               {<<Head:PS>>, Many};
 			   X -> 
                                if
                                    is_integer(X) -> X;
-                                   true ->
-                                       B = Height > forks:get(52),
-                                       if
-                                           B -> 
-                                               trees2:serialize(X);
-                                           true ->
-                                               TreeID:serialize(X)
-                                       end
+                                   true -> X
+%                                       B = Height > forks:get(52),
+%                                       if
+%                                           B -> 
+%                                               trees2:serialize(X);
+%                                           true ->
+%                                               TreeID:serialize(X)
+%                                       end
                                end
 		       end,
 		Foo = case TreeID of
@@ -227,6 +231,7 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
 			  _ -> Val2
 		      end,
 		dict:store({TreeID, Key}, Foo, Dict);
+		%dict:store({TreeID, Key}, Val2, Dict);
 	    {ok, _} -> Dict
 	end,
     lookup_merkel_proofs(Dict2, T, Trees, Height).

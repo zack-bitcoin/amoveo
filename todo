@@ -1,20 +1,20 @@
-when we are processing txs, we have a dictionary structure in ram that is used to store the consensus state that is used for processing this block. Currently, each thing stored in this dictionary is serialized to bytes. So, every time a element of data is used in a tx, it needs to get deserialized, and then if it is updated, it needs to be serialized again.
-This is a bunch of unnecessary computation, and it is creating versioning issues between the new and old versions, because the serialization format has changed.
-By leaving this data unserialized, we can process txs faster, and it only costs a little extra ram.
+in accounts dict_empty, we need to support 2 different formats for the empty slots. this is weird, we should figure out why it is different and try to make it the same.
+which tx are they each failing on? maybe it is correctly failing to create the tx that wont be processed anyway?
 
+in test_txs:test(1), we can create a create_account_tx, but then we fail to make a spend tx in the same block because it thinks our nonce hasn't been updated. I guess the create_account_tx part isn't updating the correct slot in the dictionary.
 
-we need to rethink how syncing works to be compatible with verkle
 
 tester:test() is failing on the test for oracles. it fails to create an account, even though the other test did make an account.
 
+we probably need to rethink how the tx_pool works, because now we generate all the proofs at the end.
+
+
+we need to rethink how syncing works to be compatible with verkle
 
 really weird how in tx_pool_feeder:absorb_internal2 we are calculating both X and X2. Seems like it must be an error somehow.
 
 
 batches of blocks might need to work differently. We should test this to make sure it is working.
-
-
-we probably need to rethink how the tx_pool works, because now we generate all the proofs at the end.
 
 
 try copying the current consensus state over to the verkle tree.

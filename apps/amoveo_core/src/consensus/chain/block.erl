@@ -954,18 +954,6 @@ check3(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
-    io:fwrite("block, master account balance "),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), Dict)))),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), NewDict)))),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), NewDict2)))),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), NewDict3)))),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(element(2, accounts:dict_get(constants:master_pub(), NewDict4)))),
-    io:fwrite("\n"),
     {NewDict4, NewDict3, Dict, ProofTree}.
 
 
@@ -1688,6 +1676,8 @@ sum_amounts([{existence, _}|T], Dict, Old, Height) ->
 sum_amounts([{governance, _}|T], Dict, Old, Height) ->
     sum_amounts(T, Dict, Old, Height);
 sum_amounts([proof|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([{empty, A}|T], Dict, Old, Height) ->
     sum_amounts(T, Dict, Old, Height);
 sum_amounts([{Kind, A}|T], Dict, Old, Height) ->
     X = Kind:dict_get(A, Dict, Height),
