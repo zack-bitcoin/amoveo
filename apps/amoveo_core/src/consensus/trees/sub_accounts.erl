@@ -51,6 +51,7 @@ dict_get(Key, Dict) ->
         error -> error;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
+        {ok, {?id, Key}} -> empty;
         {ok, {Y, Meta}} -> 
             deserialize_helper(Y);
         {ok, Y} ->

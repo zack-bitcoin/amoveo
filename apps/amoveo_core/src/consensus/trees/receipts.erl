@@ -67,6 +67,7 @@ dict_get(Key, Dict) ->
 	error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
+        {ok, {receipts, Key}} -> empty;
         {ok, Y} -> Y
 %            SY = size(Y),
 %            case SY of

@@ -823,7 +823,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
                 %DF = get_verkle:deserialize_proof(
                 %       Proof),
                 
-                {true, ProofTree0} = %todo. we need to use this proof tree to calculate the new verkle root.
+                {true, ProofTree0} = 
                     trees2:verify_proof(
                       Proof, Leaves),
                 Dict2 = proofs:facts_to_dict(
@@ -1676,6 +1676,10 @@ sum_amounts([{existence, _}|T], Dict, Old, Height) ->
 sum_amounts([{governance, _}|T], Dict, Old, Height) ->
     sum_amounts(T, Dict, Old, Height);
 sum_amounts([proof|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([{unmatched, {key, <<1:520>>}}|T], Dict, Old, Height) ->
+    io:fwrite("unmatched head possibly? \n"),
+    %io:fwrite({dict:fetch_keys(Dict)}),
     sum_amounts(T, Dict, Old, Height);
 sum_amounts([{empty, A}|T], Dict, Old, Height) ->
     sum_amounts(T, Dict, Old, Height);

@@ -14,6 +14,7 @@
 	 hash2blocks/1, get/4, get/2,
          all_veo/0, trees1to2/1, trees2to3/1, trees3to4/1, trees4to5/1,
          all/1,
+         vget/4,
          restore/3]).
 -include("../../records.hrl").
 
@@ -418,16 +419,20 @@ restore(Root, Fact, Meta) ->
     end,
     Out.
 vget(governance, Key) ->
-    [{gov, Key, governance:hard_coded(0, Key), 1}];
+    {gov, Key, governance:hard_coded(0, Key), 1};
 vget(TreeID, Key) ->
     TP = tx_pool:get(),
     Loc = TP#tx_pool.block_trees,
+    vget(TreeID, Key, dict:new(), Loc).
+vget(TreeID, Key, _Dict, Loc) ->
     Key2 = trees2:hash_key(TreeID, Key),
     32 = size(Key2),
-    {_, Leaves} = 
+    Leaves = 
         %trees2:get_proof([Key2], Loc, fast),
-        trees2:get_proof([{TreeID, Key}], Loc, fast),
-    Leaves.
+        %trees2:get_proof([{TreeID, Key}], Loc, fast),
+        trees2:get([{TreeID, Key}], Loc),
+    {_, V} = hd(Leaves),
+    V.
 get(TreeID, Key) ->
     H = block:height(),
     F52 = forks:get(52),
@@ -470,9 +475,9 @@ get(governance, Key, Dict, Trees) ->
 get(TreeID, Key, Dict, VP) when is_integer(VP) ->
     case TreeID:dict_get(Key, Dict) of
 	error -> 
-            hd(vget(TreeID, Key));
+            vget(TreeID, Key);
         empty ->
-            hd(vget(TreeID, Key));
+            vget(TreeID, Key);
         X -> X
     end;
 get(TreeID, Key, Dict, Trees) ->

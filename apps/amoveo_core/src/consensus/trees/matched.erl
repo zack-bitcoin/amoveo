@@ -78,7 +78,8 @@ write(E, Tree) ->
     trie:put(Key, X, 0, Tree, ?name).
 dict_get({key, Account, Oracle}, Dict) ->
     dict_get({key, Account, Oracle}, Dict, 0).
-dict_get({key, Account, Oracle}, Dict, Height) ->
+dict_get(Key = {key, Account, Oracle}, 
+         Dict, Height) ->
     true = is_binary(Account),
     %io:fwrite(Oracle),
     true = is_binary(Oracle),
@@ -86,7 +87,7 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     HS = size(Oracle),
     PS = constants:pubkey_size(),
     PS = size(Account),
-    X = dict:find({matched, {key, Account, Oracle}}, Dict),
+    X = dict:find({matched, Key}, Dict),
     B = Height > forks:get(39),
     C = if
             B -> error;
@@ -95,6 +96,7 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
+        {ok, {matched, Key}} -> empty;
         {ok, Y} -> Y
 %            SY = size(Y),
 %            case SY of

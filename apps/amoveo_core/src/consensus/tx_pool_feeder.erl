@@ -37,13 +37,15 @@ is_in(Tx, [STx2 | T]) ->
     Tx2 = signing:data(STx2),
     (Tx == Tx2) orelse (is_in(Tx, T)).
 absorb_internal(SignedTx) ->
-    %io:fwrite("tx pool feeder absorb internal\n"),
+    io:fwrite("tx pool feeder absorb internal\n"),
     Wait = case application:get_env(amoveo_core, kind) of
-	       {ok, "production"} -> 400;
-	       _ -> 400
+	       {ok, "production"} -> 2000;
+	       %_ -> 400
+	       _ -> 2000
 	   end,
     absorb_timeout(SignedTx, Wait).
 absorb_timeout(SignedTx, Wait) ->
+    io:fwrite("tx pool feeder absorb timeout\n"),
     S = self(),
     H = block:height(),
     Tx = signing:data(SignedTx),
@@ -52,6 +54,7 @@ absorb_timeout(SignedTx, Wait) ->
     Txid = hash:doit(Tx),
     PrevHash = block:hash(headers:top_with_block()),
     spawn(fun() ->
+                  io:fwrite("tx pool feeder absorb timeout b\n"),
                   absorb_internal2(SignedTx, S)
           end),
     receive
@@ -72,6 +75,7 @@ absorb_internal2(SignedTx, PID) ->
     %io:fwrite("absorb internal 2\n"),
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
+    io:fwrite("tx pool feeder absorb timeout 2\n"),
     Tx = signing:data(SignedTx),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
@@ -117,23 +121,42 @@ absorb_internal2(SignedTx, PID) ->
                     %io:fwrite(packer:pack(now())),
                     %io:fwrite("\n"),
             %OldDict = proofs:facts_to_dict(F#tx_pool.facts, dict:new()),
+                    io:fwrite("tx pool feeder absorb timeout 2 2\n"),
                     Height = block:height(),
                     {CBTX, _} = coinbase_tx:make(constants:master_pub(), F#tx_pool.block_trees),
                     Txs2 = [SignedTx|Txs],
+                    io:fwrite("tx pool feeder absorb timeout 2 3\n"),
                     Querys = proofs:txs_to_querys([CBTX|Txs2], F#tx_pool.block_trees, Height+1),
+                    io:fwrite("tx pool feeder absorb timeout 2 4\n"),
                     OldDict = lookup_merkel_proofs(F#tx_pool.dict, Querys, F#tx_pool.block_trees, Height+1),
+                    io:fwrite("tx pool feeder absorb timeout 2 5\n"),
                     MinerReward = block:miner_fees(Txs2),
+                    io:fwrite("tx pool feeder absorb timeout 2 6\n"),
                     GovFees = block:gov_fees(Txs2, OldDict, Height),
                     X = txs:digest([SignedTx], OldDict, Height+1),
                     X2 = txs:digest([CBTX, SignedTx], OldDict, Height+1),
-                    
+                    io:fwrite("tx_pool_feeder digested tx.\n"),
                     
                     MinerAccount2 = accounts:dict_update(constants:master_pub(), X2, MinerReward - GovFees, none),
                     NewDict2 = accounts:dict_write(MinerAccount2, X2),
+                    io:fwrite("tx_pool_feeder paid miner.\n"),
                     %Facts = proofs:prove(Querys, F#tx_pool.block_trees),
-                    Facts = trees2:get_proof(Querys, F#tx_pool.block_trees, fast),
-                    Dict = proofs:facts_to_dict(Facts, dict:new()),
+                    %Facts = trees2:get_proof(Querys, F#tx_pool.block_trees, fast),
+                    Facts20 = trees2:get(Querys, F#tx_pool.block_trees),%for the empty thing, instead of storing the key as {accounts, Pub}, it is just a 32 byte hash.
+                    Facts2 = lists:map(fun({Key, empty}) -> 
+                                               io:fwrite("cleaned a fact\n"),
+                                               {Key, Key};
+                                          ({Key, Value}) -> {Key, Value}
+                                       end, Facts20),
+                    
+                    io:fwrite("tx_pool_feeder got proofs.\n"),
+                    %Dict_old = proofs:facts_to_dict(Facts, dict:new()),
+                    Dict = lists:foldl(fun({Key, Value}, D) -> dict:store(Key, Value, D) end, dict:new(), Facts2),
+                    %io:fwrite({Dict, Dict2}),
+                    %io:fwrite({lists:map(fun(X) -> {X, dict:find(X, Dict)} end, dict:fetch_keys(Dict)), Facts2}),
+                    io:fwrite("tx_pool_feeder facts in a dict.\n"),
                     NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height+1),
+                    io:fwrite("no counterfeit.\n"),
                     if
                         NC > 0 -> 
                             io:fwrite("counterfeit error \n"),
@@ -141,6 +164,7 @@ absorb_internal2(SignedTx, PID) ->
                         true ->
                             %TODO, only absorb this tx if it was processed in a small enough amount of time.
                             %tx_pool:absorb_tx(X, SignedTx),
+                            io:fwrite("absorb this tx.\n"),
                             PID ! X
                     end
             end

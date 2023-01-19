@@ -10,7 +10,7 @@
          deserialize_head/1, head_put/4,
          deserialize/1,
 	 serialize_head/2,
-	 all/2,
+	 all/2, all_verkle/2,
 	 amount/1,
 	 account/1,
          oracle/1,
@@ -47,6 +47,7 @@ dict_significant_volume(Dict, OID, OIL, NewHeight) ->
             amount(Order0) > OIL
     end.
 dict_many(Dict, OID) -> 
+    %{unmatched_head, <<0:520>>, 0, CID}
     {_, Many} = dict_head_get(Dict, OID),
     Many.
 %many(Root, OID) ->
@@ -106,14 +107,18 @@ deserialize_head(X) ->
 
 dict_get({key, Account, Oracle}, Dict) ->
     dict_get({key, Account, Oracle}, Dict, 0).
-dict_get({key, Account, Oracle}, Dict, Height) ->
+dict_get(Key = {key, Account, Oracle}, Dict, Height) ->
+    case is_binary(Account) of
+        true -> ok;
+        false -> io:fwrite(Key)
+    end,
     true = is_binary(Account),
     true = is_binary(Oracle),
     HS = constants:hash_size(),
     HS = size(Oracle),
     PS = constants:pubkey_size(),
     PS = size(Account),
-    X = dict:find({unmatched, {key, Account, Oracle}}, Dict),
+    X = dict:find({unmatched, Key}, Dict),
     B = Height > forks:get(39),
     C = if
             B -> error;
@@ -122,6 +127,7 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
+        {ok, {unmatched, Key}} -> empty;
         {ok, Y} -> Y
 %            SY = size(Y),
 %            case SY of
@@ -187,10 +193,29 @@ dict_head_get(Dict, OID) ->
     Key = {key, <<?Header:PS>>, OID},
     X = dict:fetch({unmatched, Key}, Dict),
     case X of
-        0 -> {<<?Null:PS>>, 0};
-        _ ->
-            deserialize_head(X)
+%        0 -> 
+%            1=2, %this seems like an error? does storing a 0 imply it is empty? 
+%            {<<?Null:PS>>, 0};
+        {unmatched, {key, _, _}} -> {<<?Null:PS>>, 0};
+        {unmatched_head, Head, Many, OID} ->
+            {Head, Many};
+        _ -> X
+            %deserialize_head(X)
     end.
+verkle_head_get(Trees, OID) ->
+    Key = {key, <<?Header:(33*8)>>, OID},
+    Order = trees:vget(unmatched, Key, 
+                          dict:new(), Trees),
+    case Order of
+        {unmatched, {key, _, _}} -> empty;
+        {unmatched_head, Head, Many, OID} -> 
+            {Head, Many};
+        empty -> empty;
+        Order ->
+            io:fwrite({Order}),
+            ok
+    end.
+    
 head_get(Root, OID) ->
     false = Root == 0,
     PS = constants:pubkey_size() * 8,
@@ -213,17 +238,40 @@ dict_many_update(Many, OID, Dict) ->
     {Head, _} = dict_head_get(Dict, OID),
     dict_head_put(Head, Many, OID, Dict).
 dict_head_put(Head, Many, OID, Dict) ->
-    Y = serialize_head(Head, Many),
+    %Y = serialize_head(Head, Many),
     PS = constants:pubkey_size() * 8,
+    %Key = {key, <<?Header:PS>>},
     Key = {key, <<?Header:PS>>, OID},
     dict:store({unmatched, Key},
-               Y,
+               {unmatched_head, Head, Many, OID},
                Dict).
 head_put(Head, Many, OID, Root) ->
     PS = constants:pubkey_size() * 8,
     Y = serialize_head(Head, Many),
     ID = key_to_int({key, <<?Header:PS>>, OID}),
     trie:put(ID, Y, 0, Root, ?name).
+all_verkle(Trees, OID) ->
+    case verkle_head_get(Trees, OID) of
+        empty -> [];
+        {Head, Many} ->
+            %head is 65 byte pointer, many is int.
+            %io:fwrite({Head, Many}),
+            all_verkle2(Head, Trees, OID)
+    end.
+all_verkle2(X, Trees, OID) ->
+    %todo, implementing this.
+    PS = constants:pubkey_size() * 8,
+    case X of
+        <<?Null:PS>> -> [<<?Header:PS>>];
+	Pub ->
+            Order = trees:vget(
+                         unmatched,
+                         {key, Pub, OID}, 
+                         dict:new(), Trees),
+            io:fwrite({Pub, OID, Order}),
+            [Pub, all_verkle2(Order#unmatched.pointer, Trees, OID)]
+    end.
+    
 all(Root, OID) ->%pubkeys of everyone who made bets.
     case head_get(Root, OID) of
         empty -> [];
@@ -306,6 +354,10 @@ dict_match(Order, OID, Dict, Height) ->
     %Match1 is unmatched that are still open.
     %Match2 is unmatched that are already closed. We need to pay them their winnings.
     {Head, Many} = dict_head_get(Dict, OID),
+    if
+        is_atom(Head) -> io:fwrite({Head, Many});
+        true -> ok
+    end,
     {Switch, Dict2, Matches1, Matches2} = 
         dict_match2(Order, OID, Dict, Head, [], [], Height),
     {Many2, Switch2} = 
@@ -317,6 +369,7 @@ dict_match(Order, OID, Dict, Height) ->
     Dict3 = dict_many_update(Many2, OID, Dict2),
     {Matches1, Matches2, Switch2, Dict3}.
 dict_match2(Order, OID, Dict, T, Matches1, Matches2, Height) ->
+    false = is_atom(T),
     PS = constants:pubkey_size() * 8,
     case T of
         <<?Null:PS>> ->

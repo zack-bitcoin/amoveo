@@ -127,15 +127,11 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash) ->
     Leaves = 
         lists:map(
           fun(Key) -> 
-                  {V, _Meta} = 
-                      dict:fetch(Key, Dict),
-                  case Key of
-                      {accounts, Pub} ->
-                          %accounts:deserialize(V);
-                          V;
-                      _ -> io:fwrite({Key, V}),
-                           1=2
-                  end
+                  V = case dict:fetch(Key, Dict) of
+                          {V2, _Meta}  -> V2;
+                          V3 -> V3
+                      end,
+                  V
           end, Keys),
     Trees3 = case ProofTree of
                  unknown -> 

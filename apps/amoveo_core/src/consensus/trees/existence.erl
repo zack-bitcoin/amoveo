@@ -38,6 +38,7 @@ dict_get(Hash, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
+        {ok, {existence, Hash}} -> empty;
         %{ok, Y} -> deserialize(Y)
         {ok, Y} -> Y
     end.

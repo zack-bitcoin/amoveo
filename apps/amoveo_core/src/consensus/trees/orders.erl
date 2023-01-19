@@ -98,6 +98,7 @@ dict_get(Key, Dict) ->%
     X = dict:fetch({orders, Key}, Dict),%
     case X of%
         0 -> empty;%
+        {orders, Key} -> empty;
         %_ -> deserialize(X)%
         _ -> X%
     end.%

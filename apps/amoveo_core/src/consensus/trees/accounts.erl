@@ -2,7 +2,7 @@
 -export([bets/1, update_bets/2, new/2,%custom for this tree
          write/2, get/2, delete/2,%update tree stuff
          dict_update/4, dict_update/5, dict_get/2, dict_get/3, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
-	 meta_get/1, dict_empty/2,
+	 meta_get/1, 
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0, deserialize/1, all_accounts/0]).%common tree stuff
 -define(id, accounts).
 -include("../../records.hrl").
@@ -43,9 +43,6 @@ update_bets(Account, Bets) ->
                 bets_hash = oracle_bets:root_hash(Bets)}.
 key_to_int(X) ->
     trees:hash2int(ensure_decoded_hashed(X)).
-dict_empty(Key, Dict) ->
-    {ok, {accounts, Key}} = dict:find({accounts, Key}, Dict),
-    empty.
 dict_get(Key, Dict) ->
     dict_get(Key, Dict, 0).
 dict_get(Key, Dict, Height) ->
@@ -61,7 +58,6 @@ dict_get(Key, Dict, Height) ->
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
         {ok, {accounts, Key}} -> 
-            io:fwrite("new empty case\n"),
             empty;
         {ok, {Y, Meta}} -> 
             Y2 = dict_get_helper(Y),

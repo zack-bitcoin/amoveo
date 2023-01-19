@@ -49,7 +49,19 @@ int_to_tree(17) -> stablecoins.
 
 leaf_type2tree(empty) -> empty;
 leaf_type2tree(accounts) -> accounts;
-leaf_type2tree(acc) -> accounts.
+leaf_type2tree(acc) -> accounts;
+leaf_type2tree(oracle) -> oracles;
+leaf_type2tree(oracles) -> oracles;
+leaf_type2tree(unmatched) -> unmatched;
+leaf_type2tree(matched) -> matched;
+leaf_type2tree(sub_acc) -> sub_accounts;
+leaf_type2tree(sub_accounts) -> sub_accounts;
+leaf_type2tree(multi_tx) -> multi_tx;
+leaf_type2tree(contracts) -> contracts;
+leaf_type2tree(trades) -> trades;
+leaf_type2tree(markets) -> markets;
+leaf_type2tree(receipts) -> receipts;
+leaf_type2tree(stablecoins) -> stablecoins.
 
     
 
@@ -1058,6 +1070,10 @@ test() ->
     Q2 = txs_to_querys2(Txs, Trees, 1),
     prove(Q2, Trees),
     success.
+oracle_type_get(Trees, OID, Height) 
+  when is_integer(Trees) ->    
+    %the version for verkle trees.
+    ?n2i(oracle_question_liquidity);
 oracle_type_get(Trees, OID, Height) ->    
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),

@@ -1,5 +1,5 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -39,6 +39,7 @@ type2int(acc) -> 1;
 type2int(oracle) -> 3;
 type2int(matched) -> 4;
 type2int(unmatched) -> 5;
+type2int(unmatched_head) -> 5;
 type2int(sub_acc) -> 6;
 type2int(contract) -> 7;
 type2int(trade) -> 8;
@@ -103,13 +104,23 @@ hash_key(accounts, Pub) ->
     key(#acc{pubkey = Pub});
 hash_key(oracles, X) ->
     key(#oracle{id = X});
+hash_key(unmatched, {key, Account, OID}) ->
+    key(#unmatched{
+           account = Account, oracle = OID});
+hash_key(matched, {key, Account, OID}) ->
+    key(#matched{
+           account = Account, oracle = OID});
+%hash_key(contracts, X) ->
+%    io:fwrite({X});
 hash_key(N, X) -> 
     io:fwrite("hash key type "),
-    io:fwrite(N),
+    io:fwrite({N, X}),
     io:fwrite("\n"),
+    1=2,
     X.
 
-key({empty, K}) -> K;
+key({Tree, K}) ->
+    hash_key(Tree, K);
 key(#acc{pubkey = Pub}) ->
     %hash of the pubkey.
     PubkeySize = constants:pubkey_size(),
@@ -124,30 +135,53 @@ key(#oracle{id = X}) ->
     hash:doit(<<X/binary, 0>>);
 key(#matched{account = A, oracle = B}) ->
     A2 = compress_pub(A),
-    hash:doit(<<A2/binary, B/binary, 0>>);
-key(#unmatched{account = A, oracle = B}) ->
-    A2 = compress_pub(A),
     hash:doit(<<A2/binary, B/binary, 1>>);
+%key(#unmatched{account = <<1:520>>, oracle = B}) ->
+    %it is the header of the linked list.
+    %it remembers a pointer to the start of the list, and it knows how long the list is.
+%    hash:doit(<<B/binary, 2>>);
+key({unmatched_head, Head, Many, OID}) ->
+    A2 = compress_pub(Head),
+    hash:doit(<<A2/binary, OID/binary, 1>>);
+key(#unmatched{account = A, oracle = B}) ->
+    A2 = compress_pub(A),%error here when we are storing the head. see unmatched:serialize_head
+    %the problem is that we previously stored the "
+    hash:doit(<<A2/binary, B/binary, 3>>);
 key(#sub_acc{pubkey = P, type = T, 
              contract_id = CID}) ->
     P2 = compress_pub(P),
-    hash:doit(<<P2/binary, CID/binary, T:16>>);
+    hash:doit(<<P2/binary, CID/binary, T:16, 4>>);
 key(#contract{code = C, many_types = MT, 
               source = S, source_type = ST}) ->
-    hash:doit(<<C/binary, S/binary, MT:16, ST:16, 1>>);
+    hash:doit(<<C/binary, S/binary, MT:16, ST:16, 5>>);
 key(#trade{value = V}) -> 
-    hash:doit(<<V/binary, 1>>);
+    hash:doit(<<V/binary, 6>>);
 key(#market{id = X}) -> 
-    hash:doit(<<X/binary, 2>>);
+    hash:doit(<<X/binary, 7>>);
 key(#receipt{id = X}) -> 
-    hash:doit(<<X/binary, 3>>).
+    hash:doit(<<X/binary, 8>>);
+key({unmatched_head, Head, Many, OID}) -> 
+    hash:doit(<<OID/binary, 9>>).
 
 
+compress_pub(<<1:264>>) ->
+    <<1:264>>;
+compress_pub(<<1:520>>) ->
+    <<1:264>>;
+compress_pub(<<0:520>>) ->
+    <<0:264>>;
+compress_pub(<<0:264>>) ->
+    <<0:264>>;
 compress_pub(<<4, X:256, Y:256>>) ->
     Positive = Y rem 2,
     <<(6 + Positive), X:256>>;
 compress_pub(<<4, X:256>>) ->
-    <<4, X:256>>.
+    1=2,
+    <<4, X:256>>;
+compress_pub(X) ->
+    io:fwrite({X}),
+    ok.
+
 
 det_pow(A, 1) -> A;
 det_pow(A, B) when B rem 2 == 0 -> 
@@ -160,6 +194,10 @@ det_pow_mod(A, B, P) when B rem 2 == 0->
     det_pow_mod(A*A rem P, B div 2, P);
 det_pow_mod(A, B, P) -> 
     (A*det_pow_mod(A, B-1, P)) rem P.
+decompress_pub(<<0:264>>) ->
+    <<0:520>>;
+decompress_pub(<<1:264>>) ->
+    <<1:520>>;
 decompress_pub(<<A, X:256>>) ->
     %y^2 = x^3 + 7
     %P = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
@@ -218,10 +256,15 @@ serialize(
  #unmatched{account = A, oracle = O, amount = M, 
             pointer = P}) ->
     A2 = compress_pub(A),
+    P2 = compress_pub(P),
     32 = size(O),
     65 = size(P),
-    <<A2/binary, O/binary, M:64, P/binary>>; 
-%33 + 32 +8 + 65 = 41 + 64 + 33 = 138
+    <<A2/binary, O/binary, M:64, P2/binary>>; 
+%33 + 32 +8 + 33 = 66 + 40 = 106
+serialize({unmatched_head, Head, Many, OID}) ->
+    Head2 = compress_pub(Head),
+    <<Head2/binary, 0:(33*8), Many:64, OID/binary>>;
+%33 + 8 + 32 + 33 = 106
 serialize(
  #sub_acc{balance = B, nonce = N, pubkey = P, 
           contract_id = CID, type = T}) ->
@@ -286,10 +329,14 @@ deserialize(4, <<A:264, O:256, T:64, F:64, B:64>>) ->
     A2 = decompress_pub(<<A:264>>),
     #matched{account = A2, oracle = <<O:256>>, 
              true = T, false = F, bad = B};
-deserialize(5, <<A:264, O:256, Am:64, P:256>>) ->
+deserialize(5, <<Head:264, 0:(33*8), Many:64, OID:256>>) ->
+    A2 = decompress_pub(<<Head:264>>),
+    {unmatched_head, A2, Many, <<OID:256>>};
+deserialize(5, <<A:264, O:256, Am:64, P:264>>) ->
     A2 = decompress_pub(<<A:264>>),
+    P2 = decompress_pub(<<P:264>>),
     #unmatched{account = A2, oracle = <<O:256>>,
-               amount = Am, pointer = <<P:256>>};
+               amount = Am, pointer = P2};
 deserialize(6, <<B:64, N:32, T:32, P:264, CID:256>>) 
 ->
     P2 = decompress_pub(<<P:264>>),
@@ -339,6 +386,13 @@ strip_tree_info([H|T], R, D) ->
     strip_tree_info(T, [H|R], D).
 
 
+ordered_remove_repeats([]) -> [];
+ordered_remove_repeats([X]) -> [X];
+ordered_remove_repeats([A,A|T]) -> 
+    ordered_remove_repeats([A|T]);
+ordered_remove_repeats([A|T]) -> 
+    [A|ordered_remove_repeats(T)].
+
 remove_repeats([]) ->
     [];
 remove_repeats([H|T]) ->
@@ -351,6 +405,30 @@ is_in(X, []) -> false;
 is_in(X, [X|_]) -> true;
 is_in(X, [_|T]) -> 
     is_in(X, T).
+   
+get(Keys, Loc) -> 
+    CFG = tree:cfg(amoveo),
+    {Keys3, TreesDict} = 
+        strip_tree_info(Keys, [], dict:new()),%this is where we lose the tree info. it also hashes the keys.
+    Keys4 = depth_order(Keys3),
+    Keys5 = ordered_remove_repeats(Keys4),
+    L = get_verkle:unverified(
+          Keys5, Loc, CFG), 
+    lists:map(fun({Key, Leaf}) ->
+                      case Leaf of
+                          0 -> 
+                              UnhashedKey = 
+                                  dict:fetch(Key, TreesDict),
+                              {UnhashedKey, empty};
+                          _ ->
+                              {leaf, Key2, _, <<T,DL:56>>} = Leaf,
+                              %it is weird that Key isn't the same as Key2.
+                              UnhashedKey = 
+                                  dict:fetch(Key, TreesDict),
+                              {UnhashedKey, dump_get(T, DL)}
+                      end
+              end, L).
+            
     
     
 get_proof(Keys, Loc) ->
@@ -364,13 +442,6 @@ get_proof(Keys0, Loc, Type) ->
         fast -> ok;
         small -> ok
     end,
-    lists:map(fun(X) -> 
-                      S = size(X), 
-                      if
-                          (32 == S) -> ok;
-                          true -> io:fwrite({Type, X, size(X)}) 
-                      end
-              end, Keys),
     {Proof, MetasDict} =
         get_verkle:batch(Keys, Loc, CFG, Type),
     %io:fwrite({Proof}),
@@ -402,9 +473,7 @@ get_proof(Keys0, Loc, Type) ->
                               error ->
                                   {EmptyTree, UK} = 
                                       dict:fetch(K, TreesDict),
-                                  %io:fwrite({EmptyTree, Keys0}),
-                                  %{empty, K}
-                                  true = is_binary(UK),
+                                  %UK is the unhashed version of the key.
                                   {EmptyTree, UK}
                           end
                   end, Keys30),
@@ -479,14 +548,15 @@ remove_leaves_proof(N) when is_integer(N) -> N.
 restore_leaves_proof([], T) -> {[], T};
 restore_leaves_proof([{I, 0}], T) -> 
     {[{I, 0}], T};
-restore_leaves_proof(X, [{empty, K}|T]) -> 
+restore_leaves_proof(X, [{Tree, K}|T]) -> 
+    %skip empty slot.
     restore_leaves_proof(X, T);
 restore_leaves_proof([{I, 1}], [L|T]) -> 
-    K = key(L),
     case L of
-        {empty, _} -> {[{I, 0}], T};
+        {Tree, Key} -> {[{I, 0}], T};
         _ -> 
             V = hash:doit(serialize(L)),
+            K = key(L),
             {[{I, {K, V}}], T}
     end;
 restore_leaves_proof(Proofs, Leaves) 
@@ -552,7 +622,7 @@ verify_proof(Proof0, Things) ->
     Hs = lists:map(
            fun(A) -> 
                    case A of
-                       {empty, _} -> 0;
+                       {_, _} -> 0;
                        _ ->
                            hash:doit(
                              serialize(A))

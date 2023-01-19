@@ -181,6 +181,7 @@ dict_get(ID, Dict, Height) ->
 	error -> C;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
+        {ok, {oracles, _}} -> empty;
         {ok, {Y, Meta}} ->
             %Y2 = deserialize(Y),
             Y2 = Y,

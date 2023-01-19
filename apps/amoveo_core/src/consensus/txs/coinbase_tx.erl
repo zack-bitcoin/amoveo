@@ -30,7 +30,6 @@ go(Tx, Dict, NewHeight) ->
             F49 -> DeveloperReward0 + 4958336858 + (50 * 60657);
             _ -> DeveloperReward0
         end,
-    F52 = forks:get(52),
     MP = constants:master_pub(),
     M = accounts:dict_update(
           MP, Dict2, DeveloperReward, none),

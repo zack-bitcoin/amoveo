@@ -4,7 +4,7 @@
          %dict_update/9, 
          dict_delete/2, dict_write/3, dict_get/2,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
-	 deserialize/1, serialize/1, 
+	 deserialize/1, serialize/1,  dict_empty/2,
          make_id/1,make_id/4,
          det_sqrt/1,
 	 all/0,
@@ -116,6 +116,10 @@ write(X, Root) ->
     trie:put(key_to_int(ID), M, 0, Root, markets).
 key_to_int(<<X:256>>) -> X.
 
+dict_empty(Key, Dict) ->
+    {ok, {markets, Key}} =
+        dict:find({markets, Key}, Dict),
+    empty.
 dict_get(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({markets, Key}, Dict),
@@ -123,6 +127,7 @@ dict_get(Key, Dict) ->
         error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
+        {ok, {markets, Key}} -> empty;
         {ok, Y} -> Y
 %            SY = size(Y),
 %            case SY of

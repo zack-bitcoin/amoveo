@@ -87,13 +87,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             ID = id_generator(Tx);
         true -> ok
     end,
-    F52 = forks:get(52) > NewHeight,
-    if
-        F52 ->
-            empty = oracles:dict_get(ID, Dict, NewHeight);
-        true ->
-            1=2
-    end,
+    empty = oracles:dict_get(ID, Dict, NewHeight),
     Gov = Tx#oracle_new.governance,
     GovAmount = Tx#oracle_new.governance_amount,
     GCL = governance:dict_get_value(governance_change_limit, Dict, NewHeight),

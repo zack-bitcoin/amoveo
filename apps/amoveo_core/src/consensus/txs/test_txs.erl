@@ -526,9 +526,14 @@ test(11) ->
     %Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
     Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 50000000), 
     Stx20 = signing:sign_tx(Tx20, Pub, Priv),
+    io:fwrite("try pack/unpack\n"),
+    Stx20 = packer:unpack(packer:pack(Stx20)),
+    io:fwrite("succeed pack/unpack\n"),
     absorb(Stx20),
     1 = many_txs(),
+    io:fwrite("tx absorbed, next mining a block\n"),
     mine_blocks(1),
+    io:fwrite("block mined\n"),
     true = 2 == (trees:get(oracles, OID))#oracle.type,
     io:fwrite("test 11 4\n"),
 
@@ -4110,8 +4115,34 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10000),
-    timer:sleep(1000),
+    wait_till_next_block(Height, 100),
     mine_blocks(Many-1).
+wait_till_mineable(_, 0) ->
+    io:fwrite("failed to create a potential block"),
+    1=2,
+    ok;
+wait_till_mineable(Height, N) ->
+    PB = block:get_by_height(Height),
+    case PB of
+        empty ->
+            timer:sleep(50),
+            wait_till_mineable(Height, N-1);
+        _ -> ok
+    end.
+wait_till_next_block(_Height, 0) ->
+    io:fwrite("failed to mine a block"),
+    1=2,
+    ok;
+wait_till_next_block(Height, N) ->
+    %H2 = block:height(),
+    TP = tx_pool:get(),
+    H2 = TP#tx_pool.height,
+    if
+        H2 > Height -> wait_till_mineable(H2, 100);
+        true ->
+            timer:sleep(50),
+            wait_till_next_block(Height, N-1)
+    end.
 
 test24(I) ->
     %set forks:get(10) to 6 for this test.

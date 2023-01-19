@@ -154,7 +154,6 @@ make_id(C,MT,S,ST) ->
                 MT:16,
                 ST:16>>).
     
-
 dict_get(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({contracts, Key}, Dict),
@@ -163,6 +162,7 @@ dict_get(Key, Dict) ->
 	%error -> empty;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
+        {ok, {contracts, Key}} -> empty;
         {ok, Y} -> Y
 %            SY = size(Y),
 %            case SY of
