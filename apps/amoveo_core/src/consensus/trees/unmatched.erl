@@ -193,17 +193,25 @@ dict_head_get(Dict, OID) ->
     Key = {key, <<?Header:PS>>, OID},
     X = dict:fetch({unmatched, Key}, Dict),
     case X of
-%        0 -> 
-%            1=2, %this seems like an error? does storing a 0 imply it is empty? 
-%            {<<?Null:PS>>, 0};
-        {unmatched, {key, _, _}} -> {<<?Null:PS>>, 0};
+        %0 -> 
+        %    io:fwrite({dict:fetch_keys(Dict)}),
+            %io:fwrite({Key, X}),
+            %1=2, %this seems like an error? does storing a 0 imply it is empty? 
+        %    {<<?Null:PS>>, 0};
+            %empty;
+        {unmatched, {key, _, _}} -> 
+            {<<?Null:PS>>, 0};
         {unmatched_head, Head, Many, OID} ->
             {Head, Many};
-        _ -> X
+        _ -> 
+            io:fwrite("unmatched \n"),
+            io:fwrite({X}),
+            X
             %deserialize_head(X)
     end.
 verkle_head_get(Trees, OID) ->
-    Key = {key, <<?Header:(33*8)>>, OID},
+    %Key = {key, <<?Header:(33*8)>>, OID},
+    Key = {key, <<?Header:(65*8)>>, OID},
     Order = trees:vget(unmatched, Key, 
                           dict:new(), Trees),
     case Order of
@@ -251,6 +259,7 @@ head_put(Head, Many, OID, Root) ->
     ID = key_to_int({key, <<?Header:PS>>, OID}),
     trie:put(ID, Y, 0, Root, ?name).
 all_verkle(Trees, OID) ->
+    io:fwrite("unmatched all verkle\n"),
     case verkle_head_get(Trees, OID) of
         empty -> [];
         {Head, Many} ->
@@ -260,9 +269,11 @@ all_verkle(Trees, OID) ->
     end.
 all_verkle2(X, Trees, OID) ->
     %todo, implementing this.
+    io:fwrite("unmatched all verkle 2\n"),
     PS = constants:pubkey_size() * 8,
     case X of
-        <<?Null:PS>> -> [<<?Header:PS>>];
+        %<<?Null:PS>> -> [<<?Header:PS>>];
+        <<?Null:PS>> -> [];
 	Pub ->
             Order = trees:vget(
                          unmatched,

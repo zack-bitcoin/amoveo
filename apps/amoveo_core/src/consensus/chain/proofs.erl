@@ -53,6 +53,7 @@ leaf_type2tree(acc) -> accounts;
 leaf_type2tree(oracle) -> oracles;
 leaf_type2tree(oracles) -> oracles;
 leaf_type2tree(unmatched) -> unmatched;
+leaf_type2tree(unmatched_head) -> unmatched;
 leaf_type2tree(matched) -> matched;
 leaf_type2tree(sub_acc) -> sub_accounts;
 leaf_type2tree(sub_accounts) -> sub_accounts;
@@ -220,6 +221,9 @@ dict_key(#matched{account = A, oracle = O}) ->
     {key, A, O};
 dict_key(#unmatched{account = A, oracle = O}) -> 
     {key, A, O};
+dict_key({unmatched_head, Pointer, 
+          Many, Oracle}) -> 
+    {key, <<1:520>>, Oracle};
 dict_key(#sub_acc{pubkey = P, contract_id = CID, 
                   type = T}) -> 
     sub_accounts:make_key(P, CID, T);
@@ -436,7 +440,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                     make_orders(Pubkeys, OID, F10),
 		U = if%
 			F10 -> {unmatched, #key{pub = <<?Header:PS>>, id = OID}};
-		    true -> {orders, #key{pub = <<?Header:PS>>, id = OID}}%
+                        true -> {orders, #key{pub = <<?Header:PS>>, id = OID}}%
 		    end,%
                 OTG = oracle_type_get(Trees, OID, Height),
 		[

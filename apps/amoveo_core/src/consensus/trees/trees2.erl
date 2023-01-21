@@ -105,6 +105,8 @@ hash_key(accounts, Pub) ->
 hash_key(oracles, X) ->
     key(#oracle{id = X});
 hash_key(unmatched, {key, Account, OID}) ->
+    %false = (Account == <<1:264>>),
+    %false = (Account == <<1:520>>),
     key(#unmatched{
            account = Account, oracle = OID});
 hash_key(matched, {key, Account, OID}) ->
@@ -123,12 +125,8 @@ key({Tree, K}) ->
     hash_key(Tree, K);
 key(#acc{pubkey = Pub}) ->
     %hash of the pubkey.
-    PubkeySize = constants:pubkey_size(),
-    case size(Pub) of
-        PubkeySize ->
-            hash:doit(compress_pub(Pub));
-        33 -> hash:doit(Pub)
-    end;
+    Pub2 = compress_pub(Pub),
+    hash:doit(Pub2);
 %key(#exist{hash = X}) ->
 %    hash:doit(X);
 key(#oracle{id = X}) ->
@@ -141,11 +139,21 @@ key(#matched{account = A, oracle = B}) ->
     %it remembers a pointer to the start of the list, and it knows how long the list is.
 %    hash:doit(<<B/binary, 2>>);
 key({unmatched_head, Head, Many, OID}) ->
-    A2 = compress_pub(Head),
-    hash:doit(<<A2/binary, OID/binary, 1>>);
-key(#unmatched{account = A, oracle = B}) ->
+    %A2 = compress_pub(Head),
+    %<<X:264>> = A2,
+    %io:fwrite(integer_to_list(X)),
+    %io:fwrite("\n"),
+    %A2 = <<1:264>>,
+    hash:doit(<<OID/binary, 2>>);
+%key({unmatched_head, Head, Many, OID}) -> 
+%    hash:doit(<<OID/binary, 9>>);
+key(K = #unmatched{account = <<1:520>>, 
+                   oracle = B}) ->
+    hash:doit(<<B/binary, 2>>);
+key(K = #unmatched{account = A, oracle = B}) ->
     A2 = compress_pub(A),%error here when we are storing the head. see unmatched:serialize_head
-    %the problem is that we previously stored the "
+    false = (A2 == <<0:264>>),
+    false = (A2 == <<1:264>>),
     hash:doit(<<A2/binary, B/binary, 3>>);
 key(#sub_acc{pubkey = P, type = T, 
              contract_id = CID}) ->
@@ -159,9 +167,7 @@ key(#trade{value = V}) ->
 key(#market{id = X}) -> 
     hash:doit(<<X/binary, 7>>);
 key(#receipt{id = X}) -> 
-    hash:doit(<<X/binary, 8>>);
-key({unmatched_head, Head, Many, OID}) -> 
-    hash:doit(<<OID/binary, 9>>).
+    hash:doit(<<X/binary, 8>>).
 
 
 compress_pub(<<1:264>>) ->
@@ -235,16 +241,18 @@ serialize(
 serialize(
   #oracle{id = ID, result = Result, question = Q,
           starts = S, type = T, creator = C, 
-          done_timer = D
+          done_timer = D, orders_hash = OH
          }) ->
+    % orders, orders_hash, f
     %io:fwrite("serialize oracle\n"),
     32 = size(ID),
     32 = size(Q),
+    32 = size(OH),
     C2 = compress_pub(C),
     <<ID/binary, Result, T, %32 + 1 + 1
       S:32, D:32, C2/binary,  %4 + 4 + 33
-      Q/binary>>; %32
-%64 + 10 + 33 = 107
+      Q/binary, OH/binary>>; %64
+%64 + 10 + 33 + 32 = 139
 serialize(
  #matched{account = A, oracle = O, true = T, 
           false = F, bad = B}) ->
@@ -258,12 +266,13 @@ serialize(
     A2 = compress_pub(A),
     P2 = compress_pub(P),
     32 = size(O),
+    false = (oracle == <<0:256>>),
     65 = size(P),
     <<A2/binary, O/binary, M:64, P2/binary>>; 
 %33 + 32 +8 + 33 = 66 + 40 = 106
 serialize({unmatched_head, Head, Many, OID}) ->
     Head2 = compress_pub(Head),
-    <<Head2/binary, 0:(33*8), Many:64, OID/binary>>;
+    <<0:264, OID/binary, Many:64, Head2/binary>>;
 %33 + 8 + 32 + 33 = 106
 serialize(
  #sub_acc{balance = B, nonce = N, pubkey = P, 
@@ -320,19 +329,22 @@ deserialize(1,
 %deserialize(2, <<E:32, A:256>>) ->
 %    #exist{hash = <<A:256>>, height = E};
 deserialize(3, <<ID:256, Result, T, S:32, D:32,
-                 C2:264, Q:256>>) ->
+                 C2:264, Q:256, OH:256>>) ->
     C = decompress_pub(<<C2:264>>),
     #oracle{id = <<ID:256>>, result = Result,
             question = <<Q:256>>, starts = S,
-            type = T, creator = C, done_timer = D};
+            type = T, creator = C, done_timer = D,
+            orders_hash = <<OH:256>>, orders = 1};
 deserialize(4, <<A:264, O:256, T:64, F:64, B:64>>) ->
     A2 = decompress_pub(<<A:264>>),
     #matched{account = A2, oracle = <<O:256>>, 
              true = T, false = F, bad = B};
-deserialize(5, <<Head:264, 0:(33*8), Many:64, OID:256>>) ->
+deserialize(5, <<0:264, OID:256, Many:64, Head:264>>) ->
+    io:fwrite("deserialize_head in trees2\n"),
     A2 = decompress_pub(<<Head:264>>),
     {unmatched_head, A2, Many, <<OID:256>>};
 deserialize(5, <<A:264, O:256, Am:64, P:264>>) ->
+    io:fwrite("deserialize unmatched in trees2\n"),
     A2 = decompress_pub(<<A:264>>),
     P2 = decompress_pub(<<P:264>>),
     #unmatched{account = A2, oracle = <<O:256>>,
@@ -423,6 +435,11 @@ get(Keys, Loc) ->
                           _ ->
                               {leaf, Key2, _, <<T,DL:56>>} = Leaf,
                               %it is weird that Key isn't the same as Key2.
+                              if
+                                  not(Key == Key2) ->
+                                      io:fwrite({Key, Key2});
+                                  true -> ok
+                              end,
                               UnhashedKey = 
                                   dict:fetch(Key, TreesDict),
                               {UnhashedKey, dump_get(T, DL)}
@@ -622,7 +639,13 @@ verify_proof(Proof0, Things) ->
     Hs = lists:map(
            fun(A) -> 
                    case A of
-                       {_, _} -> 0;
+                       {Foo, _Bar} -> 
+                           if
+                               (is_atom(Foo)) ->
+                                   0;
+                               true ->
+                                   hash:doit(serialize(A))
+                           end;
                        _ ->
                            hash:doit(
                              serialize(A))

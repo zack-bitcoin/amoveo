@@ -300,6 +300,24 @@ governance_packer(L, DB) ->
     
  
 trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
+    %io:fwrite("trees maker "),
+    %io:fwrite(integer_to_list(HeightCheck)),
+    DEls = dict:fetch_keys(NewDict4),
+    %io:fwrite(" "),
+    %io:fwrite(integer_to_list(length(DEls))),
+    %io:fwrite("\n"),
+    if
+        true -> ok;
+        (HeightCheck > 10) and ((length(DEls) > 1)) ->
+            %the same thing is being stored twice, once as {unmatched {key, _, _}}, and once as {unmatched_head, A, Many, OID}
+            io:fwrite({lists:map(
+                         fun(X) ->
+                                 {X, dict:fetch(X, NewDict4)}
+                         end, dict:fetch_keys(NewDict4)), ProofTree}),
+            1=2,
+            ok;
+        true -> ok
+    end,
     NewTrees0 = 
         tree_data:dict_update_trie(
           Trees, NewDict4, HeightCheck, ProofTree, RootHash),
@@ -406,6 +424,11 @@ make(Header, Txs0, Trees, Pub) ->
 %       true -> ok end,
     Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
     Facts = proofs:prove(Querys, Trees),
+    if
+        true -> ok;
+        (Height == 10) and (1 == length(Txs0)) -> io:fwrite({Querys, facts, Facts});
+        true -> ok
+    end,
     Dict = proofs:facts_to_dict(Facts, dict:new()),
 %    if
 %        Height == 2 ->
@@ -492,7 +515,16 @@ make(Header, Txs0, Trees, Pub) ->
 		   many_oracles = OldBlock#block.many_oracles + many_new_oracles(Txs0),
 		   live_oracles = OldBlock#block.live_oracles + many_live_oracles(Txs0)
 		  },
+    if
+        true -> ok;
+        (Height == 10) -> io:fwrite(Facts);
+        true -> ok
+    end,
+    %io:fwrite("pack unpack check start 0\n"),
+    Facts = packer:unpack(packer:pack(Facts)),
+    %io:fwrite("pack unpack check start 1\n"),
     Block = packer:unpack(packer:pack(Block)),%maybe this is unnecessary?
+    %io:fwrite("pack unpack check done \n"),
     %_Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
 make_roots(Trees) when (element(1, Trees) == trees) ->%

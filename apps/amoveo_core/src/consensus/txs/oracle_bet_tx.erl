@@ -16,8 +16,8 @@
 %There is a maximum number of orders that can be stored in the order book at a time.
 %If your order isn't big enough to be in the order book, you cannot buy shares of the type that are stored in the order book.
 to_prove(OID, Trees) when is_integer(Trees) ->
-    X = 8*65,
-    Head = trees:get(unmatched, {key, <<1:X>>, OID}, dict:new(), Trees),
+    %X = 8*65,
+    %Head = trees:get(unmatched, {key, <<1:X>>, OID}, dict:new(), Trees),
     %Head = unmatched:get({key, <<1:X>>, OID}, Trees),
     unmatched:all_verkle(Trees, OID);
 to_prove(OID, Trees) when (element(1, Trees) == trees) ->%
@@ -115,7 +115,7 @@ time_now() ->
     io:fwrite(integer_to_list(Z)),
     io:fwrite("\n").
 go(Tx, Dict, NewHeight, NonceCheck) ->
-    io:fwrite("running an oracle bet tx\n"),
+    %io:fwrite("running an oracle bet tx\n"),
     
     From = Tx#oracle_bet.from,
     %txs:developer_lock(From, NewHeight, Dict),
@@ -133,7 +133,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     0 = Oracle#oracle.result,%check that the oracle isn't already closed.
     go2(Tx, Dict2, NewHeight).
 go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close the oracle we want to insert one last bet.
-    io:fwrite("running an oracle bet tx 2\n"),
+    %io:fwrite("running an oracle bet tx 2\n"),
     From = Tx#oracle_bet.from,
     OID = Tx#oracle_bet.id,
     Oracle0 = oracles:dict_get(OID, Dict, NewHeight),
@@ -171,7 +171,7 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
     Amount = Tx#oracle_bet.amount,
     true = Amount > 0,
     NewOrder = UMT:new(Tx#oracle_bet.from, OID, Amount),
-    io:fwrite("running an oracle bet tx 3\n"),
+    %io:fwrite("running an oracle bet tx 3\n"),
     Out = 
         if
 	TxType == OracleType ->
@@ -213,7 +213,7 @@ go2(Tx, Dict, NewHeight) -> %doit is split into two pieces because when we close
                           end,
                 oracles:dict_write(Oracle3, Dict4)
         end,
-    io:fwrite("running an oracle bet tx 4\n"),
+    %io:fwrite("running an oracle bet tx 4\n"),
     Out.
 dict_orders_many(OID, Dict, UMT) ->
     {_, Many} = UMT:dict_head_get(Dict, OID),

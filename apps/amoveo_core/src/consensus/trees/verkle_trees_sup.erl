@@ -8,7 +8,7 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 dumps() ->
     [{accounts_dump, 45},
      %{exist_dump, 36},
-     {oracles_dump, 107},
+     {oracles_dump, 139},
      {matched_dump, 89},
      {unmatched_dump, 106},
      {sub_accs_dump, 81},
