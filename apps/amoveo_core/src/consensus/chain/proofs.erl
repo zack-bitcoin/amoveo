@@ -451,8 +451,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
 	    oracle_close -> 
                 AID = oracle_close_tx:from(Tx),
                 OID = oracle_close_tx:oracle_id(Tx),
-                Oracles = trees:oracles(Trees),
-                {_, Oracle, _} = oracles:get(OID, Oracles),
+                %Oracles = trees:oracles(Trees),
+                %{_, Oracle, _} = oracles:get(OID, Oracles),
+                Oracle = trees:get(oracles, OID, dict:new(), Trees),
                 Gov = Oracle#oracle.governance,
                 G = case Gov of
                         0 -> [];

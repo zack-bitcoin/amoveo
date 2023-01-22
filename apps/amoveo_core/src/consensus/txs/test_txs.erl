@@ -129,46 +129,6 @@ test(2) ->
     io:fwrite(packer:pack(api:account(NewPub))),
     success;
  
-test(3) ->
-    io:fwrite(" new channel tx, grow channel tx, and channel team close tx test \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
-    BP = block:get_by_height(0),
-    PH = block:hash(BP),
-    Trees = block_trees(BP),
-    {NewPub,NewPriv} = signing:new_key(),
-
-    Fee = constants:initial_fee() + 20,
-    Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
-    Stx = keys:sign(Ctx),
-    absorb(Stx),
-    1 = many_txs(),
-    mine_blocks(3),
-    CID0 = <<5:256>>,
-
-    Delay = 30,
-    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
-    CID = new_channel_tx:salted_id(Ctx2),
-    Stx2 = keys:sign(Ctx2),
-    SStx2 = signing:sign_tx(Stx2, NewPub, NewPriv), 
-    absorb(SStx2),
-    1 = many_txs(),
-    mine_blocks(1),
-   
-    io:fwrite("test txs 3 \n"),
-    io:fwrite(packer:pack(trees:get(channels, CID))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(CID)),
-    io:fwrite("\n"),
-
-    Ctx4 = channel_team_close_tx2:make_dict(CID, 0, Fee),
-    Stx4 = keys:sign(Ctx4),
-    SStx4 = signing:sign_tx(Stx4, NewPub, NewPriv),
-    absorb(SStx4),
-    mine_blocks(1),
-    success;
     
 test(4) -> 
     %channel solo close, channel timeout
@@ -540,10 +500,22 @@ test(11) ->
     OIL_gov = trees:get(governance, oracle_initial_liquidity),
     OIL = governance:value(OIL_gov),
     Bal1 = api:balance(),
+
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), 
+    Stx9 = keys:sign(Tx2),
+
+%    absorb(Stx9),
+%    1 = many_txs(),
 
     %close the oracle with oracle_close
     Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),%here
+    Stx8 = keys:sign(Tx3),
+
+%    absorb(Stx8),
+%    2 = many_txs(),
+%    success = this_point,
+    
+
 
     Tx7 = multi_tx:make_dict(MP, [Tx2, Tx3], Fee*2),
     Stx7 = keys:sign(Tx7),
@@ -917,6 +889,7 @@ test(20) ->
     block:mine(100000),
     success;
 test(21) ->
+    io:fwrite("basic multi-tx"),
     H = block:height(),
     if
         H < 12 -> mine_blocks(13 - H);
@@ -931,6 +904,7 @@ test(21) ->
     Tx = multi_tx:make_dict(Pub, Txs, Fee),
     Stx = keys:sign(Tx),
     absorb(Stx),
+    1 = many_txs(),
     mine_blocks(1),
     success;
 

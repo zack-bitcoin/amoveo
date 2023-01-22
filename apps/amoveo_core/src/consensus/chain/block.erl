@@ -306,18 +306,6 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     %io:fwrite(" "),
     %io:fwrite(integer_to_list(length(DEls))),
     %io:fwrite("\n"),
-    if
-        true -> ok;
-        (HeightCheck > 10) and ((length(DEls) > 1)) ->
-            %the same thing is being stored twice, once as {unmatched {key, _, _}}, and once as {unmatched_head, A, Many, OID}
-            io:fwrite({lists:map(
-                         fun(X) ->
-                                 {X, dict:fetch(X, NewDict4)}
-                         end, dict:fetch_keys(NewDict4)), ProofTree}),
-            1=2,
-            ok;
-        true -> ok
-    end,
     NewTrees0 = 
         tree_data:dict_update_trie(
           Trees, NewDict4, HeightCheck, ProofTree, RootHash),

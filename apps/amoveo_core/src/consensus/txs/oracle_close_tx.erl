@@ -68,7 +68,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		%is not a governance oracle.
 		B1 = Oracle#oracle.done_timer < NewHeight,
 		B2 = Oracle3#oracle.starts + MOT < NewHeight,
-		true = (B1 or B2),
+		if
+                    (B1 or B2) -> ok;
+                    true -> 
+                        io:fwrite({Oracle#oracle.done_timer, NewHeight, Oracle3#oracle.starts, MOT}),
+                        1=2,
+                        ok
+                end,
 		Dict4;
 	    G ->
                 %io:fwrite("governance branch\n"),

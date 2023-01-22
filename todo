@@ -4,8 +4,6 @@
 for the testnet we should use fast proofs instead of short ones. to make it faster.
 
 
-unmatched:all_verkle/2 needs to be implemented.
-
 make sure that governance oracles are disabled.
 
 

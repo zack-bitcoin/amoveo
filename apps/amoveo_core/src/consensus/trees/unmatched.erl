@@ -259,7 +259,6 @@ head_put(Head, Many, OID, Root) ->
     ID = key_to_int({key, <<?Header:PS>>, OID}),
     trie:put(ID, Y, 0, Root, ?name).
 all_verkle(Trees, OID) ->
-    io:fwrite("unmatched all verkle\n"),
     case verkle_head_get(Trees, OID) of
         empty -> [];
         {Head, Many} ->
@@ -269,7 +268,6 @@ all_verkle(Trees, OID) ->
     end.
 all_verkle2(X, Trees, OID) ->
     %todo, implementing this.
-    io:fwrite("unmatched all verkle 2\n"),
     PS = constants:pubkey_size() * 8,
     case X of
         %<<?Null:PS>> -> [<<?Header:PS>>];
@@ -279,8 +277,8 @@ all_verkle2(X, Trees, OID) ->
                          unmatched,
                          {key, Pub, OID}, 
                          dict:new(), Trees),
-            io:fwrite({Pub, OID, Order}),
-            [Pub, all_verkle2(Order#unmatched.pointer, Trees, OID)]
+            %io:fwrite({Pub, OID, Order}),
+            [Pub|all_verkle2(Order#unmatched.pointer, Trees, OID)]
     end.
     
 all(Root, OID) ->%pubkeys of everyone who made bets.

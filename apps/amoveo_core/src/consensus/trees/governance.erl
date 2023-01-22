@@ -13,15 +13,27 @@
 hard_coded(_, 1) -> 1370;%block reward
 hard_coded(_, 2) -> 429;%developer reward
 hard_coded(_, 3) -> 890;%max block size
-hard_coded(_, 4) -> 550;%block period
+hard_coded(_, 4) -> %block period
+    case application:get_env(amoveo_core, test_mode, false) of
+        true -> 5;
+        false -> 550
+    end;
 hard_coded(_, 5) -> 1113;%time gas
 hard_coded(_, 6) -> 1113;%space gas
 hard_coded(_, 7) -> 350;%fun limit
 hard_coded(_, 8) -> 600;%var limit
 hard_coded(_, 9) -> 51;%gov change limit
 hard_coded(_, 10) -> 1500;%oracle initial liquidity
-hard_coded(_, 11) -> 352;%minimum oracle time
-hard_coded(_, 12) -> 505;%maximum oracle time
+hard_coded(_, 11) -> %minimum oracle time
+    case application:get_env(amoveo_core, test_mode, false) of
+        true -> 1;
+        false -> 352
+    end;
+hard_coded(_, 12) -> %maximum oracle time
+    case application:get_env(amoveo_core, test_mode, false) of
+        true -> 1;
+        false -> 505
+    end;
 hard_coded(_, 13) -> 352;%maximum question size
 hard_coded(_, 14) -> 905;%create account tx
 hard_coded(_, 15) -> 805;%spend tx

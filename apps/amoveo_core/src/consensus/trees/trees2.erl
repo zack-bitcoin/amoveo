@@ -340,11 +340,9 @@ deserialize(4, <<A:264, O:256, T:64, F:64, B:64>>) ->
     #matched{account = A2, oracle = <<O:256>>, 
              true = T, false = F, bad = B};
 deserialize(5, <<0:264, OID:256, Many:64, Head:264>>) ->
-    io:fwrite("deserialize_head in trees2\n"),
     A2 = decompress_pub(<<Head:264>>),
     {unmatched_head, A2, Many, <<OID:256>>};
 deserialize(5, <<A:264, O:256, Am:64, P:264>>) ->
-    io:fwrite("deserialize unmatched in trees2\n"),
     A2 = decompress_pub(<<A:264>>),
     P2 = decompress_pub(<<P:264>>),
     #unmatched{account = A2, oracle = <<O:256>>,

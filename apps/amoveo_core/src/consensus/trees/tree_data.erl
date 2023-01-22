@@ -133,13 +133,18 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash) ->
                       end,
                   V
           end, Keys),
+    Leaves2 = lists:filter(
+                fun(X) -> not(X == 0) end, Leaves),
+    %we never delete from the verkle tree, so we can remove anything that seems empty.
+
     Trees3 = case ProofTree of
                  unknown -> 
-                     Trees4 = trees2:store_things(Leaves, Trees),
+                     Trees4 = trees2:store_things(Leaves2, Trees),
                      Trees4;
                  _ ->
                      %ProofTree = dict:fetch(proof, Dict),
-                     ProofTreeB = trees2:update_proof(Leaves, ProofTree),
+                     %io:fwrite("about to update the proof in tree_data\n"),
+                     ProofTreeB = trees2:update_proof(Leaves2, ProofTree),
                      RootHash = stem_verkle:hash_point(hd(ProofTreeB)),%verify that the new state root matches what was written on the block.
                      trees2:store_verified(Trees, ProofTreeB)
              end,
