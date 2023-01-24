@@ -105,7 +105,7 @@ internal_dict_update_trie(Trees, Dict, _, _, _) when (element(1, Trees) == trees
 internal_dict_update_trie(Trees, Dict, H, ProofTree, RootHash) ->
     F52 = forks:get(52), 
     if
-        H > F52 -> verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash);
+        H > F52 -> verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, H);
         true ->
     Types2 = [accounts, oracles, channels, existence, governance, matched, unmatched],
     Types3 = Types2 ++ [sub_accounts, contracts, trades],
@@ -121,7 +121,7 @@ internal_dict_update_trie(Trees, Dict, H, ProofTree, RootHash) ->
     Keys = dict:fetch_keys(Dict),
     idut2(Types, Trees, Dict, Keys)
     end.
-verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash) ->
+verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
     true = is_integer(Trees),
     Keys = dict:fetch_keys(Dict),
     Leaves = 
@@ -136,7 +136,12 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash) ->
     Leaves2 = lists:filter(
                 fun(X) -> not(X == 0) end, Leaves),
     %we never delete from the verkle tree, so we can remove anything that seems empty.
-
+    if
+        true -> ok;
+        ((Height == 6) and (length(Leaves2) > 1)) ->
+            io:fwrite({Leaves2});
+        true -> ok
+    end,
     Trees3 = case ProofTree of
                  unknown -> 
                      Trees4 = trees2:store_things(Leaves2, Trees),

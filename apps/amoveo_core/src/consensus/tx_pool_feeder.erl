@@ -128,12 +128,6 @@ absorb_internal2(SignedTx, PID) ->
                     %io:fwrite("tx pool feeder absorb timeout 2 3\n"),
                     Querys = proofs:txs_to_querys([CBTX|Txs2], F#tx_pool.block_trees, Height+1),
                     %io:fwrite("tx pool feeder absorb timeout 2 4\n"),
-                    lists:map(fun(Q) ->
-                                      case Q of
-                                          {accounts, []} -> 1=2;
-                                          _ -> ok
-                                      end
-                              end, Querys),
                     OldDict = lookup_merkel_proofs(F#tx_pool.dict, Querys, F#tx_pool.block_trees, Height+1),
                     %io:fwrite("tx pool feeder absorb timeout 2 5\n"),
                     MinerReward = block:miner_fees(Txs2),

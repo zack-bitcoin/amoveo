@@ -112,8 +112,15 @@ hash_key(unmatched, {key, Account, OID}) ->
 hash_key(matched, {key, Account, OID}) ->
     key(#matched{
            account = Account, oracle = OID});
-%hash_key(contracts, X) ->
-%    io:fwrite({X});
+hash_key(contracts, CID) when is_binary(CID) ->
+    CID;
+hash_key(contracts, {key, C, M, S, T}) ->
+    key(#contract{code = C, many_types = M, source = S, source_type = T});
+hash_key(sub_accounts, ID) 
+  when is_binary(ID) and (size(ID) == 32) ->
+    ID;
+hash_key(sub_accounts, {key, Pub, CID, T}) ->
+    key(#sub_acc{pubkey = Pub, type = T, contract_id = CID});
 hash_key(N, X) -> 
     io:fwrite("hash key type "),
     io:fwrite({N, X}),
@@ -133,7 +140,7 @@ key(#oracle{id = X}) ->
     hash:doit(<<X/binary, 0>>);
 key(#matched{account = A, oracle = B}) ->
     A2 = compress_pub(A),
-    hash:doit(<<A2/binary, B/binary, 1>>);
+    hash:doit(<<A2/binary, B/binary, 1>>);%33 + 32 + 1 = 66 bytes
 %key(#unmatched{account = <<1:520>>, oracle = B}) ->
     %it is the header of the linked list.
     %it remembers a pointer to the start of the list, and it knows how long the list is.
@@ -144,30 +151,32 @@ key({unmatched_head, Head, Many, OID}) ->
     %io:fwrite(integer_to_list(X)),
     %io:fwrite("\n"),
     %A2 = <<1:264>>,
-    hash:doit(<<OID/binary, 2>>);
+    hash:doit(<<OID/binary, 2>>);%33 bytes
 %key({unmatched_head, Head, Many, OID}) -> 
 %    hash:doit(<<OID/binary, 9>>);
 key(K = #unmatched{account = <<1:520>>, 
                    oracle = B}) ->
-    hash:doit(<<B/binary, 2>>);
+    hash:doit(<<B/binary, 2>>);%33 bytes
 key(K = #unmatched{account = A, oracle = B}) ->
     A2 = compress_pub(A),%error here when we are storing the head. see unmatched:serialize_head
     false = (A2 == <<0:264>>),
     false = (A2 == <<1:264>>),
-    hash:doit(<<A2/binary, B/binary, 3>>);
+    hash:doit(<<A2/binary, B/binary, 3>>);%66 bytes
 key(#sub_acc{pubkey = P, type = T, 
              contract_id = CID}) ->
-    P2 = compress_pub(P),
-    hash:doit(<<P2/binary, CID/binary, T:16, 4>>);
+    sub_accounts:make_key(P, CID, T);%65+32+32 = 129 bytes
+%    P2 = compress_pub(P),
+%    hash:doit(<<P2/binary, CID/binary, T:16, 4>>);%69 bytes
 key(#contract{code = C, many_types = MT, 
               source = S, source_type = ST}) ->
-    hash:doit(<<C/binary, S/binary, MT:16, ST:16, 5>>);
+    contracts:make_id(C, MT, S, ST);%32+32+2+2 = 68 bytes.
+    %hash:doit(<<C/binary, S/binary, MT:16, ST:16, 5>>);
 key(#trade{value = V}) -> 
-    hash:doit(<<V/binary, 6>>);
+    hash:doit(<<V/binary, 6>>);%33 bytes
 key(#market{id = X}) -> 
-    hash:doit(<<X/binary, 7>>);
+    hash:doit(<<X/binary, 7>>);%33 bytes
 key(#receipt{id = X}) -> 
-    hash:doit(<<X/binary, 8>>).
+    hash:doit(<<X/binary, 8>>).%33 bytes
 
 
 compress_pub(<<1:264>>) ->
@@ -351,7 +360,7 @@ deserialize(6, <<B:64, N:32, T:32, P:264, CID:256>>)
 ->
     P2 = decompress_pub(<<P:264>>),
     #sub_acc{balance = B, nonce = N, pubkey = P2,
-             contract_id = CID, type = T};
+             contract_id = <<CID:256>>, type = T};
 deserialize(7, <<C:256, R:256, S:256, Sink:256,
                  ST:16, MT:16, Nonce:32, LM:32, D:32,
                Closed, V:64>>) ->

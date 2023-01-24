@@ -2,10 +2,11 @@
 -export([new/4, new/2,
          code/1, many_types/1, last_modified/1, nonce/1, delay/1, volume/1, closed/1, %custom for this tree
 	 write/2, get/2, delete/2,%update tree stuff
-         dict_update/9, dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_update/9, dict_delete/2, dict_write/2, dict_get/2, dict_get/3,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
-         make_id/1,make_id/4,
+         make_id/1, make_id/4,
+%         make_v_id/4, make_v_id/1,
 	 all/0,
 	 test/0]).
 
@@ -125,7 +126,8 @@ deserialize(B) ->
               closed = Closed,
               volume = Volume}.
 dict_write(Channel, Dict) ->
-    ID = make_id(Channel),
+    %ID = make_id(Channel),
+    ID = make_v_id(Channel),
     dict:store({contracts, ID},
                %serialize(Channel),
                Channel,
@@ -145,6 +147,12 @@ make_id(X = #contract{}) ->
             X#contract.many_types,
             X#contract.source,
             X#contract.source_type).
+make_v_id(X = #contract{
+            code = C, many_types = M, 
+            source = S, source_type = T}) ->
+    {key, C, M, S, T}.
+make_v_id(C, M, S, T) ->
+    {key, C, M, S, T}.
 
 make_id(C,MT,S,ST) ->
     <<_:256>> = C,
@@ -154,8 +162,10 @@ make_id(C,MT,S,ST) ->
                 MT:16,
                 ST:16>>).
     
+dict_get(Key, Dict, _) ->
+    dict_get(Key, Dict).
 dict_get(Key, Dict) ->
-    <<_:256>> = Key,
+    %<<_:256>> = Key,
     X = dict:find({contracts, Key}, Dict),
     case X of
 	error -> error;

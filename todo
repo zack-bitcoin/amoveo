@@ -1,4 +1,4 @@
-
+working on test_txs:test(36).
 
 
 for the testnet we should use fast proofs instead of short ones. to make it faster.
@@ -6,8 +6,6 @@ for the testnet we should use fast proofs instead of short ones. to make it fast
 
 make sure that governance oracles are disabled.
 
-
-there are some issues with storing the head of the unmatched linked lists in the verkle tree. see trees2:key(#unmatched).
 
 we need to implement the rest of trees2:hash_key/2
 

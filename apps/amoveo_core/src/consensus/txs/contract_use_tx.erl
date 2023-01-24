@@ -67,7 +67,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 Facc2 = accounts:dict_update(From, Dict3, -Amount, none),
                 accounts:dict_write(Facc2, Dict3);%using veo to buy a complete set of subcurrencies
             _ ->
-                Key = sub_accounts:make_key(From, Source, SourceType),
+                F52 = forks:get(52),
+                Key = if
+                          NewHeight < F52 ->
+                              sub_accounts:make_key(From, Source, SourceType);
+                          true ->
+                              sub_accounts:make_v_key(From, Source, SourceType)
+                      end,
                 OA = sub_accounts:dict_get(Key, Dict3),
                 A2 = 
                     case OA of

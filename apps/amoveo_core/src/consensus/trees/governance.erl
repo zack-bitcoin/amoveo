@@ -49,8 +49,23 @@ hard_coded(_, 24) -> 905;%oracle bet
 hard_coded(_, 25) -> 905;%oracle close
 hard_coded(_, 26) -> 905;%unmatched
 hard_coded(_, 27) -> 905;%oracle winnings
-hard_coded(_, 28) -> 
-    1100.%oracle question liquidity
+hard_coded(_, 28) -> 1100;%oracle question liquidity
+hard_coded(_, 29) -> 905;%conctract_new_tx
+hard_coded(_, 30) -> 905;%contract_use_tx
+hard_coded(_, 31) -> 905;%sub_spend_tx
+hard_coded(_, 32) -> 905;%contract_evidence_tx
+hard_coded(_, 33) -> 905;%contract_timeout_tx
+hard_coded(_, 34) -> 905;%contract_winnings_tx
+hard_coded(_, 35) -> 905;%contract_simplify_tx
+hard_coded(_, 36) -> 32;%max_contract_flavors
+hard_coded(_, 37) -> 905;%swap_tx
+hard_coded(_, 38) -> 905;%market_new_tx
+hard_coded(_, 39) -> 905;%market_liquidity_tx
+hard_coded(_, 40) -> 905;%market_swap_tx
+hard_coded(_, 41) -> 936;%market_trading_fee
+hard_coded(_, 42) -> 905;%swap_tx2
+hard_coded(_, 43) -> 905;%trade_cancel_tx
+hard_coded(_, 44) -> 905.%stablecoin_new_tx
 
 
 

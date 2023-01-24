@@ -19,7 +19,14 @@ go(Tx, Dict, NewHeight, _) ->
     true = MCF >= MT,
     Facc = accounts:dict_update(From, Dict, -Fee, none),
     Dict2 = accounts:dict_write(Facc, Dict),
-    Key = contracts:make_id(CH, MT, Source, SourceType),
+    F52 = forks:get(52),
+    Key = if
+              NewHeight > F52 -> 
+                  contracts:make_v_id(
+                    CH, MT, Source, SourceType);
+              true -> contracts:make_id(
+                        CH, MT, Source, SourceType)
+          end,
     empty = contracts:dict_get(Key, Dict2),
     NC = contracts:new(CH, MT, Source, SourceType),
     contracts:dict_write(NC, Dict2).

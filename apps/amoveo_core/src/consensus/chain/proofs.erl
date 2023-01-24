@@ -59,6 +59,7 @@ leaf_type2tree(sub_acc) -> sub_accounts;
 leaf_type2tree(sub_accounts) -> sub_accounts;
 leaf_type2tree(multi_tx) -> multi_tx;
 leaf_type2tree(contracts) -> contracts;
+leaf_type2tree(contract) -> contracts;
 leaf_type2tree(trades) -> trades;
 leaf_type2tree(markets) -> markets;
 leaf_type2tree(receipts) -> receipts;
@@ -226,6 +227,10 @@ dict_key({unmatched_head, Pointer,
     {key, <<1:520>>, Oracle};
 dict_key(#sub_acc{pubkey = P, contract_id = CID, 
                   type = T}) -> 
+    if
+        is_integer(CID) -> 1=2;
+        true -> ok
+    end,
     sub_accounts:make_key(P, CID, T);
 dict_key(C = #contract{}) -> 
     contracts:make_id(C);
@@ -533,7 +538,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
               source = S,
               source_type = ST,
               many_types = MT} = Tx,
-                CID = contracts:make_id(CH, MT,S,ST),
+                F52 = forks:get(52),
+                
+                CID = if
+                          Height < F52 ->
+                              contracts:make_id(CH, MT,S,ST);
+                          true -> contracts:make_v_id(CH, MT, S, ST)
+                      end,
                 [{accounts, From},
                  {contracts, CID},
                  {governance, ?n2i(contract_new_tx)},
@@ -623,8 +634,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         0 -> [];
                         _ -> [{contracts, Sink}]
                     end,
-                Contracts = trees:contracts(Trees),
-                {_, Contract, _} = contracts:get(CID, Contracts),
+                %Contracts = trees:contracts(Trees),
+                %{_, Contract, _} = contracts:get(CID, Contracts),
+                Contract = trees:get(contracts, CID, dict:new(), Trees),
                 U2 = case Contract of
                          empty -> [];
                          #contract{} ->
@@ -645,15 +657,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
               row = Row,
               proof = Proof
              } = Tx,
-                SubAccs = trees:sub_accounts(Trees),
-                %{_, SubAccount, _} = sub_accounts:get(SA, SubAccs),
-                %#sub_acc{
-                         %type = Type,
-                %          pubkey = Winner,%sanity
-                %          contract_id = CID%sanity check
-                %        } = SubAccount,
-                Contracts = trees:contracts(Trees),
-                {_, Contract, _} = contracts:get(CID, Contracts),
+                %Contracts = trees:contracts(Trees),
+                %{_, Contract, _} = contracts:get(CID, Contracts),
+                Contract = trees:get(contracts, CID, dict:new(), Trees),
                 U5 = case Contract of
                          empty ->
                             F51 = forks:get(51),
