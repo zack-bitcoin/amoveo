@@ -711,8 +711,18 @@ proofs_roots_match({Proof, _Leaves}, R)
     %proof is the serialized verlke proof.
     %r is the 32 byte root.
     %{true, _Leaves, _} = trees2:verify_proof(Proof),
+    %io:fwrite({Proof}),
+    %{ProofA, ProofB, ProofC} = Proof,
+    %io:fwrite({length(ProofA), size(ProofB), length(ProofC)}),%fast proof is a tuple. {2, 32, 256}
     {Tree, _Commit, _Opening} = 
-        get_verkle:deserialize_proof(Proof),
+        if
+            is_binary(Proof) ->
+                %small proofs are serialized
+                get_verkle:deserialize_proof(Proof);
+            true -> 
+                %fast proofs are not.
+                Proof
+        end,
     T1 = ed:decompress_point(hd(Tree)),
     R2 = stem_verkle:hash_point(T1),
     R2 == R;
@@ -839,10 +849,14 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     {Dict, ProofTree} = 
         if
             is_tuple(Facts) -> 
+                %verkle version.
                 {Proof, Leaves} = Facts,
-                %DF = get_verkle:deserialize_proof(
-                %       Proof),
-                
+                case application:get_env(amoveo_core, kind) of
+                    {ok, "production"} ->
+                        true = is_binary(Proof);
+                    _ -> ok
+                end,
+ 
                 {true, ProofTree0} = 
                     trees2:verify_proof(
                       Proof, Leaves),
@@ -851,6 +865,7 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
                 {Dict2, ProofTree0};
             %dict:store(proof, ProofTree, Dict2);
             is_list(Facts) -> 
+                %merkle version.
                 {proofs:facts_to_dict(
                   Facts, dict:new()), 0}
         end,

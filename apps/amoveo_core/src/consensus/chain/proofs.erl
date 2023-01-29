@@ -104,7 +104,12 @@ det_order(Querys) ->
 %finished defining merge-sort.       
 
 prove(Querys, Trees) when is_integer(Trees) ->
-    trees2:get_proof(Querys, Trees, small);
+    case application:get_env(amoveo_core, kind) of
+        {ok, "production"} ->
+            trees2:get_proof(Querys, Trees, small);
+        _ ->
+            trees2:get_proof(Querys, Trees, fast)
+    end;
 prove(Querys, Trees) ->
     F2 = det_order(Querys),
     prove2(F2, Trees).
@@ -614,11 +619,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                          } = Contract,
                 U = case CID2 of
                         <<0:256>> -> [];
-                        _ ->
-                            %{_, _, {_, CID2, _}} = Proof,
-                            %ManyTypes = length(Row),
-                            %CID2 = contracts:make_id(CH2, ManyTypes, Source, SourceType),
-                            [{contracts, CID2}]
+                        _ -> [{contract, CID2}]
                     end,
                 [{accounts, From},
                  {contracts, CID},
@@ -645,9 +646,21 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                    } = Contract,
                              [{contracts, Sink2}]
                      end,
-                [{accounts, From},
+                ThingsToProve = [{accounts, From},
                  {contracts, CID}
-                ] ++ U ++ U2;
+                ] ++ U ++ U2,
+                F52 = forks:get(52),
+                lists:map(fun({_, X}) ->
+                                  false = (X == <<0:256>>)
+                          end, ThingsToProve),
+                if
+                    Height < F52 ->
+                        ThingsToProve;
+                    true ->
+                        lists:filter(fun({_, X}) ->
+                                             not(X == <<0:256>>)
+                                     end, ThingsToProve)
+                end;
             contract_winnings_tx ->
                 #contract_winnings_tx{
               from = From,

@@ -1103,10 +1103,31 @@ int 0 int 1" >>),
     mine_blocks(1),
     %resolve the contract because the delay timer has finished.
     Tx6 = contract_timeout_tx2:make_dict(MP, CID, Fee),
+
+
+    %temp test
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
+    
+
+
+
     %withdrawing from a resolved contract
     SubAcc1 = sub_accounts:make_key(MP, CID, 3),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [<<0:32>>,<<0:32>>,<<-1:32>>]),
+   
+    %temp test
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    2 = many_txs(),
+    mine_blocks(1),
+    1=2,
     
+      
+
+
+ 
     Txs7 = [Tx6, Tx7],
     Tx71 = multi_tx:make_dict(MP, Txs7, Fee*2),
     Stx71 = keys:sign(Tx71),

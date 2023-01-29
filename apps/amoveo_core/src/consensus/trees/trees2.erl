@@ -433,6 +433,12 @@ get(Keys, Loc) ->
     Keys5 = ordered_remove_repeats(Keys4),
     L = get_verkle:unverified(
           Keys5, Loc, CFG), 
+    if
+        Keys5 == [<<0:256>>] -> 
+            io:fwrite({Keys}),
+            ok;
+        true -> ok
+    end,
     lists:map(fun({Key, Leaf}) ->
                       case Leaf of
                           0 -> 
@@ -444,7 +450,7 @@ get(Keys, Loc) ->
                               %it is weird that Key isn't the same as Key2.
                               if
                                   not(Key == Key2) ->
-                                      io:fwrite({Key, Key2});
+                                      io:fwrite({Key, Key2});%{<<0:256>><<random:256>>}
                                   true -> ok
                               end,
                               UnhashedKey = 
@@ -630,7 +636,12 @@ dump_get(T, V) ->
 verify_proof(Proof0, Things) ->
     CFG = tree:cfg(amoveo),
     
-    Proof1 = get_verkle:deserialize_proof(Proof0),
+    Proof1 = 
+        if
+            is_binary(Proof0) ->
+                get_verkle:deserialize_proof(Proof0);
+            true -> Proof0
+        end,
     {Proof, []} = 
         restore_leaves_proof(Proof1, Things),
 
