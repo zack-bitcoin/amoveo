@@ -154,6 +154,16 @@ absorb_internal2(SignedTx, PID) ->
                     %io:fwrite({Dict, Dict2}),
                     %io:fwrite({lists:map(fun(X) -> {X, dict:find(X, Dict)} end, dict:fetch_keys(Dict)), Facts2}),
                     %io:fwrite("tx_pool_feeder facts in a dict.\n"),
+                    SameLength = (length(dict:fetch_keys(Dict)) ==
+                                      length(dict:fetch_keys(NewDict2))),
+                    if
+                        SameLength -> ok;
+                        true -> io:fwrite({length(dict:fetch_keys(Dict)), 
+                                           length(dict:fetch_keys(NewDict2)),
+                                           length(dict:fetch_keys(X2)),
+                                           length(dict:fetch_keys(OldDict))
+                                          })
+                    end,
                     NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height+1),
                     %io:fwrite("no counterfeit.\n"),
                     if

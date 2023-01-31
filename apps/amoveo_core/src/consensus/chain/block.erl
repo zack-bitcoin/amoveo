@@ -875,6 +875,14 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     _Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = txs:digest(Txs, Dict, Height),
+    SameLength = (length(dict:fetch_keys(Dict)) ==
+                length(dict:fetch_keys(NewDict))),
+    if
+        SameLength -> ok;
+        true ->
+            io:fwrite({dict:fetch_keys(Dict),
+                       dict:fetch_keys(NewDict)})
+    end,
     {Dict, NewDict, ProofTree, BlockHash}.
 
 
@@ -973,14 +981,6 @@ check3(OldBlock, Block) ->
     F8 = forks:get(8),
     if
         Height > F8 ->
-            DKeys = dict:fetch_keys(Dict),
-            if
-                false -> %Height > 2 ->
-            io:fwrite({Dict, NewDict3, lists:map(fun(X) -> dict:fetch(X, Dict) end, DKeys),
-                       lists:map(fun(X) -> dict:fetch(X, NewDict3) end, DKeys)});
-                true -> ok
-            end,
-                                 
             Diff0 = no_counterfeit(Dict, NewDict3, Txs0, Height),
             true = (Diff0 =< 0);
         true -> ok
@@ -1694,6 +1694,7 @@ no_counterfeit(Old, New, Txs, Height) ->
             io:fwrite("; diff is "),
             io:fwrite(integer_to_list(Diff)),
             io:fwrite("\n"),
+            io:fwrite({OK, NK}),
             %io:fwrite(packer:pack([0, NK, OK])),
             io:fwrite("\n");
         true -> ok

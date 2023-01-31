@@ -61,6 +61,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                   volume = Volume2
                  },
     Dict3 = contracts:dict_write(Contract2, Dict2),
+    true = length(dict:fetch_keys(Dict2)) ==
+        length(dict:fetch_keys(Dict3)),
     Dict4 = 
         case Source of
             <<0:256>> ->%veo type

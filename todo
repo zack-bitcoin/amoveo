@@ -1,4 +1,18 @@
+When the full node is processing a block, it verifies a proof of some consensus state. It stores that slice of the consensus state in a dictionary structure while processing the txs. 
+
+Previously, the keys for this dictionary were the same as the keys used to store in the m/verkle tree. A unique identifier for each thing being stored. When we store an empty value, it looks like {(256-bit identifier):0}
+
+But with the new kind of verkle trees, the way proofs get compressed, if we prove that a sub-branch of the tree is empty, that can be proving that multiple values in the dictionary should be empty.
+
+This started being corrected by storing more info in the key. Like, info that we could need about the value, so that we could generate a value that is compatible with that key. like {({key, info1, info2}):0}.
+This was a mistake because in some transactions wer are looking up things by ID, and we don't know thos hidden values.
+instead, we should store the default values for a newly created element in the tree. {(256-bit identifier):{account, pub="", balance=0}}, and we need to also store a flag for if it is empty.
+
+
+
+
 working on test_txs:test(36).
+* a tx is blocked during the no-counterfeit check. the problem is that the dictionary is storing the info twice, because there are different formats that the key can take. it is doing the contract twice.
 
 
 for the testnet we should use fast proofs instead of short ones. to make it faster.

@@ -650,9 +650,6 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {contracts, CID}
                 ] ++ U ++ U2,
                 F52 = forks:get(52),
-                lists:map(fun({_, X}) ->
-                                  false = (X == <<0:256>>)
-                          end, ThingsToProve),
                 if
                     Height < F52 ->
                         ThingsToProve;
