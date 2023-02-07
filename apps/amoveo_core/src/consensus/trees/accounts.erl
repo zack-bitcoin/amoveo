@@ -1,7 +1,7 @@
 -module(accounts).
 -export([bets/1, update_bets/2, new/2,%custom for this tree
          write/2, get/2, delete/2,%update tree stuff
-         dict_update/4, dict_update/5, dict_get/2, dict_get/3, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
+         dict_update/4, dict_update_or_create/4, dict_update/5, dict_get/2, dict_get/3, dict_write/2, dict_write/3, dict_delete/2,%update dict stuff
 	 meta_get/1, 
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0, deserialize/1, all_accounts/0]).%common tree stuff
 -define(id, accounts).
@@ -11,8 +11,25 @@ new(Pub, Balance) ->
     %Root0 = constants:root0(),
     Root0 = trees:empty_tree(oracle_bets),
     #acc{pubkey = Pub, balance = Balance, nonce = 0, bets = Root0, bets_hash = oracle_bets:root_hash(Root0)}.
+dict_update_or_create(Pub, Dict, 
+                      Amount, NewNonce) ->
+    %notice the Pub is a 65 byte pubkey, not a 32 byte hash.
+    %HK = trees2:key(#acc{pubkey = Pub}),
+    Dict2 = case dict_get(Pub, Dict) of
+                #acc{} -> 
+                    dict_update(
+                      Pub, Dict, Amount, NewNonce);
+                _ -> 
+                    new(Pub, Amount)
+            end.
+            
 dict_update(Pub, Dict, Amount, NewNonce) ->
     Account = dict_get(Pub, Dict),
+    if
+        not(is_record(Account, acc)) ->
+            io:fwrite({Account, Pub, dict:fetch_keys(Dict)});
+        true -> ok
+    end,
     dict_update(Pub, Dict, Amount, NewNonce, Account#acc.bets).
 dict_update(Pub, Dict, Amount, NewNonce, Bets) ->
     Account = dict_get(Pub, Dict),
@@ -42,10 +59,30 @@ update_bets(Account, Bets) ->
     Account#acc{bets = Bets,
                 bets_hash = oracle_bets:root_hash(Bets)}.
 key_to_int(X) ->
-    trees:hash2int(ensure_decoded_hashed(X)).
+    R = trees:hash2int(ensure_decoded_hashed(X)),
+    io:fwrite("accounts key_to_int "),
+    io:fwrite(integer_to_list(R)),
+    io:fwrite("\n"),
+    R.
 dict_get(Key, Dict) ->
     dict_get(Key, Dict, 0).
-dict_get(Key, Dict, Height) ->
+dict_get(Pub, Dict, Height) ->
+    %true = size(HK) == 32, 
+    %X = dict:find({accounts, Key}, Dict),
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
+    %HK = trees2:hash_key(accounts, Key),
+    case csc:read({accounts, Pub}, Dict) of
+        error -> C;
+        {empty, _} -> empty;
+        {ok, accounts, {Val, Meta}} -> Val#acc{bets = Meta};
+        {ok, accounts, Val2} -> Val2
+    end.
+            
+dict_get_old(Key, Dict, Height) ->
     %X = dict:fetch({accounts, Key}, Dict),
     X = dict:find({accounts, Key}, Dict),
     B = Height > forks:get(39),
@@ -60,7 +97,7 @@ dict_get(Key, Dict, Height) ->
         {ok, {accounts, Key}} -> 
             empty;
         {ok, {Y, Meta}} -> 
-            Y2 = dict_get_helper(Y),
+            Y2 = Y,
             Bool = is_record(Y2, acc),
             if
                 Bool -> ok;
@@ -73,17 +110,7 @@ dict_get(Key, Dict, Height) ->
                     1=2
             end,
             Y2#acc{bets = Meta};
-        {ok, Y3} ->
-            dict_get_helper(Y3)
-    end.
-dict_get_helper(Y) -> Y;
-dict_get_helper(Y) ->
-    1=2,
-    V = size(Y) == 45,
-    if
-        V -> trees2:deserialize(1, Y);
-        true ->
-            deserialize(Y)
+        {ok, Y3} -> Y3
     end.
     
 get(Pub, Accounts) ->
@@ -103,11 +130,14 @@ dict_write(Account, Dict) ->
     dict_write(Account, 0, Dict).
 dict_write(Account, Meta, Dict) ->
     Pub = Account#acc.pubkey,
-    Out = dict:store({accounts, Pub}, 
-                     %{serialize(Account), Meta},
-                     {Account, Meta},
-                     Dict),
-    Out.
+    %HK = trees2:hash_key(accounts, Pub),
+    csc:update({accounts, Pub}, Account#acc{bets = Meta}, Dict).
+dict_write_new(Account, Meta, Dict) ->
+    Pub = Account#acc.pubkey,
+    Key = {accounts, Pub},
+    HashKey = trees2:hash_key(accounts, Pub),
+    csc:add(accounts, HashKey, Key, Account, Dict).
+
 meta_get(A) -> A#acc.bets.
 write(Account, Root) ->
     Pub = Account#acc.pubkey,
@@ -119,6 +149,9 @@ write(Account, Root) ->
     %<<Meta:KeyLength>> = <<(Account#acc.bets):KeyLength>>,
     Meta = Account#acc.bets,
     PubId = key_to_int(Pub),
+    io:fwrite("writing account at id "),
+    io:fwrite(integer_to_list(PubId)),
+    io:fwrite("\n"),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
 dict_delete(Pub, Dict) ->
     dict:store({accounts, Pub}, 0, Dict).
@@ -161,11 +194,14 @@ deserialize(SerializedAccount) ->
          pubkey = <<Pubkey:PubkeyBits>>,
          bets_hash = <<BetsRoot:HashSizeBits>>}.
 
+ensure_decoded_hashed({accounts, Pub}) ->
+    ensure_decoded_hashed(Pub);
 ensure_decoded_hashed(Pub) ->
     HashSize = constants:hash_size(),
     PubkeySize = constants:pubkey_size(),
     case size(Pub) of
         HashSize ->
+            1=2,
             Pub;
         PubkeySize ->
             hash:doit(Pub);

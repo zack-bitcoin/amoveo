@@ -1,5 +1,6 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2]).
+-export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
+        val2int/1]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -7,6 +8,7 @@
 		    oracle, %oracle id
 		    amount,
 		    pointer}).
+-record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle%
 -record(receipt, {id, tid, pubkey, nonce}).
 
 -define(sanity, false).
@@ -65,6 +67,7 @@ cs2v([A|T]) ->
     %consensus state is like accounts and contracts and whatever.
     %verkle data is a list of leaves that can be fed into store_verkle:batch/3.
     CFG = tree:cfg(amoveo),
+    %#consensus_state{val = A} = A0,
     K = key(A),
     V = serialize(A),
     H = hash:doit(V),
@@ -96,10 +99,58 @@ store_verified(Loc, ProofTree) ->
 store_things(Things, Loc) ->
     %return the pointer to the new version of the verkle tree.
     CFG = tree:cfg(amoveo),
+    %io:fwrite({Things}),
+    false = is_record(hd(Things), consensus_state),
     V = cs2v(Things),
     %io:fwrite("store batch\n"),
     {P, _, _} = store_verkle:batch(V, Loc, CFG),
     P.
+val2int({X, _}) ->
+    val2int(X);
+val2int(#acc{pubkey = Pub}) ->
+    accounts:key_to_int(Pub);
+val2int(#channel{id = ID}) ->
+    channels:key_to_int(ID);
+val2int(X = #contract{}) ->
+    X2 = contracts:make_id(X),
+    contracts:key_to_int(X2);
+val2int(#exist{hash = H}) ->
+    existence:key_to_int(H);
+val2int(#gov{id = ID}) ->
+    ID;
+val2int(#market{id = ID}) ->
+    markets:key_to_int(ID);
+val2int(#matched{account = A, oracle = O}) ->
+    matched:key_to_int({key, A, O});
+val2int(#oracle_bet{id = ID}) ->
+    oracle_bets:key_to_int(ID);
+val2int(#oracle{id = ID}) ->
+    oracles:key_to_int(ID);
+val2int(X = #orders{}) ->
+    Pub = orders:aid(X),
+    orders:key_to_int(Pub);
+val2int(#receipt{id = ID}) ->
+    receipts:key_to_int(ID);
+val2int(S = #sub_acc{}) ->
+    Key = sub_accounts:make_key(S),
+    sub_accounts:key_to_int(Key);
+val2int(#trade{value = V}) ->
+    trades:key_to_int(V);
+val2int(#unmatched{account = A, oracle = O}) ->
+    K = {key, A, O},
+    unmatched:key_to_int(K).
+
+
+
+
+    
+    
+
+
+
+
+
+    
 hash_key(accounts, Pub) ->
     key(#acc{pubkey = Pub});
 hash_key(oracles, X) ->
@@ -121,6 +172,8 @@ hash_key(sub_accounts, ID)
     ID;
 hash_key(sub_accounts, {key, Pub, CID, T}) ->
     key(#sub_acc{pubkey = Pub, type = T, contract_id = CID});
+hash_key(governance, N) ->
+    hash:doit(<<N, 27>>);
 hash_key(N, X) -> 
     io:fwrite("hash key type "),
     io:fwrite({N, X}),
@@ -194,7 +247,7 @@ compress_pub(<<4, X:256>>) ->
     1=2,
     <<4, X:256>>;
 compress_pub(X) ->
-    io:fwrite({X}),
+    io:fwrite({X, size(X)}),
     ok.
 
 
@@ -895,13 +948,22 @@ merkle2verkle(
                   [A, O, M, U, SA, CO, T, M2, R]),
     AllLeaves = lists:foldl(
       fun({Type, X}, A) ->
+              Leaves0 = trie:get_all(X, Type),
               Leaves = 
                   lists:map(
                     fun(F) -> 
                             (Type):deserialize(leaf:value(F)) end,
-                    trie:get_all(X, Type)),
+                    Leaves0),
+              if
+                  true -> ok;
+                  (length(Leaves) == 2) ->
+                      io:fwrite({Leaves0});
+                  true -> ok
+              end,
               A ++ Leaves
       end, [], TypePairs),
+    %io:fwrite(AllLeaves),
+    %io:fwrite("trees2 store things \n"),
     %io:fwrite(AllLeaves),
     store_things(AllLeaves, Loc).
     

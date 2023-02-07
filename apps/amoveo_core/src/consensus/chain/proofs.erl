@@ -1,9 +1,10 @@
 -module(proofs).
 -export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/3, 
-         root/1, tree/1, path/1, value/1, governance_to_querys/1,
+         root/1, tree/1, path/1, value/1, %governance_to_querys/1,
          key/1]).
 -define(Header, 1).
 -record(proof, {tree, value, root, key, path}).
+-record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle%
 -include("../../records.hrl").
 
 root(X) -> X#proof.root.
@@ -103,13 +104,18 @@ det_order(Querys) ->
     det_helper(F).
 %finished defining merge-sort.       
 
+remove_repeats([]) -> [];
+remove_repeats([X, X|T]) -> 
+    remove_repeats([X|T]);
+remove_repeats([A|B]) -> 
+    [A|remove_repeats(B)].
+
 prove(Querys, Trees) when is_integer(Trees) ->
-    case application:get_env(amoveo_core, kind) of
-        {ok, "production"} ->
-            trees2:get_proof(Querys, Trees, small);
-        _ ->
-            trees2:get_proof(Querys, Trees, fast)
-    end;
+    X = case application:get_env(amoveo_core, kind) of
+            {ok, "production"} -> small;
+            _ -> fast
+        end,
+    trees2:get_proof(Querys, Trees, X);
 prove(Querys, Trees) ->
     F2 = det_order(Querys),
     prove2(F2, Trees).
@@ -188,11 +194,14 @@ facts_to_dict([F|T], D) ->
     Value0_0 = F#proof.value,
     Value0 = Tree:deserialize(Value0_0),
     Value3 = case Tree of
-                 accounts -> {Value0, 0};
-                 oracles -> {Value0, 0};
+                 accounts -> Value0#acc{bets = 0};
+                 oracles -> Value0#oracle{orders = 0};
                  _ -> Value0
             end,
-    D2 = dict:store({Tree, Key}, Value3, D),
+    %D2 = dict:store({Tree, Key}, Value3, D),
+    HK = trees2:hash_key(Tree, Key),
+    D2 = csc:add(Tree, HK, {Tree, Key}, Value3, D),
+    %D2 = csc:add(Tree, HK, Key, Value0, D),
     facts_to_dict(T, D2);
 facts_to_dict({_VerkleProof, Leaves}, D) ->
     lists:foldl(
@@ -207,8 +216,10 @@ facts_to_dict({_VerkleProof, Leaves}, D) ->
                   true -> ok
               end,
               Tree = leaf_type2tree(Tree0),
+              HK = trees2:hash_key(Tree, Key),
+              csc:add(Tree, HK, {Tree, Key}, Leaf, Acc)
               %Value = trees2:serialize(Leaf),
-              dict:store({Tree, Key}, Leaf, Acc)
+                  %dict:store({Tree, Key}, Leaf, Acc)
       end, D, Leaves);
 facts_to_dict(A, _) ->
     io:fwrite(A),
@@ -245,13 +256,13 @@ dict_key(#receipt{id = Z}) -> Z.
 
 hash(F) ->
     hash:doit(F).
-governance_to_querys(Gov) ->
-    Leaves = trie:get_all(Gov, governance),
-    Keys = leaves_to_querys(Leaves).
-leaves_to_querys([]) -> [];
-leaves_to_querys([L|T]) ->
-    Q = {governance, leaf:key(L)},
-    [Q|leaves_to_querys(T)].
+%governance_to_querys(Gov) ->
+%    Leaves = trie:get_all(Gov, governance),
+%    Keys = leaves_to_querys(Leaves).
+%leaves_to_querys([]) -> [];
+%leaves_to_querys([L|T]) ->
+%    Q = {governance, leaf:key(L)},
+%    [Q|leaves_to_querys(T)].
 -define(n2i(X), governance:name2number(X)).
 txs_to_querys([C|T], Trees, Height) -> 
     F52 = forks:get(52),
@@ -280,7 +291,9 @@ txs_to_querys_old([C|T], Trees, Height) ->
              {governance, ?n2i(block_reward)},
              {governance, ?n2i(developer_reward)},
              {accounts, constants:master_pub()},
+             %{accounts, trees2:hash_key(accounts, constants:master_pub())},
              {accounts, coinbase_tx:from(C)}
+             %{accounts, trees2:hash_key(accounts, coinbase_tx:from(C))}
             ] ++ U ++
                 txs_to_querys2(T, Trees, Height);
         signed -> txs_to_querys2([C|T], Trees, Height)
@@ -970,7 +983,7 @@ ttqm2([Tx|T], Q, R) when is_record(Tx, oracle_new) ->
 ttqm2([H|T], Q, R) -> 
     ttqm2(T, Q, [H|R]).
 
--record(oracle_bet, {from, nonce, fee, id, type, amount}).
+%-record(oracle_bet, {from, nonce, fee, id, type, amount}).
 
 remove_oracle_bets(_OID, []) -> [];
 remove_oracle_bets(OID, [Tx|T]) 

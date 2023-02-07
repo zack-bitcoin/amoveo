@@ -3,7 +3,10 @@
 -include("../../records.hrl").
 from(X) -> X#coinbase.from.
 make_dict(From) ->
-    Acc = trees:get(accounts, From),
+    %Acc = trees:get(accounts, From),
+    %Acc = trees:get(
+    %        accounts, 
+    %        trees2:hash_key(accounts, From)),
     #coinbase{from = From}.
 make(From, Trees) ->
     %Accounts = trees:accounts(Trees),
@@ -13,12 +16,15 @@ make(From, Trees) ->
     {Tx, []}.
 go(Tx, Dict, NewHeight) ->
     From = Tx#coinbase.from,
+    %HK = trees2:hash_key(accounts, From),
     X = accounts:dict_get(From, Dict),
+    %io:fwrite({X, dict:fetch_keys(Dict)}),
     %io:fwrite(Dict),%contains the key {governance, 1},
     BlockReward = governance:dict_get_value(block_reward, Dict, NewHeight),
     Nacc = case X of
                empty -> accounts:new(From, BlockReward);
                _ -> 
+                   %accounts:dict_update(From, Dict, BlockReward, none)
                    accounts:dict_update(From, Dict, BlockReward, none)
            end,
     Dict2 = accounts:dict_write(Nacc, Dict),

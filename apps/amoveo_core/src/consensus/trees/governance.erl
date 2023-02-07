@@ -1,7 +1,7 @@
 -module(governance).
 -export([tree_number_to_value/1, max/1, is_locked/1, genesis_state/0, name2number/1, number2name/1,%custom for this tree
 	 get_value/2, get/2, write/2,%update tree stuff
-         dict_get/2,dict_get/3,dict_write/2, dict_get_value/3, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
+         dict_get/2,dict_get/3,dict_write/2, dict_write_new/2, dict_get_value/3, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
 	 serialize/1,deserialize/1,
 	 new/2, hard_coded/2, value/1,
@@ -315,10 +315,21 @@ new(Id, Value, Lock) ->
     #gov{id = Id, value = Value, lock = Lock}.
 dict_write(Gov, Dict) ->
     Key = Gov#gov.id,
-    dict:store({governance, Key},
-               %serialize(Gov),
-               Gov,
-               Dict).
+    HashKey = trees2:hash_key(governance, Key),
+    csc:update({governance, Key}, Gov, Dict).
+
+dict_write_new(Gov, Dict) ->
+    Key = Gov#gov.id,
+    HashKey = trees2:hash_key(governance, Key),
+    csc:add(governance, HashKey, {governance, Key}, 
+            Gov, Dict).
+
+
+
+%    dict:store({governance, Key},
+%               %serialize(Gov),
+%               Gov,
+%               Dict).
 write(Gov, Tree) ->
     Key = Gov#gov.id,
     Serialized = serialize(Gov),
@@ -367,10 +378,13 @@ dict_get(Key0, Dict, Height) ->
               is_integer(Key0) -> Key0;
               true -> name2number(Key0)
           end,
-    case dict:find({governance, Key}, Dict) of
-	error -> empty;
+    HashKey = trees2:hash_key(governance, Key),
+    %case dict:find({governance, Key}, Dict) of
+    case csc:read({governance, Key}, Dict) of
+    %case csc:read(Key, Dict) of
+	error -> empty;%this works because governance has a finite list of things. 
 	%{ok, X} -> deserialize(X)
-	{ok, X} -> X
+	{ok, governance, X} -> X
     end.
 
 

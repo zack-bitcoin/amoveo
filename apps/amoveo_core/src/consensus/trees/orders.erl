@@ -17,7 +17,8 @@
 -define(name, orders).%
 -define(Null, 0).%
 -define(Header, 1).%
--record(orders, {aid, amount, pointer}).%
+%-record(orders, {aid, amount, pointer}).%
+-include("../../records.hrl").
 dict_significant_volume(Dict, OID, OIL, _) ->%
     ManyOrders = dict_many(Dict, OID),%
         if %

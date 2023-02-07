@@ -1,3 +1,15 @@
+looks like we need to store things in the csc by the unhashed version of the ids, because that is the only way we can look up things from both the merkle and verkle trees.
+
+
+we can't  mine blocks, because the same account is being stored in 2 different locations in the merkle tree.
+
+
+
+in the process of updating the dictionary to store the new format.
+governance values are still in the old format.
+
+
+
 When the full node is processing a block, it verifies a proof of some consensus state. It stores that slice of the consensus state in a dictionary structure while processing the txs. 
 
 Previously, the keys for this dictionary were the same as the keys used to store in the m/verkle tree. A unique identifier for each thing being stored. When we store an empty value, it looks like {(256-bit identifier):0}
@@ -7,6 +19,8 @@ But with the new kind of verkle trees, the way proofs get compressed, if we prov
 This started being corrected by storing more info in the key. Like, info that we could need about the value, so that we could generate a value that is compatible with that key. like {({key, info1, info2}):0}.
 This was a mistake because in some transactions wer are looking up things by ID, and we don't know thos hidden values.
 instead, we should store the default values for a newly created element in the tree. {(256-bit identifier):{account, pub="", balance=0}}, and we need to also store a flag for if it is empty.
+
+the new data structure is in csc.erl
 
 
 

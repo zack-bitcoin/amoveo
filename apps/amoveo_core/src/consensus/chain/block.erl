@@ -306,9 +306,21 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     %io:fwrite(" "),
     %io:fwrite(integer_to_list(length(DEls))),
     %io:fwrite("\n"),
+    io:fwrite("trees maker about to update the trie\n"),
+    ND4_Keys = dict:fetch_keys(NewDict4),
+    if
+        true -> ok;
+        true -> io:fwrite({lists:map(fun(X) -> {X, dict:fetch(X, NewDict4)} end, ND4_Keys)});
+        true -> ok
+    end,
+    %io:fwrite({lists:map(fun(X) -> dict:find(X, NewDict4) end, ND4_Keys)}),
+    %just governance 28, and a pubkey.
     NewTrees0 = 
         tree_data:dict_update_trie(
-          Trees, NewDict4, HeightCheck, ProofTree, RootHash),
+          Trees, 
+          NewDict4, %maps 32 byte hash to #consensus_state objects
+          HeightCheck, ProofTree, RootHash),
+    io:fwrite("trees maker about to updated the tree\n"),
     F10 = forks:get(10),
     F32 = forks:get(32),
     F35 = forks:get(35),
@@ -316,13 +328,14 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     F48 = forks:get(48),
     F52 = forks:get(52),
     GN = fun(Name, A) ->
-                 governance:new(
+                 V = governance:new(
                    governance:name2number(Name),
-                   A)
+                       A)
          end,
     GD = fun(Name) ->
                  GN(Name, constants:encoded_fee())
          end,
+    io:fwrite("trees maker 2\n"),
     Trees2 = 
         if
             (HeightCheck == F10)  ->
@@ -330,6 +343,7 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
             true ->
                 NewTrees0
         end,
+    io:fwrite("trees maker 3\n"),
     Trees3 =
         if
             (HeightCheck == F32) ->
@@ -350,6 +364,7 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                  };
             true -> Trees2
         end,
+    io:fwrite("trees maker 4\n"),
     Trees4 = 
         if
             (HeightCheck == F35) ->
@@ -367,6 +382,7 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                  };
             true -> Trees3
         end,
+    io:fwrite("trees maker 5\n"),
     Trees5 =
         if
             (HeightCheck == F44) ->
@@ -379,6 +395,7 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                  };
             true -> Trees4
         end,
+    io:fwrite("trees maker 6\n"),
     Trees6 = 
         if
             (HeightCheck == F48) ->
@@ -392,12 +409,15 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                  };
             true -> Trees5
         end,
+    io:fwrite("trees maker 7\n"),
     Trees7 =
         if
             (HeightCheck == F52) ->
+                io:fwrite("trees maker, about to merkle2verkle\n"),
                 trees2:merkle2verkle(Trees6, 1);
             true -> Trees6
         end,
+    io:fwrite("trees maker, finished"),
     Trees7.
                 
 
@@ -408,9 +428,11 @@ make(Header, Txs0, Trees, Pub) ->
     CB = coinbase_tx:make_dict(Pub),
     Txs = [CB|lists:reverse(Txs0)],
     Height = Header#header.height,
-%    if Height == 2 -> io:fwrite({Pub, CB});
-%       true -> ok end,
     Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
+%    if 
+%        Height == 1 -> io:fwrite({Querys});
+%        true -> ok 
+%    end,
     Facts = proofs:prove(Querys, Trees),
     if
         true -> ok;
@@ -426,8 +448,9 @@ make(Header, Txs0, Trees, Pub) ->
     %Dict = proofs:facts_to_dict(Facts, dict:new()),%todo. this should work even if facts is a verkle proof.
     NewDict0 = txs:digest(Txs, Dict, Height + 1),
     if
-        true -> ok;
-        Height == 2 ->
+        false -> 
+            Keys0 = dict:fetch_keys(Dict),
+            io:fwrite({lists:map(fun(Y) -> dict:fetch(Y, Dict) end, Keys0)}),
             io:fwrite({Facts, 
                        dict, hd(dict:fetch_keys(Dict)), dict:fetch(hd(dict:fetch_keys(Dict)), Dict), 
                        new_dict0, hd(dict:fetch_keys(NewDict0)), element(1, dict:fetch(hd(dict:fetch_keys(NewDict0)), NewDict0))});
@@ -438,7 +461,8 @@ make(Header, Txs0, Trees, Pub) ->
     NewDict = if
 		B -> %
 		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
-		      governance:dict_write(OQL, NewDict0);%
+		      %governance:dict_write(OQL, NewDict0);%
+		      governance:dict_write_new(OQL, NewDict0);%
 		true -> NewDict0
 	    end,
     MinerAddress = Pub,
@@ -453,14 +477,19 @@ make(Header, Txs0, Trees, Pub) ->
 		       accounts:dict_write(MinerAccount, NewDict);%
 		   true ->
 		       GovFees = gov_fees(Txs0, NewDict, Height),
+		       %MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
+                       %HMA = trees2:hash_key(accounts, MinerAddress),
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
-		       accounts:dict_write(MinerAccount2, NewDict)
+		       %MinerAccount2 = accounts:dict_update(HMA, NewDict, MinerReward - GovFees, none),
+                       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
     NewDict4 = remove_repeats(NewDict2, Dict, Height + 1),
     %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
 
     HeightCheck = Height + 1,
+    io:fwrite("block make before tree maker\n"),
     NewTrees = trees_maker(HeightCheck, Trees, NewDict4, unknown, unknown),
+    io:fwrite("block make after tree maker\n"),
 
     %Governance = trees:governance(NewTrees),
     %Governance = trees:governance(Trees),
@@ -482,6 +511,7 @@ make(Header, Txs0, Trees, Pub) ->
     NTreesHash = trees:root_hash(NewTrees),
 
     %NTreesHash = trees:root_hash2(NewTrees, Roots),
+    io:fwrite("block make finished\n"),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -939,7 +969,6 @@ check3(OldBlock, Block) ->
     
     
 
-
     %BlockReward = governance:get_value(block_reward, Governance),
     %io:fwrite("block check 4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
@@ -954,7 +983,7 @@ check3(OldBlock, Block) ->
     NewDict2 = if
 		B -> 
 		    OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
-		    governance:dict_write(OQL, NewDict);
+		    governance:dict_write_new(OQL, NewDict);
 		true -> NewDict
 	    end,
     MinerAddress = element(2, hd(Txs)),
@@ -968,11 +997,11 @@ check3(OldBlock, Block) ->
 		   Height < FG6 -> NewDict2;
 		   Height < FG9 ->
 %    MinerAccount = accounts:dict_get(MinerAddress, Dict),
-		       MinerAccount = accounts:dict_update(MinerAddress, NewDict2, MinerReward, none),
+		       MinerAccount = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward, none),
 		       accounts:dict_write(MinerAccount, NewDict2);
 		   true ->
 		       GovFees = gov_fees(Txs0, NewDict2, Height),
-		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict2, MinerReward - GovFees, none),
+		       MinerAccount2 = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward - GovFees, none),
 		       accounts:dict_write(MinerAccount2, NewDict2)
 	       end,
     %io:fwrite("block check 5.1\n"),
@@ -1700,11 +1729,31 @@ no_counterfeit(Old, New, Txs, Height) ->
         true -> ok
     end,
     Diff.
+
 %    true = (Diff =< 0),
 %    ok.
 sum_amounts([], _, _, _) -> 
     %io:fwrite("sum amount finish\n"),
     0;
+%sum_amounts([R|T], Dict, OldDict, Height) 
+%  when is_binary(R) ->
+%    X = case csc:read2(R, Dict) of
+%            {ok, #consensus_state{empty = true}} ->
+%                0;
+%            %{empty, Type, UnhashedKey} -> 0;
+%            {ok, #consensus_state{
+%               type = Type, val = V, 
+%               unhashed_key = UnHashedKey}} ->
+%                %{ok, Type, V} -> 
+%                V2 = case V of
+%                         {A, _} -> A;
+%                         B -> B
+%                     end,
+%                sum_amounts_helper(
+%                  Type, V2, Dict, 
+%                  OldDict, UnHashedKey)
+%        end,
+%    X + sum_amounts(T, Dict, OldDict, Height);
 sum_amounts([{oracles, _}|T], Dict, OldDict, Height) ->
     sum_amounts(T, Dict, OldDict, Height);
 sum_amounts([{existence, _}|T], Dict, Old, Height) ->
@@ -1736,6 +1785,8 @@ sum_amounts([{Kind, A}|T], Dict, Old, Height) ->
     B + sum_amounts(T, Dict, Old, Height).
 %sum_amounts_helper(_, error, _, _, _) -> 0;
 sum_amounts_helper(_, empty, _, _, _) -> 0;
+sum_amounts_helper(governance, _, _, _, _) ->
+    0;
 sum_amounts_helper(receipts, Acc, Dict, _, _) ->
     0;
 sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
@@ -1765,6 +1816,12 @@ sum_amounts_helper(contracts, Acc, Dict, _, _) ->
         _ -> 0
     end;
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
+    %io:fwrite({Acc}),
+    if
+        not(is_record(Acc, acc)) ->
+            io:fwrite({size(Acc), Acc});
+        true -> ok
+    end,
     Acc#acc.balance;
 sum_amounts_helper(channels, Chan, Dict, _, _) ->
     case channels:closed(Chan) of

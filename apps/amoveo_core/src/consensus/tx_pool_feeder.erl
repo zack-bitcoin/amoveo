@@ -229,8 +229,11 @@ lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees, Height) ->
 	end,
     lookup_merkel_proofs(Dict2, T, Trees, Height);
 lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
+    %HashedKey = trees2:hash_key(TreeID, Key),
     Dict2 = 
-	case dict:find({TreeID, Key}, Dict) of
+	%case dict:find({TreeID, Key}, Dict) of
+	case csc:read({TreeID, Key}, Dict) of
+	%case csc:read(HashedKey, Dict) of
 	    error ->
 		%Tree = trees:TreeID(Trees),
 		%{_, Val, _} = TreeID:get(Key, Tree),
@@ -240,37 +243,30 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
                         1=2;
                     true -> ok
                 end,
+                %Val = trees:get(TreeID, HashedKey),
                 Val = trees:get(TreeID, Key),
 
                 PS = constants:pubkey_size() * 8,
 		Val2 = case Val of
 			   empty -> 0;
-                           {empty, HashedKey} -> 0;
-                               %io:fwrite({Key, HashedKey}),
-                               %{empty, HashedKey};
-                           {<<Head:PS>>, Many} ->
-                               %unmatched:serialize_head(<<Head:PS>>, Many);
-                               {<<Head:PS>>, Many};
-			   X -> 
-                               if
-                                   is_integer(X) -> X;
-                                   true -> X
-%                                       B = Height > forks:get(52),
-%                                       if
-%                                           B -> 
-%                                               trees2:serialize(X);
-%                                           true ->
-%                                               TreeID:serialize(X)
-%                                       end
-                               end
+                           {empty, _} -> 0;
+                           {<<Head2:PS>>, Many} ->
+                               {<<Head2:PS>>, Many};
+			   X -> X
 		       end,
-		%Foo = case TreeID of
-		%	  accounts -> {Val2, 0};
-		%	  oracles -> {Val2, 0};
-		%	  _ -> Val2
-		%      end,
-		%dict:store({TreeID, Key}, Foo, Dict);
-		dict:store({TreeID, Key}, Val2, Dict);
+		%dict:store({TreeID, Key}, Val2, Dict);
+                HashedKey = trees2:hash_key(TreeID, Key),
+                case Val2 of
+                    0 -> csc:add_empty(TreeID,
+                           HashedKey,
+                           {TreeID, Key}, Dict);
+                    {<<_Head:PS>>, _Many} -> 
+                        dict:store({unmatched, HashedKey}, Val2, Dict);
+                    _ ->
+                        csc:add(
+                          TreeID, HashedKey, {TreeID, Key}, Val2,
+                          Dict)
+                end;
 	    {ok, _} -> Dict
 	end,
     lookup_merkel_proofs(Dict2, T, Trees, Height).
