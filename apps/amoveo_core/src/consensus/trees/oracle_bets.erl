@@ -144,7 +144,7 @@ test2() ->%
     Key = {key, Pub, ID},%
     Dict1 = dict_write(C, Pub, Dict0),%
     Account = #acc{balance = 100000, nonce = 0, pubkey = Pub},%
-    Dict2 = accounts:dict_write(Account, Dict1),%
+    Dict2 = accounts:dict_write_new(Account, 0, Dict1),%
     C = dict_get(Key, Dict2),%
     Dict3 = dict_add_bet(Pub, OID, 1, 100, Dict2),%
     Bet2 = dict_get(Key, Dict3),%
