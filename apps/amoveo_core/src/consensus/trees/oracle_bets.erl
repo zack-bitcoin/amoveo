@@ -7,6 +7,7 @@
          serialize/1, make_leaf/3, key_to_int/1,%
          deserialize/1]).%
 -include("../../records.hrl").%
+ -record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle%
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.%
 -define(name, oracle_bets).%
 reward(Bet, Correct, NewHeight) ->%

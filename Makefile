@@ -137,8 +137,12 @@ clean3: old-clean
 build: $$(KIND)
 	@./rebar3 as $(KIND) release
 
+local-compile: KIND=local
+local-compile: compile
+
 #compiles the c code used for verkle trees.
 compile: $$(KIND)
+	@echo "is compiling"
 	@mkdir -p ./_build/$(KIND)/rel/amoveo_core/ebin
 	@mkdir -p ./_build/$(KIND)/rel/amoveo_core/precomputes
 	@gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/$(KIND)/rel/amoveo_core/ebin/fr.so ./_build/$(KIND)/lib/verkle/src/crypto/fr.c -I $ERL_ROOT/user/include/
@@ -305,12 +309,12 @@ multi-quick: kill
 	make multi-stop multi-build multi-clean multi-go
 
 local-quick: KIND=local
-local-quick: kill \
-	compile 
+local-quick: kill
 	make multi-stop
 	make local-stop
 	@bash scripts/config_setup.sh
 	make local-build local-clean
+	make local-compile 
 	./_build/local/rel/amoveo_core/bin/amoveo_core console
 prod-restart: #prod-stop
 	- @curl -i -d '["off"]' http://127.0.0.1:8081

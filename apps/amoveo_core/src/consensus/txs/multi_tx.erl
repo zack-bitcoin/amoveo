@@ -4,7 +4,7 @@
 	 make_dict/3, from/1, txs/1]).
 -include("../../records.hrl").
 -record(unmatched, {from, nonce, fee, oracle_id}).
-%-record(oracle_bet, {from, nonce, fee, id, type, amount}).
+-record(oracle_bet, {from, nonce, fee, id, type, amount}).
 from(X) -> X#multi_tx.from.
 txs(X) -> X#multi_tx.txs.
 
