@@ -21,13 +21,16 @@ is_empty(UK, DB) ->
 
 add_empty(Type, K, UK, DB) ->
     error = dict:find(UK, DB),
-    R = #consensus_state{key = K, unhashed_key = UK, 
-           type = Type},
+    R = #consensus_state{
+      empty = true, key = K, unhashed_key = UK, 
+      type = Type},
     dict:store(UK, R, DB).
 
 add(Type, K, UK, Val, DB) ->
     error = dict:find(UK, DB),
-    R = #consensus_state{empty = false, val = Val, key = K, unhashed_key = UK, type = Type},
+    R = #consensus_state{
+      empty = false, val = Val, key = K, 
+      unhashed_key = UK, type = Type},
     dict:store(UK, R, DB).
 
 update(UK, Val, DB) ->

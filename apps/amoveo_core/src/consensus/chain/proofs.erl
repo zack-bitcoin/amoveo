@@ -217,7 +217,12 @@ facts_to_dict({_VerkleProof, Leaves}, D) ->
               end,
               Tree = leaf_type2tree(Tree0),
               HK = trees2:hash_key(Tree, Key),
-              csc:add(Tree, HK, {Tree, Key}, Leaf, Acc)
+              if
+                  is_tuple(Leaf) and (size(Leaf) == 2) and (element(1, Leaf) == Tree) ->
+                      csc:add_empty(Tree, HK, {Tree, Key}, Acc);
+                  true ->
+                      csc:add(Tree, HK, {Tree, Key}, Leaf, Acc)
+              end
               %Value = trees2:serialize(Leaf),
                   %dict:store({Tree, Key}, Leaf, Acc)
       end, D, Leaves);

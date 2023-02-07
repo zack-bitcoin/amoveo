@@ -78,7 +78,9 @@ dict_get(Pub, Dict, Height) ->
     case csc:read({accounts, Pub}, Dict) of
         error -> C;
         {empty, _} -> empty;
-        {ok, accounts, {Val, Meta}} -> Val#acc{bets = Meta};
+%        {ok, accounts, {Val, Meta}} -> 
+%            io:fwrite({Val, Meta}),
+%            Val#acc{bets = Meta};
         {ok, accounts, Val2} -> Val2
     end.
             

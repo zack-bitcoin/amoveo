@@ -142,17 +142,25 @@ absorb_internal2(SignedTx, PID) ->
                     %io:fwrite("tx_pool_feeder paid miner.\n"),
                     %Facts = proofs:prove(Querys, F#tx_pool.block_trees),
                     %Facts = trees2:get_proof(Querys, F#tx_pool.block_trees, fast),
-                    Facts20 = trees2:get(Querys, F#tx_pool.block_trees),%for the empty thing, instead of storing the key as {accounts, Pub}, it is just a 32 byte hash.
+                    Facts20 = trees2:get(Querys, F#tx_pool.block_trees),
                     Facts2 = lists:map(fun({Key, empty}) -> 
                                                {Key, Key};
                                           ({Key, Value}) -> {Key, Value}
                                        end, Facts20),
                     
                     %io:fwrite("tx_pool_feeder got proofs.\n"),
-                    %Dict_old = proofs:facts_to_dict(Facts, dict:new()),
-                    Dict = lists:foldl(fun({Key, Value}, D) -> dict:store(Key, Value, D) end, dict:new(), Facts2),
+                    %io:fwrite(Facts20),
+                    %Dict = proofs:facts_to_dict(Facts20, dict:new()),
+                    Dict = lists:foldl(
+                             fun({{TreeID, Key}, empty}, D) ->
+                                     HK = trees2:hash_key(TreeID, Key),
+                                     csc:add_empty(TreeID, HK, {TreeID, Key}, D);
+                                ({{TreeID, Key}, Value}, D) -> %dict:store(Key, Value, D) 
+                                     HK = trees2:hash_key(TreeID, Key),
+                                     csc:add(TreeID, HK, {TreeID, Key}, Value, D)
+                             end, dict:new(), Facts20),
                     %io:fwrite({Dict, Dict2}),
-                    %io:fwrite({lists:map(fun(X) -> {X, dict:find(X, Dict)} end, dict:fetch_keys(Dict)), Facts2}),
+                    %io:fwrite({lists:map(fun(X) -> {X, dict:find(X, Dict)} end, dict:fetch_keys(Dict))}),
                     %io:fwrite("tx_pool_feeder facts in a dict.\n"),
                     SameLength = (length(dict:fetch_keys(Dict)) ==
                                       length(dict:fetch_keys(NewDict2))),
@@ -267,7 +275,8 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
                           TreeID, HashedKey, {TreeID, Key}, Val2,
                           Dict)
                 end;
-	    {ok, _} -> Dict
+	    {empty, accounts} -> Dict;
+	    {ok, accounts, _} -> Dict
 	end,
     lookup_merkel_proofs(Dict2, T, Trees, Height).
 

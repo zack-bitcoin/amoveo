@@ -1010,6 +1010,13 @@ check3(OldBlock, Block) ->
     F8 = forks:get(8),
     if
         Height > F8 ->
+            if
+                true -> ok;
+                Height == 4 -> 
+                    DKeys = dict:fetch_keys(NewDict3),
+                    io:fwrite(lists:map(fun(X) -> {X, dict:fetch(X, Dict)} end, DKeys));
+                true -> ok
+            end,
             Diff0 = no_counterfeit(Dict, NewDict3, Txs0, Height),
             true = (Diff0 =< 0);
         true -> ok
@@ -1682,6 +1689,13 @@ no_counterfeit(Old, New, Txs, Height) ->
     
     OK = dict:fetch_keys(Old),
     NK = dict:fetch_keys(New),
+    lists:map(fun(Key) -> 
+                      {ok, V} = dict:find(Key, Old),
+                      if
+                          not(is_record(V, consensus_state)) -> io:fwrite({Key, V, dict:fetch_keys(Old)});
+                          true -> ok
+                      end
+              end, OK),
     OA = sum_amounts(OK, Old, Old, Height),
     NA = sum_amounts(NK, New, Old, Height),
     BR = governance:dict_get_value(block_reward, Old, Height),
