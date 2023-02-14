@@ -306,7 +306,6 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     %io:fwrite(" "),
     %io:fwrite(integer_to_list(length(DEls))),
     %io:fwrite("\n"),
-    io:fwrite("trees maker about to update the trie\n"),
     ND4_Keys = dict:fetch_keys(NewDict4),
     if
         true -> ok;
@@ -320,7 +319,6 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
           Trees, 
           NewDict4, %maps 32 byte hash to #consensus_state objects
           HeightCheck, ProofTree, RootHash),
-    io:fwrite("trees maker about to updated the tree\n"),
     F10 = forks:get(10),
     F32 = forks:get(32),
     F35 = forks:get(35),
@@ -335,7 +333,6 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     GD = fun(Name) ->
                  GN(Name, constants:encoded_fee())
          end,
-    io:fwrite("trees maker 2\n"),
     Trees2 = 
         if
             (HeightCheck == F10)  ->
@@ -343,7 +340,6 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
             true ->
                 NewTrees0
         end,
-    io:fwrite("trees maker 3\n"),
     Trees3 =
         if
             (HeightCheck == F32) ->
@@ -364,7 +360,6 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                  };
             true -> Trees2
         end,
-    io:fwrite("trees maker 4\n"),
     Trees4 = 
         if
             (HeightCheck == F35) ->
@@ -382,7 +377,6 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                  };
             true -> Trees3
         end,
-    io:fwrite("trees maker 5\n"),
     Trees5 =
         if
             (HeightCheck == F44) ->
@@ -395,7 +389,6 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                  };
             true -> Trees4
         end,
-    io:fwrite("trees maker 6\n"),
     Trees6 = 
         if
             (HeightCheck == F48) ->
@@ -409,15 +402,13 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                  };
             true -> Trees5
         end,
-    io:fwrite("trees maker 7\n"),
     Trees7 =
         if
             (HeightCheck == F52) ->
-                io:fwrite("trees maker, about to merkle2verkle\n"),
+                %io:fwrite("trees maker, about to merkle2verkle\n"),
                 trees2:merkle2verkle(Trees6, 1);
             true -> Trees6
         end,
-    io:fwrite("trees maker, finished"),
     Trees7.
                 
 
@@ -487,9 +478,9 @@ make(Header, Txs0, Trees, Pub) ->
     %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
 
     HeightCheck = Height + 1,
-    io:fwrite("block make before tree maker\n"),
+    %io:fwrite("block make before tree maker\n"),
     NewTrees = trees_maker(HeightCheck, Trees, NewDict4, unknown, unknown),
-    io:fwrite("block make after tree maker\n"),
+    %io:fwrite("block make after tree maker\n"),
 
     %Governance = trees:governance(NewTrees),
     %Governance = trees:governance(Trees),
@@ -511,7 +502,7 @@ make(Header, Txs0, Trees, Pub) ->
     NTreesHash = trees:root_hash(NewTrees),
 
     %NTreesHash = trees:root_hash2(NewTrees, Roots),
-    io:fwrite("block make finished\n"),
+    %io:fwrite("block make finished\n"),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -1689,13 +1680,13 @@ no_counterfeit(Old, New, Txs, Height) ->
     
     OK = dict:fetch_keys(Old),
     NK = dict:fetch_keys(New),
-    lists:map(fun(Key) -> 
-                      {ok, V} = dict:find(Key, Old),
-                      if
-                          not(is_record(V, consensus_state)) -> io:fwrite({Key, V, dict:fetch_keys(Old)});
-                          true -> ok
-                      end
-              end, OK),
+%    lists:map(fun(Key) -> 
+%                      {ok, V} = dict:find(Key, Old),
+%                      if
+%                          not(is_record(V, consensus_state)) -> io:fwrite({Key, V, dict:fetch_keys(Old)});
+%                          true -> ok
+%                      end
+%              end, NK),
     OA = sum_amounts(OK, Old, Old, Height),
     NA = sum_amounts(NK, New, Old, Height),
     BR = governance:dict_get_value(block_reward, Old, Height),

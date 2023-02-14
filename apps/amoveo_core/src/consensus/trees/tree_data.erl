@@ -146,7 +146,9 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
             io:fwrite({Leaves2});
         true -> ok
     end,
-    Leaves2b = lists:map(fun(#consensus_state{val = X}) -> X end, Leaves2),
+    Leaves2b = lists:map(
+                 fun(#consensus_state{val = X}) -> X;
+                    (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
     Trees3 = case ProofTree of
                  unknown -> 
                      %io:fwrite({Leaves2}),
@@ -187,8 +189,8 @@ idut2([H|Types], Trees, Dict, Keys) ->
     {ok, ShardMode} = application:get_env(amoveo_core, sharding),
     case ShardMode of
         full_node ->
-            io:fwrite("tree_data idut2 "),
-            io:fwrite("\n"),
+            %io:fwrite("tree_data idut2 "),
+            %io:fwrite("\n"),
             T2 = trie:put_batch(Leaves, T, H),%returns a pointer to the root of the trie for the new block.
             U = list_to_atom("update_" ++ atom_to_list(H)),
             Trees2 = trees:U(Trees, T2),

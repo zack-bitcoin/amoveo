@@ -60,27 +60,21 @@ update_bets(Account, Bets) ->
                 bets_hash = oracle_bets:root_hash(Bets)}.
 key_to_int(X) ->
     R = trees:hash2int(ensure_decoded_hashed(X)),
-    io:fwrite("accounts key_to_int "),
-    io:fwrite(integer_to_list(R)),
-    io:fwrite("\n"),
+    %io:fwrite("accounts key_to_int "),
+    %io:fwrite(integer_to_list(R)),
+    %io:fwrite("\n"),
     R.
 dict_get(Key, Dict) ->
     dict_get(Key, Dict, 0).
 dict_get(Pub, Dict, Height) ->
-    %true = size(HK) == 32, 
-    %X = dict:find({accounts, Key}, Dict),
     B = Height > forks:get(39),
     C = if
             B -> error;
             true -> empty
         end,
-    %HK = trees2:hash_key(accounts, Key),
     case csc:read({accounts, Pub}, Dict) of
         error -> C;
         {empty, _} -> empty;
-%        {ok, accounts, {Val, Meta}} -> 
-%            io:fwrite({Val, Meta}),
-%            Val#acc{bets = Meta};
         {ok, accounts, Val2} -> Val2
     end.
             
@@ -151,9 +145,9 @@ write(Account, Root) ->
     %<<Meta:KeyLength>> = <<(Account#acc.bets):KeyLength>>,
     Meta = Account#acc.bets,
     PubId = key_to_int(Pub),
-    io:fwrite("writing account at id "),
-    io:fwrite(integer_to_list(PubId)),
-    io:fwrite("\n"),
+    %io:fwrite("writing account at id "),
+    %io:fwrite(integer_to_list(PubId)),
+    %io:fwrite("\n"),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
 dict_delete(Pub, Dict) ->
     dict:store({accounts, Pub}, 0, Dict).

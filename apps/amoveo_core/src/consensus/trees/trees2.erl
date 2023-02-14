@@ -503,7 +503,7 @@ get(Keys, Loc) ->
                               %it is weird that Key isn't the same as Key2.
                               if
                                   not(Key == Key2) ->
-                                      io:fwrite({Key, Key2});%{<<0:256>><<random:256>>}
+                                      io:fwrite({Key, Key2, Leaf, L});
                                   true -> ok
                               end,
                               UnhashedKey = 

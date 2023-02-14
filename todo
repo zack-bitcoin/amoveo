@@ -1,3 +1,7 @@
+we need to get the tests to pass.
+when we write to the ram version of the consensus state, it needs to be explicit if we are making a new slot, or editing an existing slot. a lot of places in the code will be changed for this.x
+
+
 looks like we need to store things in the csc by the unhashed version of the ids, because that is the only way we can look up things from both the merkle and verkle trees.
 
 

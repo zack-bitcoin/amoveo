@@ -502,15 +502,17 @@ test(11) ->
     Bal1 = api:balance(),
 
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), 
-    Stx9 = keys:sign(Tx2),
 
+
+    %Stx9 = keys:sign(Tx2),
 %    absorb(Stx9),
 %    1 = many_txs(),
 
     %close the oracle with oracle_close
     Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),%here
-    Stx8 = keys:sign(Tx3),
+    
 
+    %Stx8 = keys:sign(Tx3),
 %    absorb(Stx8),
 %    2 = many_txs(),
 %    success = this_point,
@@ -534,8 +536,22 @@ test(11) ->
     %Orders = Oracle#oracle.orders,
     %{OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
     Tx4 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
+
+    
+    %Stx8 = keys:sign(Tx4),
+    %absorb(Stx8),
+    %1 = many_txs(),
+
+
     %get your winnings with oracle_shares
     Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),%pays 0.36
+
+
+    %Stx9 = keys:sign(Tx5),
+    %absorb(Stx9),
+    %2 = many_txs(),
+    %success = this_point,
+
 
     Tx6 = multi_tx:make_dict(MP, [Tx4, Tx5], Fee*3),
     Stx6 = keys:sign(Tx6),

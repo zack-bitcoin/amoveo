@@ -167,6 +167,6 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		    unmatched:dict_empty_book(ID, Dict3);
 		true -> Dict3%
 	    end,
-    oracles:dict_write(ON, Dict4).
+    oracles:dict_write(ON, 0, Dict4).
     
     

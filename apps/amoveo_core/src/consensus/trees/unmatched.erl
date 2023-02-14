@@ -2,6 +2,7 @@
 -export([new/3,
          get/2,write/2,%update tree stuff
          dict_get/2, dict_get/3, dict_write/2,%update dict stuff
+         dict_write_new/2,
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,
          dict_significant_volume/4, dict_match/4,
          dict_head_get/2,
@@ -108,6 +109,18 @@ deserialize_head(X) ->
 dict_get({key, Account, Oracle}, Dict) ->
     dict_get({key, Account, Oracle}, Dict, 0).
 dict_get(Key = {key, Account, Oracle}, Dict, Height) ->
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
+    case csc:read({unmatched, Key}, Dict) of
+        error -> C;
+        {empty, _} -> empty;
+        {ok, unmatched, Val} -> Val
+    end.
+             
+dict_get_old(Key = {key, Account, Oracle}, Dict, Height) ->
     case is_binary(Account) of
         true -> ok;
         false -> io:fwrite(Key)
@@ -162,10 +175,19 @@ get(K, Tree) ->
 dict_write(C, Dict) ->
     Account = C#unmatched.account,
     Oracle = C#unmatched.oracle,
-    dict:store({unmatched, {key, Account, Oracle}},
-               %serialize(C),
-               C,
-               Dict).
+    csc:update({unmatched, {key, Account, Oracle}},
+               C, Dict).
+dict_write_new(C, Dict) ->
+    Account = C#unmatched.account,
+    Oracle = C#unmatched.oracle,
+    Key = {key, Account, Oracle},
+    HashKey = trees2:hash_key(unmatched, Key),
+    csc:add(unmatched, HashKey, {unmatched, Key},
+            C, Dict).
+    
+%    dict:store({unmatched, {key, Account, Oracle}},
+%               C,
+%               Dict).
 write(E, Tree) ->
     K = {key, E#unmatched.account, E#unmatched.oracle},
     Key = key_to_int(K),
@@ -180,7 +202,7 @@ dict_empty_book(OID, Dict) ->
     PS = constants:pubkey_size() * 8,
     Head = <<?Null:PS>>,
     Many = 0,
-    dict_head_put(Head, Many, OID, Dict).
+    dict_head_new(Head, Many, OID, Dict).
 %    X = serialize_head(<<?Null:PS>>, 0),
 %    dict:store({unmatched, {key, <<?Null:PS>>, OID}},
 %	       X, Dict).
@@ -191,14 +213,22 @@ empty_book(OID, Tree) ->
 dict_head_get(Dict, OID) ->
     PS = constants:pubkey_size() * 8,
     Key = {key, <<?Header:PS>>, OID},
+    case csc:read({unmatched, Key}, Dict) of
+        error -> error;
+        {empty, _} -> {<<?Null:PS>>, 0};
+        {ok, unmatched, 
+         {unmatched_head, Head, Many, OID}} ->
+            {Head, Many};
+        X ->
+            io:fwrite("unmatched \n"),
+            io:fwrite({X}),
+            X
+    end.
+dict_head_get_old(Dict, OID) ->
+    PS = constants:pubkey_size() * 8,
+    Key = {key, <<?Header:PS>>, OID},
     X = dict:fetch({unmatched, Key}, Dict),
     case X of
-        %0 -> 
-        %    io:fwrite({dict:fetch_keys(Dict)}),
-            %io:fwrite({Key, X}),
-            %1=2, %this seems like an error? does storing a 0 imply it is empty? 
-        %    {<<?Null:PS>>, 0};
-            %empty;
         {unmatched, {key, _, _}} -> 
             {<<?Null:PS>>, 0};
         {unmatched_head, Head, Many, OID} ->
@@ -246,13 +276,19 @@ dict_many_update(Many, OID, Dict) ->
     {Head, _} = dict_head_get(Dict, OID),
     dict_head_put(Head, Many, OID, Dict).
 dict_head_put(Head, Many, OID, Dict) ->
-    %Y = serialize_head(Head, Many),
     PS = constants:pubkey_size() * 8,
-    %Key = {key, <<?Header:PS>>},
     Key = {key, <<?Header:PS>>, OID},
-    dict:store({unmatched, Key},
+    %dict:store({unmatched, Key},
+    csc:update({unmatched, Key},
                {unmatched_head, Head, Many, OID},
                Dict).
+dict_head_new(Head, Many, OID, Dict) ->
+    PS = constants:pubkey_size() * 8,
+    Key = {key, <<?Header:PS>>, OID},
+    %HK = trees2:hash_key(unmatched, Key),
+    csc:update({unmatched, Key},
+            {unmatched_head, Head, Many, OID},
+            Dict).
 head_put(Head, Many, OID, Root) ->
     PS = constants:pubkey_size() * 8,
     Y = serialize_head(Head, Many),
@@ -325,7 +361,7 @@ dict_add2(Order, Dict, P, OID) ->
             L2 = L#unmatched{pointer = Order#unmatched.account},
             Dict2 = dict_write(L2, Dict),
             <<?Null:PS>> = Order#unmatched.pointer,
-            dict_write(Order, Dict2);
+            dict_write_new(Order, Dict2);
         M -> dict_add2(Order, Dict, M, OID)
     end.
 dict_remove(ID, OID, Dict) ->
@@ -355,7 +391,16 @@ dict_remove2(ID, OID, Dict, P) ->
     end.
 dict_delete(Pub, OID, Dict) ->
     Key = {key, Pub, OID},
-    dict:store({unmatched, Key}, 0, Dict).
+    %dict:store({unmatched, Key}, 0, Dict).
+    AS = constants:pubkey_size(),
+    PS = AS * 8,
+    case csc:read({unmatched, Key}, Dict) of
+        error -> Dict;
+        {empty, _} -> Dict;
+        {ok, unmatched, Val} ->
+            Val2 = Val#unmatched{amount = 0, pointer = <<1:PS>>},%setting pointer to 1 means this was deleted.
+            csc:update({unmatched, Key}, Val2, Dict)
+    end.
 delete(Pub, Root) ->
     ID = key_to_int(Pub),
     trie:delete(ID, Root, ?name).

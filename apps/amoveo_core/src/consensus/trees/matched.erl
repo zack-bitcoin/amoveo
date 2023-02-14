@@ -67,10 +67,17 @@ deserialize(B) ->
 dict_write(X, Dict) ->
     Account = X#matched.account,
     Oracle = X#matched.oracle,
-    dict:store({matched, {key, Account, Oracle}},
-               %serialize(X),
-               X,
-               Dict).
+    %dict:store({matched, {key, Account, Oracle}},
+    csc:update({matched, {key, Account, Oracle}},
+               X, Dict).
+dict_write_new(X, Dict) ->
+    Account = X#matched.account,
+    Oracle = X#matched.oracle,
+    Key = {key, Account, Oracle},
+    HashKey = trees2:hash_key(matched, Key),
+    csc:add(matched, HashKey, {matched, Key},
+            X, Dict).
+    
 write(E, Tree) ->
     K = {key, E#matched.account, E#matched.oracle},
     Key = key_to_int(K),
@@ -79,6 +86,18 @@ write(E, Tree) ->
 dict_get({key, Account, Oracle}, Dict) ->
     dict_get({key, Account, Oracle}, Dict, 0).
 dict_get(Key = {key, Account, Oracle}, 
+         Dict, Height) ->
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
+    case csc:read({matched, Key}, Dict) of
+        error -> C;
+        {empty, _} -> empty;
+        {ok, matched, Val} -> Val
+    end.
+dict_get_old(Key = {key, Account, Oracle}, 
          Dict, Height) ->
     true = is_binary(Account),
     %io:fwrite(Oracle),
@@ -120,7 +139,14 @@ get(ID, Tree) ->%should probably be generalized to trees module.
 	end,
     {X, V, Proof}.
 dict_delete(Key, Dict) ->
-    dict:store({matched, Key}, 0, Dict).
+    case csc:read({matched, Key}, Dict) of
+        error -> Dict;
+        {empty, _} -> Dict;
+        {ok, matched, Val} ->
+            Val2 = Val#matched{
+                     true = 0, false = 0, bad = 0},
+            csc:update({matched, Key}, Val2, Dict)
+    end.
 delete(Key, Tree) ->
     Int = key_to_int(Key),
     trie:delete(Int, Tree, ?name).
