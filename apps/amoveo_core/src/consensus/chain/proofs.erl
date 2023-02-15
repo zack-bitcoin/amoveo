@@ -192,15 +192,27 @@ facts_to_dict([F|T], D) ->
           F#proof.path),
     Key = F#proof.key,
     Value0_0 = F#proof.value,
-    Value0 = Tree:deserialize(Value0_0),
-    Value3 = case Tree of
-                 accounts -> Value0#acc{bets = 0};
-                 oracles -> Value0#oracle{orders = 0};
-                 _ -> Value0
-            end,
-    %D2 = dict:store({Tree, Key}, Value3, D),
     HK = trees2:hash_key(Tree, Key),
-    D2 = csc:add(Tree, HK, {Tree, Key}, Value3, D),
+    D2 = case Value0_0 of
+        0 ->
+            csc:add_empty(Tree, HK, 
+                          {Tree, Key}, D);
+        _ ->
+                 Value0 = 
+                     Tree:deserialize(Value0_0),
+                 Value3 = 
+                     case Tree of
+                         accounts -> 
+                             Value0#acc{bets = 0};
+                         oracles -> 
+                             Value0#oracle{
+                               orders = 0};
+                         _ -> Value0
+                     end,
+    %D2 = dict:store({Tree, Key}, Value3, D),
+                 csc:add(Tree, HK, {Tree, Key}, 
+                         Value3, D)
+         end,
     %D2 = csc:add(Tree, HK, Key, Value0, D),
     facts_to_dict(T, D2);
 facts_to_dict({_VerkleProof, Leaves}, D) ->

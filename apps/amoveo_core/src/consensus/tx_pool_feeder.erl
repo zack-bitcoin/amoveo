@@ -139,26 +139,29 @@ absorb_internal2(SignedTx, PID) ->
                     
                     MinerAccount2 = accounts:dict_update(constants:master_pub(), X2, MinerReward - GovFees, none),
                     NewDict2 = accounts:dict_write(MinerAccount2, X2),
+                    Dict = 
+                        if
+                            is_integer(F#tx_pool.block_trees) ->
+                              
                     %io:fwrite("tx_pool_feeder paid miner.\n"),
                     %Facts = proofs:prove(Querys, F#tx_pool.block_trees),
                     %Facts = trees2:get_proof(Querys, F#tx_pool.block_trees, fast),
                     Facts20 = trees2:get(Querys, F#tx_pool.block_trees),
-                    Facts2 = lists:map(fun({Key, empty}) -> 
-                                               {Key, Key};
-                                          ({Key, Value}) -> {Key, Value}
-                                       end, Facts20),
-                    
                     %io:fwrite("tx_pool_feeder got proofs.\n"),
                     %io:fwrite(Facts20),
                     %Dict = proofs:facts_to_dict(Facts20, dict:new()),
-                    Dict = lists:foldl(
+                    lists:foldl(
                              fun({{TreeID, Key}, empty}, D) ->
                                      HK = trees2:hash_key(TreeID, Key),
                                      csc:add_empty(TreeID, HK, {TreeID, Key}, D);
                                 ({{TreeID, Key}, Value}, D) -> %dict:store(Key, Value, D) 
                                      HK = trees2:hash_key(TreeID, Key),
                                      csc:add(TreeID, HK, {TreeID, Key}, Value, D)
-                             end, dict:new(), Facts20),
+                             end, dict:new(), Facts20);
+                            true ->
+                                Facts = proofs:prove(Querys, F#tx_pool.block_trees),
+                                proofs:facts_to_dict(Facts, dict:new())
+                        end,
                     %io:fwrite({Dict, Dict2}),
                     %io:fwrite({lists:map(fun(X) -> {X, dict:find(X, Dict)} end, dict:fetch_keys(Dict))}),
                     %io:fwrite("tx_pool_feeder facts in a dict.\n"),

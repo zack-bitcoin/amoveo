@@ -1680,13 +1680,17 @@ no_counterfeit(Old, New, Txs, Height) ->
     
     OK = dict:fetch_keys(Old),
     NK = dict:fetch_keys(New),
-%    lists:map(fun(Key) -> 
-%                      {ok, V} = dict:find(Key, Old),
-%                      if
-%                          not(is_record(V, consensus_state)) -> io:fwrite({Key, V, dict:fetch_keys(Old)});
-%                          true -> ok
-%                      end
-%              end, NK),
+    lists:map(fun(Key) -> 
+                      {ok, V} = dict:find(Key, Old),
+                      case Key of
+                          {_, _} -> ok;
+                          _ -> io:fwrite({V, Key, OK})
+                      end,
+                      if
+                          not(is_record(V, consensus_state)) -> io:fwrite({Key, V, dict:fetch_keys(Old)});
+                          true -> ok
+                      end
+              end, OK),
     OA = sum_amounts(OK, Old, Old, Height),
     NA = sum_amounts(NK, New, Old, Height),
     BR = governance:dict_get_value(block_reward, Old, Height),
