@@ -138,7 +138,13 @@ val2int(#trade{value = V}) ->
     trades:key_to_int(V);
 val2int(#unmatched{account = A, oracle = O}) ->
     K = {key, A, O},
+    unmatched:key_to_int(K);
+val2int({unmatched_head, Pointer, Many, OID}) ->
+    PS = constants:pubkey_size() * 8,
+    K = {key, <<1:PS>>, OID},
     unmatched:key_to_int(K).
+    
+
 
 
 
@@ -165,8 +171,10 @@ hash_key(matched, {key, Account, OID}) ->
            account = Account, oracle = OID});
 hash_key(contracts, CID) when is_binary(CID) ->
     CID;
-hash_key(contracts, {key, C, M, S, T}) ->
-    key(#contract{code = C, many_types = M, source = S, source_type = T});
+%hash_key(contracts, {key, C, M, S, T}) ->
+hash_key(contracts, {key, CID}) ->
+    CID;
+%key(#contract{code = C, many_types = M, source = S, source_type = T});
 hash_key(sub_accounts, ID) 
   when is_binary(ID) and (size(ID) == 32) ->
     ID;
@@ -212,8 +220,8 @@ key(K = #unmatched{account = <<1:520>>,
     hash:doit(<<B/binary, 2>>);%33 bytes
 key(K = #unmatched{account = A, oracle = B}) ->
     A2 = compress_pub(A),%error here when we are storing the head. see unmatched:serialize_head
-    false = (A2 == <<0:264>>),
-    false = (A2 == <<1:264>>),
+    %false = (A2 == <<0:264>>),
+    %false = (A2 == <<1:264>>),
     hash:doit(<<A2/binary, B/binary, 3>>);%66 bytes
 key(#sub_acc{pubkey = P, type = T, 
              contract_id = CID}) ->
@@ -478,7 +486,7 @@ is_in(X, [X|_]) -> true;
 is_in(X, [_|T]) -> 
     is_in(X, T).
    
-get(Keys, Loc) -> 
+get(Keys, Loc) when is_integer(Loc) -> 
     CFG = tree:cfg(amoveo),
     {Keys3, TreesDict} = 
         strip_tree_info(Keys, [], dict:new()),%this is where we lose the tree info. it also hashes the keys.
@@ -503,7 +511,11 @@ get(Keys, Loc) ->
                               %it is weird that Key isn't the same as Key2.
                               if
                                   not(Key == Key2) ->
-                                      io:fwrite({Key, Key2, Leaf, L});
+                                      Acc = dump_get(T, DL),
+                                      io:fwrite({Key, Key2, Acc, dict:fetch(Key, TreesDict)
+                                                 %dict:fetch(Key2, TreesDict)
+                                                }),
+                                      1=2;
                                   true -> ok
                               end,
                               UnhashedKey = 

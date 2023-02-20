@@ -73,6 +73,8 @@ new(Account, Oracle, Amount) ->
     PS = AS * 8,
     #unmatched{account = Account, oracle = Oracle,
 	       amount = Amount, pointer = <<?Null:PS>>}.
+serialize({unmatched_head, Pointer, Many, OID}) -> 
+    serialize_head(Pointer, Many);
 serialize(X) -> 
     PS = constants:pubkey_size(),
     PS = size(X#unmatched.account),
@@ -361,7 +363,8 @@ dict_add2(Order, Dict, P, OID) ->
             L2 = L#unmatched{pointer = Order#unmatched.account},
             Dict2 = dict_write(L2, Dict),
             <<?Null:PS>> = Order#unmatched.pointer,
-            dict_write_new(Order, Dict2);
+            %dict_write_new(Order, Dict2);
+            dict_write(Order, Dict2);
         M -> dict_add2(Order, Dict, M, OID)
     end.
 dict_remove(ID, OID, Dict) ->

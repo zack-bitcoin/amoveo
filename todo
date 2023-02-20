@@ -1,5 +1,9 @@
+in explorer.html you cant look up info about an account.
+maybe just link to the working page instead: http://159.89.87.58:8080/explorers/account_explorer.html?pubkey=BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=
+
 we need to get the tests to pass.
-when we write to the ram version of the consensus state, it needs to be explicit if we are making a new slot, or editing an existing slot. a lot of places in the code will be changed for this.x
+when we write to the ram version of the consensus state, it needs to be explicit if we are making a new slot, or editing an existing slot. a lot of places in the code will be changed for this.
+* the contract_use_tx isn't working. We can't create the unhashed key from the tx, so proofs.erl can't process the tx.
 
 
 looks like we need to store things in the csc by the unhashed version of the ids, because that is the only way we can look up things from both the merkle and verkle trees.

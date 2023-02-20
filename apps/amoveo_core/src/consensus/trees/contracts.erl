@@ -125,13 +125,24 @@ deserialize(B) ->
               delay = Delay,
               closed = Closed,
               volume = Volume}.
+is_in(X, [X|_]) -> true;
+is_in(X, [_|T]) -> 
+    is_in(X, T);
+is_in(_, []) -> false.
 dict_write(Channel, Dict) ->
     %ID = make_id(Channel),
     ID = make_v_id(Channel),
-    dict:store({contracts, ID},
-               %serialize(Channel),
-               Channel,
-               Dict).
+    Bool = is_in({contracts, ID}, dict:fetch_keys(Dict)),
+    if
+        Bool -> ok;
+        true -> io:fwrite({{contracts, ID}, 
+                           dict:fetch_keys(Dict)})
+    end,
+    %io:fwrite({ID, dict:fetch_keys(Dict)}),
+%    dict:store({contracts, ID},
+%               Channel,
+%               Dict).
+    csc:update({contracts, ID}, Channel, Dict).
 write(Channel, Root) ->
     ID = make_id(Channel),
     M = serialize(Channel),
@@ -150,9 +161,15 @@ make_id(X = #contract{}) ->
 make_v_id(X = #contract{
             code = C, many_types = M, 
             source = S, source_type = T}) ->
-    {key, C, M, S, T}.
+    CID = make_id(X),
+    %{key, CID}.
+    CID.
+%{key, C, M, S, T}.
 make_v_id(C, M, S, T) ->
-    {key, C, M, S, T}.
+    CID = make_id(C, M, S, T),
+    %{key, CID}.
+    CID.
+    %{key, C, M, S, T}.
 
 make_id(C,MT,S,ST) ->
     <<_:256>> = C,
@@ -165,6 +182,13 @@ make_id(C,MT,S,ST) ->
 dict_get(Key, Dict, _) ->
     dict_get(Key, Dict).
 dict_get(Key, Dict) ->
+    case csc:read({contracts, Key}, Dict) of
+        error -> error;
+        {empty, _} -> empty;
+        {ok, contracts, Val} -> Val
+    end.
+            
+dict_get_old(Key, Dict) ->
     %<<_:256>> = Key,
     X = dict:find({contracts, Key}, Dict),
     case X of

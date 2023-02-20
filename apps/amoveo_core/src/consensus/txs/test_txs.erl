@@ -505,17 +505,17 @@ test(11) ->
 
 
     %Stx9 = keys:sign(Tx2),
-%    absorb(Stx9),
-%    1 = many_txs(),
+    %absorb(Stx9),
+    %1 = many_txs(),
 
     %close the oracle with oracle_close
     Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),%here
     
 
     %Stx8 = keys:sign(Tx3),
-%    absorb(Stx8),
-%    2 = many_txs(),
-%    success = this_point,
+    %absorb(Stx8),
+    %2 = many_txs(),
+    %success = this_point,
     
 
 
@@ -582,17 +582,20 @@ test(16) ->
     Stx_1 = keys:sign(Ctx_1),
     absorb(Stx_1),
     1 = many_txs(),
+    potential_block:new(),
     
     Ctx_2 = create_account_tx:make_dict(Pub2, Amount, Fee, constants:master_pub()),
     Stx_2 = keys:sign(Ctx_2),
     absorb(Stx_2),
     2 = many_txs(),
+    potential_block:new(),
 
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0),
     OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     absorb(Stx),
     3 = many_txs(),
+    %1=2,
     potential_block:new(),
     mine_blocks(5),
     %make some bets in the oracle with oracle_bet
