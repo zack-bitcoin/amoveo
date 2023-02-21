@@ -89,7 +89,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                                  },
                     contracts:dict_write(Contract2, Dict4);
                 <<CID3:256>> ->%payout to subcurrency
-                    Key = sub_accounts:make_key(Winner, Source, SourceType),
+                    %Key = sub_accounts:make_key(Winner, Source, SourceType),
+                    Key = sub_accounts:make_v_key(Winner, Source, SourceType),
                     OA = sub_accounts:dict_get(Key, Dict3),
                     A2 = case OA of
                              empty ->
@@ -108,7 +109,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 
 payout_row(_, _, [], Dict, _, _) -> Dict;
 payout_row(Winner, CID, Row, Dict, N, Amount) ->
-    ToKey = sub_accounts:make_key(Winner, CID, N),
+    %ToKey = sub_accounts:make_key(Winner, CID, N),
+    ToKey = sub_accounts:make_v_key(Winner, CID, N),
     <<A0:32>> = hd(Row),
     <<Max:32>> = <<-1:32>>,
     A = A0 * Amount div Max,

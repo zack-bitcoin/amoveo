@@ -47,7 +47,7 @@ read(UK, DB) ->
         error -> error;
         {ok, R} ->
             if
-                not(is_record(R, consensus_state)) -> io:fwrite(R);
+                not(is_record(R, consensus_state)) -> io:fwrite({R});
                 true -> ok
             end,
             case R#consensus_state.empty of

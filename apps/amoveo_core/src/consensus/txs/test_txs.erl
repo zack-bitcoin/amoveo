@@ -1136,11 +1136,9 @@ int 0 int 1" >>),
 
 
     %temp test
-    Stx6 = keys:sign(Tx6),
-    absorb(Stx6),
-    1 = many_txs(),
-    
-
+    %Stx6 = keys:sign(Tx6),
+    %absorb(Stx6),
+    %1 = many_txs(),
 
 
     %withdrawing from a resolved contract
@@ -1148,11 +1146,11 @@ int 0 int 1" >>),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [<<0:32>>,<<0:32>>,<<-1:32>>]),
    
     %temp test
-    Stx7 = keys:sign(Tx7),
-    absorb(Stx7),
-    2 = many_txs(),
-    mine_blocks(1),
-    1=2,
+    %Stx7 = keys:sign(Tx7),
+    %absorb(Stx7),
+    %2 = many_txs(),
+    %mine_blocks(1),
+    %1=2,
     
       
 

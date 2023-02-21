@@ -264,7 +264,7 @@ dict_key(#sub_acc{pubkey = P, contract_id = CID,
         is_integer(CID) -> 1=2;
         true -> ok
     end,
-    sub_accounts:make_key(P, CID, T);
+    sub_accounts:make_v_key(P, CID, T);
 dict_key(C = #contract{}) -> 
     contracts:make_id(C);
 dict_key(#trade{value = V}) -> V;
@@ -550,6 +550,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 ] ++ U;
             contract_use_tx ->
                 CID = contract_use_tx:cid(Tx),
+                %#contract_use_tx{many = MT, source = S, source_type = ST} = Tx,
+                %CID = contracts:make_v_id(CH, MT, S, ST),
                 From = contract_use_tx:from(Tx),
                 SA = use_contract_sub_accounts(Tx),
                 #contract_use_tx{
@@ -559,7 +561,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 U = case Source of
                         <<0:256>> -> [];
                         _ -> 
-                            SubAdd = sub_accounts:make_key(From, Source, SourceType),
+                            SubAdd = sub_accounts:make_v_key(From, Source, SourceType),
                             [{sub_accounts, SubAdd}]
                     end,
                 [{accounts, From},
@@ -611,8 +613,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
               from = From,
               to = To
              } = Tx,
-                FKey = sub_accounts:make_key(From, CID, N),
-                TKey = sub_accounts:make_key(To, CID, N),
+                FKey = sub_accounts:make_v_key(From, CID, N),
+                TKey = sub_accounts:make_v_key(To, CID, N),
                 [{accounts, From},
                  {sub_accounts, FKey},
                  {sub_accounts, TKey},
@@ -720,7 +722,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                       <<0:256>> ->
                                           [{accounts, Winner}];
                                       _ ->
-                                          SA2 = sub_accounts:make_key(Winner, Source, SourceType),
+                                          SA2 = sub_accounts:make_v_key(Winner, Source, SourceType),
                                           [{sub_accounts, SA2}]
                                   end,
                              U3 = case Proof of
@@ -797,9 +799,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                              {accounts, Acc2}];
                         _ ->
                             [{sub_accounts,
-                              sub_accounts:make_key(Acc1, CID1, Type1)},
+                              sub_accounts:make_v_key(Acc1, CID1, Type1)},
                              {sub_accounts,
-                              sub_accounts:make_key(Acc2, CID1, Type1)}]
+                              sub_accounts:make_v_key(Acc2, CID1, Type1)}]
                     end,
                 U2 = case CID2 of
                          <<0:256>> -> 
@@ -807,9 +809,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                               {accounts, Acc2}];
                          _ ->
                              [{sub_accounts,
-                               sub_accounts:make_key(Acc1, CID2, Type2)},
+                               sub_accounts:make_v_key(Acc1, CID2, Type2)},
                               {sub_accounts,
-                               sub_accounts:make_key(Acc2, CID2, Type2)}]
+                               sub_accounts:make_v_key(Acc2, CID2, Type2)}]
                      end,
                 [{governance, ?n2i(swap_tx)},
                  {trades, TradeID}] ++
@@ -843,9 +845,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                              {accounts, Acc2}];
                         _ ->
                             [{sub_accounts,
-                              sub_accounts:make_key(Acc1, CID1, Type1)},
+                              sub_accounts:make_v_key(Acc1, CID1, Type1)},
                              {sub_accounts,
-                              sub_accounts:make_key(Acc2, CID1, Type1)}]
+                              sub_accounts:make_v_key(Acc2, CID1, Type1)}]
                     end,
                 U2 = case CID2 of
                          <<0:256>> -> 
@@ -853,9 +855,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                               {accounts, Acc2}];
                          _ ->
                              [{sub_accounts,
-                               sub_accounts:make_key(Acc1, CID2, Type2)},
+                               sub_accounts:make_v_key(Acc1, CID2, Type2)},
                               {sub_accounts,
-                               sub_accounts:make_key(Acc2, CID2, Type2)}]
+                               sub_accounts:make_v_key(Acc2, CID2, Type2)}]
                      end,
                 F48 = forks:get(48),
                 R = if
@@ -877,17 +879,17 @@ txs_to_querys2([STx|T], Trees, Height) ->
               type2 = Type2
              } = Tx,
                 MID = markets:make_id(CID1, Type1, CID2, Type2),
-                MKey = sub_accounts:make_key(From, MID, 0),
+                MKey = sub_accounts:make_v_key(From, MID, 0),
                 U = case CID1 of
                         <<0:256>> -> [];
                         _ ->
-                            SubKey1 = sub_accounts:make_key(From, CID1, Type1),
+                            SubKey1 = sub_accounts:make_v_key(From, CID1, Type1),
                             [{sub_accounts, SubKey1}]
                     end,
                 V = case CID2 of
                         <<0:256>> -> [];
                         _ ->
-                            SubKey2 = sub_accounts:make_key(From, CID2, Type2),
+                            SubKey2 = sub_accounts:make_v_key(From, CID2, Type2),
                             [{sub_accounts, SubKey2}]
                     end,
                 [{governance, ?n2i(market_new_tx)},
@@ -904,17 +906,17 @@ txs_to_querys2([STx|T], Trees, Height) ->
               cid2 = CID2,
               type2 = Type2
              } = Tx,
-                MKey = sub_accounts:make_key(From, MID, 0),
+                MKey = sub_accounts:make_v_key(From, MID, 0),
                 U = case CID1 of
                         <<0:256>> -> [];
                         _ ->
-                            SubKey1 = sub_accounts:make_key(From, CID1, Type1),
+                            SubKey1 = sub_accounts:make_v_key(From, CID1, Type1),
                             [{sub_accounts, SubKey1}]
                     end,
                 V = case CID2 of
                         <<0:256>> -> [];
                         _ ->
-                            SubKey2 = sub_accounts:make_key(From, CID2, Type2),
+                            SubKey2 = sub_accounts:make_v_key(From, CID2, Type2),
                             [{sub_accounts, SubKey2}]
                     end,
                 [
@@ -935,13 +937,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 U = case CID1 of
                         <<0:256>> -> [];
                         _ ->
-                            SubKey1 = sub_accounts:make_key(From, CID1, Type1),
+                            SubKey1 = sub_accounts:make_v_key(From, CID1, Type1),
                             [{sub_accounts, SubKey1}]
                     end,
                 V = case CID2 of
                         <<0:256>> -> [];
                         _ ->
-                            SubKey2 = sub_accounts:make_key(From, CID2, Type2),
+                            SubKey2 = sub_accounts:make_v_key(From, CID2, Type2),
                             [{sub_accounts, SubKey2}]
                     end,
                 [{accounts, From},
@@ -1146,7 +1148,7 @@ use_contract_sub_accounts(Tx) ->
     %return a list like [{sub_accounts, X}|...]
 ucsa2(0, _, _) -> [];
 ucsa2(N, Acc, CID) -> 
-    Key = sub_accounts:make_key(Acc, CID, N),
+    Key = sub_accounts:make_v_key(Acc, CID, N),
     [{sub_accounts, Key}] ++ 
         ucsa2(N-1, Acc, CID).
 
@@ -1154,7 +1156,7 @@ sub_accounts_loop([], _, _, _) -> [];
 sub_accounts_loop([<<0:32>>|T],Winner,CID,N) -> 
     sub_accounts_loop(T,Winner,CID,N+1);
 sub_accounts_loop([<<X:32>>|T],Winner,CID,N) -> 
-    Key = sub_accounts:make_key(Winner, CID, N),
+    Key = sub_accounts:make_v_key(Winner, CID, N),
     [{sub_accounts, Key}|
      sub_accounts_loop(T,Winner,CID,N+1)].
 

@@ -172,7 +172,9 @@ absorb_internal2(SignedTx, PID) ->
                         true -> io:fwrite({length(dict:fetch_keys(Dict)), 
                                            length(dict:fetch_keys(NewDict2)),
                                            length(dict:fetch_keys(X2)),
-                                           length(dict:fetch_keys(OldDict))
+                                           length(dict:fetch_keys(OldDict)),
+                                           dict:fetch_keys(Dict),
+                                           dict:fetch_keys(NewDict2)
                                           })
                     end,
                     NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height+1),

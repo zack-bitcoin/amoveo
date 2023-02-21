@@ -26,8 +26,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Nonce = nonce_check:doit(
               NonceCheck, 
               Tx#sub_spend_tx.nonce),
-    FromKey = sub_accounts:make_key(From, CID, N),
-    ToKey = sub_accounts:make_key(To, CID, N),
+    %FromKey = sub_accounts:make_key(From, CID, N),
+    FromKey = sub_accounts:make_v_key(From, CID, N),
+    %ToKey = sub_accounts:make_key(To, CID, N),
+    ToKey = sub_accounts:make_v_key(To, CID, N),
     
     Facc = accounts:dict_update(From, Dict, -Fee, Nonce),
     F2acc = sub_accounts:dict_update(FromKey, Dict, -A, none),

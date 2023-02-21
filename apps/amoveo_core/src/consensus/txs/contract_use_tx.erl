@@ -91,12 +91,17 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 send_sub_accounts(0, _, _, _, Dict) ->
     Dict;
 send_sub_accounts(N, From, CID, Amount, Dict) ->
-    Key = sub_accounts:make_key(From, CID, N),
+    %Key = sub_accounts:make_key(From, CID, N),
+    Key = sub_accounts:make_v_key(From, CID, N),
     OA = sub_accounts:dict_get(Key, Dict),
     A2 = 
         case OA of
-            empty -> sub_accounts:new(From, Amount, CID, N);
-            _ -> sub_accounts:dict_update(Key, Dict, Amount, none)
+            empty -> 
+                A2 = sub_accounts:new(
+                       From, Amount, CID, N);
+            _ -> 
+                A2 = sub_accounts:dict_update(
+                       Key, Dict, Amount, none)
         end,
     Dict2 = sub_accounts:dict_write(A2, Dict),
     send_sub_accounts(N - 1, From, CID, Amount, Dict2).
