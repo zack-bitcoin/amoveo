@@ -1,3 +1,7 @@
+receipts and trades are sharing the same id, so we can't store them in the verkle tree together.
+We need to update to use the unhashed key while processing txs, and to hash differently before and after the hard update.
+
+
 in explorer.html you cant look up info about an account.
 maybe just link to the working page instead: http://159.89.87.58:8080/explorers/account_explorer.html?pubkey=BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=
 

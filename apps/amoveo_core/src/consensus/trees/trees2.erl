@@ -147,16 +147,6 @@ val2int({unmatched_head, Pointer, Many, OID}) ->
 
 
 
-
-
-    
-    
-
-
-
-
-
-    
 hash_key(accounts, Pub) ->
     key(#acc{pubkey = Pub});
 hash_key(oracles, X) ->
@@ -182,6 +172,16 @@ hash_key(sub_accounts, {key, Pub, CID, T}) ->
     key(#sub_acc{pubkey = Pub, type = T, contract_id = CID});
 hash_key(governance, N) ->
     hash:doit(<<N, 27>>);
+hash_key(trades, {key, Val}) ->
+    key(#trade{value = Val});
+hash_key(receipts, {key, ID}) ->
+    key(#receipt{id = ID});
+%hash_key(trades, X) 
+%  when is_binary(X) and (size(X) == 32) ->
+%    X;
+%hash_key(receipts, X) 
+%  when is_binary(X) and (size(X) == 32) ->
+%    X;
 hash_key(N, X) -> 
     io:fwrite("hash key type "),
     io:fwrite({N, X}),
@@ -512,7 +512,7 @@ get(Keys, Loc) when is_integer(Loc) ->
                               if
                                   not(Key == Key2) ->
                                       Acc = dump_get(T, DL),
-                                      io:fwrite({Key, Key2, Acc, dict:fetch(Key, TreesDict)
+                                      io:fwrite({Key, Key2, Acc, dict:fetch(Key, TreesDict), Keys
                                                  %dict:fetch(Key2, TreesDict)
                                                 }),
                                       1=2;

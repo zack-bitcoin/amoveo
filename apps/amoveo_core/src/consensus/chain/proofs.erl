@@ -642,8 +642,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
               %proof = Proof,
               from = From
              } = Tx,
-                Contracts = trees:contracts(Trees),
-                {_, Contract, _} = contracts:get(CID, Contracts),
+                %Contracts = trees:contracts(Trees),
+                %{_, Contract, _} = contracts:get(CID, Contracts),
+                Contract = trees:get(contracts, CID, dict:new(), Trees),
                 #contract{
                            %source = Source,
                            %source_type = SourceType,
@@ -747,8 +748,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
               cid2 = CID2,
               cid3 = CID3
              } = Tx,
-                Contracts = trees:contracts(Trees),
-                {_, Contract, _} = contracts:get(CID2, Contracts),
+                %Contracts = trees:contracts(Trees),
+                %{_, Contract, _} = contracts:get(CID2, Contracts),
+                Contract = trees:get(contracts, CID2, dict:new(), Trees),
                 U = case Contract of
                         empty -> 
                             F51 = forks:get(51),
@@ -865,10 +867,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         true ->
                             Receipt = receipts:new(TradeID, Acc2, StartNonce),
                             RID = receipts:id(Receipt),
-                            [{receipts, RID}]
+                            [{receipts, {key, RID}}]
                     end,
                 [{governance, ?n2i(swap_tx2)},
-                 {trades, TradeID}] ++
+                 {trades, {key, TradeID}}] ++
                 F2 ++ U ++ U2 ++ R;
             market_new_tx ->
                 #market_new_tx{

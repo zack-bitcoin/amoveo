@@ -2,7 +2,7 @@
 -export([new/2,
          height/1, value/1,
          write/2, get/2, delete/2,
-         dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_delete/2, dict_write/2, dict_get/2, dict_get/3, %update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
 	 all/0,
@@ -39,6 +39,9 @@ deserialize(<<V:256, R/binary>>) ->
             height = H}.
 
 dict_write(T, Dict) ->
+    csc:update({trades, {key, T#trade.value}}, T, Dict).
+
+dict_write_old(T, Dict) ->
     dict:store({trades, T#trade.value},
                %serialize(T),
                T,
@@ -52,7 +55,17 @@ write(T, Root) ->
 key_to_int(<<X:256>>) ->
     X.
 
-dict_get(Key, Dict) ->
+dict_get(Key, Dict, _Height) ->
+    dict_get(Key, Dict).
+dict_get(Key = {key, _}, Dict) ->
+    case csc:read({trades, Key}, Dict) of
+        error -> error;
+        {empty, _} -> empty;
+        {ok, trades, Val} -> Val
+    end.
+            
+
+dict_get_old(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({trades, Key}, Dict),
     case X of
@@ -68,7 +81,7 @@ dict_get(Key, Dict) ->
 %                    deserialize(Y)
 %            end
     end.
-get(ID, Channels) ->
+get({key, ID}, Channels) ->
     <<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Channels, trades),
     V = case Leaf of

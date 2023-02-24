@@ -110,7 +110,7 @@ deserialize_head(X) ->
 
 dict_get({key, Account, Oracle}, Dict) ->
     dict_get({key, Account, Oracle}, Dict, 0).
-dict_get(Key = {key, Account, Oracle}, Dict, Height) ->
+dict_get(Key = {key, _Account, _Oracle}, Dict, Height) ->
     B = Height > forks:get(39),
     C = if
             B -> error;

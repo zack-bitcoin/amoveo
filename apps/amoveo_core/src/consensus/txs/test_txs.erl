@@ -1315,6 +1315,8 @@ binary 32 ",
     %timeout second
     Tx9 = contract_timeout_tx2:make_dict(MP, CID2, Fee),
 
+
+
     %withdraw to veo
     PayoutVector = %same as payout vector defined in Forth.
         [<<2147483648:32>>, 
@@ -1727,7 +1729,10 @@ binary 32 ",
 
     %verify that I no longer have money in contract 3
     SubAdd8_1 = sub_accounts:make_key(MP, CID3, 1),
-    empty = trees:get(sub_accounts, SubAdd8_1),
+    case trees:get(sub_accounts, SubAdd8_1) of
+        empty -> ok;
+        SA -> true = (SA#sub_acc.balance == 0)%the verkle tree cannot delete things.
+    end,
 
     %do the simplification from 1 to 3
     Matrix3 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
@@ -1844,8 +1849,10 @@ int 0 int 1" >>),
     SSO = keys:sign(SO),
     Tx4 = swap_tx2:make_dict(NewPub, SSO, 1, Fee*2),
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
+    io:fwrite("test 40 before absorb 2\n"),
     absorb(Stx4),
-    1 = many_txs(),
+    1 = many_txs(),%here
+    io:fwrite("test 40 before mine\n"),
     mine_blocks(1),
 
     success;

@@ -125,23 +125,8 @@ deserialize(B) ->
               delay = Delay,
               closed = Closed,
               volume = Volume}.
-is_in(X, [X|_]) -> true;
-is_in(X, [_|T]) -> 
-    is_in(X, T);
-is_in(_, []) -> false.
 dict_write(Channel, Dict) ->
-    %ID = make_id(Channel),
     ID = make_v_id(Channel),
-    Bool = is_in({contracts, ID}, dict:fetch_keys(Dict)),
-    if
-        Bool -> ok;
-        true -> io:fwrite({{contracts, ID}, 
-                           dict:fetch_keys(Dict)})
-    end,
-    %io:fwrite({ID, dict:fetch_keys(Dict)}),
-%    dict:store({contracts, ID},
-%               Channel,
-%               Dict).
     csc:update({contracts, ID}, Channel, Dict).
 write(Channel, Root) ->
     ID = make_id(Channel),
