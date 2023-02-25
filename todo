@@ -1,6 +1,4 @@
-test_txs:test(48) isn't passing.
-it says we are trying to edit inaccessible state.
-I guess there is some issue with updating the markets in the verkle tree. the id is getting edited at some point or something.
+test_txs:test(55) isn't passing.
 
 
 in explorer.html you cant look up info about an account.

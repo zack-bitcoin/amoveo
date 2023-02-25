@@ -179,6 +179,9 @@ hash_key(receipts, {key, ID}) ->
 hash_key(markets, X)
   when is_binary(X) and (size(X) == 32) ->
     key(#market{id = X});
+hash_key(trades, X)
+  when is_binary(X) and (size(X) == 32) ->
+    key(#trade{value = X});
 %hash_key(trades, X) 
 %  when is_binary(X) and (size(X) == 32) ->
 %    X;

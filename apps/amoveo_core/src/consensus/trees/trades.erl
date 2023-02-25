@@ -89,7 +89,7 @@ get({key, ID}, Channels) ->
 	    L -> deserialize(leaf:value(L))
 	end,
     {RH, V, Proof}.
-dict_delete(Key, Dict) ->      
+dict_delete(Key = {key, _}, Dict) ->      
     dict:store({trades, Key}, 0, Dict).
 delete(ID,Tree) ->
     trie:delete(ID, Tree, trade).

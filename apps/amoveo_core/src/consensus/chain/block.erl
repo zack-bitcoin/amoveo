@@ -425,12 +425,15 @@ make(Header, Txs0, Trees, Pub) ->
 %        true -> ok 
 %    end,
     Facts = proofs:prove(Querys, Trees),
+    Dict = proofs:facts_to_dict(Facts, dict:new()),
     if
+        true -> ok;
+        ((Height == 8) and (length(Txs0) > 0)) ->
+            io:fwrite({Txs0, Querys, dict:fetch_keys(Dict), Facts});
         true -> ok;
         (Height == 10) and (1 == length(Txs0)) -> io:fwrite({Querys, facts, Facts});
         true -> ok
     end,
-    Dict = proofs:facts_to_dict(Facts, dict:new()),
 %    if
 %        Height == 2 ->
 %            io:fwrite({Facts, dict, dict:fetch(hd(dict:fetch_keys(Dict)), Dict)});

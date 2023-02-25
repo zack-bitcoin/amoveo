@@ -62,7 +62,9 @@ leaf_type2tree(multi_tx) -> multi_tx;
 leaf_type2tree(contracts) -> contracts;
 leaf_type2tree(contract) -> contracts;
 leaf_type2tree(trades) -> trades;
+leaf_type2tree(trade) -> trades;
 leaf_type2tree(markets) -> markets;
+leaf_type2tree(market) -> markets;
 leaf_type2tree(receipts) -> receipts;
 leaf_type2tree(stablecoins) -> stablecoins.
 
@@ -267,9 +269,9 @@ dict_key(#sub_acc{pubkey = P, contract_id = CID,
     sub_accounts:make_v_key(P, CID, T);
 dict_key(C = #contract{}) -> 
     contracts:make_id(C);
-dict_key(#trade{value = V}) -> V;
+dict_key(#trade{value = V}) -> {key, V};
 dict_key(#market{id = X}) -> X;
-dict_key(#receipt{id = Z}) -> Z.
+dict_key(#receipt{id = Z}) -> {key, Z}.
 
 hash(F) ->
     hash:doit(F).
@@ -816,7 +818,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                sub_accounts:make_v_key(Acc2, CID2, Type2)}]
                      end,
                 [{governance, ?n2i(swap_tx)},
-                 {trades, TradeID}] ++
+                 {trades, {key, TradeID}}] ++
                 F1 ++ F2 ++ U ++ U2;
             swap_tx2 ->
 
@@ -960,7 +962,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 TID = swap_tx:trade_id_maker(From, Salt),
                 [{accounts, From},
                  {governance, ?n2i(trade_cancel_tx)},
-                 {trades, TID}
+                 {trades, {key, TID}}
                 ];
 	    coinbase_old -> 
                 [

@@ -2960,7 +2960,7 @@ int 0 int 1" >>),
     Tx4 = swap_tx2:make_dict(NewPub, SSO, 3456, Fee*2),
     %matching 34.56% of the limit order.
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
-    empty = trees:get(trades, TID),
+    empty = trees:get(trades, {key, TID}),
     100000000 = (trees:get(accounts, NewPub))#acc.balance,
     SubAcc1 = sub_accounts:make_key(MP, CID, 1),
     SubAcc21 = sub_accounts:make_key(NewPub, CID, 1),
@@ -2975,7 +2975,7 @@ int 0 int 1" >>),
 
 
 
-    Trade1 = trees:get(trades, TID),
+    Trade1 = trees:get(trades, {key, TID}),
     3457 = Trade1#trade.height,
     96241724 = (trees:get(accounts, NewPub))#acc.balance,
     96544000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
@@ -2994,7 +2994,7 @@ int 0 int 1" >>),
     absorb(Stx5),%testing that the same tx can't be re-published.
     0 = many_txs(),
     
-    Trade2 = trees:get(trades, TID),
+    Trade2 = trees:get(trades, {key, TID}),
     Nonce0 = Trade2#trade.height,
 
     %next testing in a multi-tx
@@ -3009,7 +3009,7 @@ int 0 int 1" >>),
     mine_blocks(1),
     0 = many_txs(),
 
-    Trade3 = trees:get(trades, TID),
+    Trade3 = trees:get(trades, {key, TID}),
     Nonce1 = Nonce0 + MatchMany2,
     Nonce1 = Trade3#trade.height,
 
@@ -3025,7 +3025,7 @@ int 0 int 1" >>),
     mine_blocks(1),
     0 = many_txs(),
     
-    Trade4 = trees:get(trades, TID),
+    Trade4 = trees:get(trades, {key, TID}),
     Nonce2 = Trade4#trade.height,
 
 
@@ -3038,7 +3038,7 @@ int 0 int 1" >>),
     TID2 = swap_tx:trade_id_maker(MP, Salt2),
     SSO2 = keys:sign(SO2),
     SubAcc2 = sub_accounts:make_key(NewPub, CID, 2),
-    empty = (trees:get(sub_accounts, SubAcc2)),
+    empty = (trees:get(sub_accounts, SubAcc2)),%here
     Swap3 = swap_tx2:make_dict(NewPub, SSO2, 10000, Fee*2),
     CU = contract_use_tx:make_dict(NewPub, CID, 10000, Fee*2),
     Tx8 = multi_tx:make_dict(NewPub, [Swap3, CU], Fee*2),
@@ -3108,7 +3108,7 @@ int 0 int 1" >>),
     SubAcc1 = sub_accounts:make_key(MP, CID, 1),
     SubAcc2 = sub_accounts:make_key(NewPub, CID, 1),
 
-    empty = trees:get(trades, TID),
+    empty = trees:get(trades, {key, TID}),
     100000000 = (trees:get(accounts, NewPub))#acc.balance,
     100000000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
     empty = (trees:get(sub_accounts, SubAcc2)),
@@ -3117,7 +3117,7 @@ int 0 int 1" >>),
     1 = many_txs(),
     mine_blocks(1),
 
-    2 = (trees:get(trades, TID))#trade.height,
+    2 = (trees:get(trades, {key, TID}))#trade.height,
     89697724 = (trees:get(accounts, NewPub))#acc.balance,
     90000000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
     10000000 = (trees:get(sub_accounts, SubAcc2))#sub_acc.balance,
@@ -4168,7 +4168,7 @@ wait_till_next_block(Height, N) ->
     TP = tx_pool:get(),
     H2 = TP#tx_pool.height,
     if
-        H2 > Height -> wait_till_mineable(H2, 100);
+        H2 > Height -> wait_till_mineable(H2, 200);
         true ->
             timer:sleep(50),
             wait_till_next_block(Height, N-1)
