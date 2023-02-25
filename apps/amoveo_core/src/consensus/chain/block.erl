@@ -439,9 +439,10 @@ make(Header, Txs0, Trees, Pub) ->
     %Dict = proofs:facts_to_dict(Facts, dict:new()),%todo. this should work even if facts is a verkle proof.
     NewDict0 = txs:digest(Txs, Dict, Height + 1),
     if
-        false -> 
-            Keys0 = dict:fetch_keys(Dict),
-            io:fwrite({lists:map(fun(Y) -> dict:fetch(Y, Dict) end, Keys0)}),
+        false ->
+        %Height == 13 -> 
+            %Keys0 = dict:fetch_keys(Dict),
+            %io:fwrite({lists:map(fun(Y) -> dict:fetch(Y, Dict) end, Keys0)}),
             io:fwrite({Facts, 
                        dict, hd(dict:fetch_keys(Dict)), dict:fetch(hd(dict:fetch_keys(Dict)), Dict), 
                        new_dict0, hd(dict:fetch_keys(NewDict0)), element(1, dict:fetch(hd(dict:fetch_keys(NewDict0)), NewDict0))});
@@ -900,6 +901,9 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
                 length(dict:fetch_keys(NewDict))),
     if
         SameLength -> ok;
+        false and (Height == 13) -> 
+            io:fwrite({lists:map(fun(X) -> dict:fetch(X, Dict) end, dict:fetch_keys(Dict)),
+                       lists:map(fun(X) -> dict:fetch(X, NewDict) end, dict:fetch_keys(NewDict))});
         true ->
             io:fwrite({dict:fetch_keys(Dict),
                        dict:fetch_keys(NewDict)})

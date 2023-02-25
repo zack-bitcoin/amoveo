@@ -118,7 +118,7 @@ write(Account, Root) ->
     trie:put(PubId, SerializedAccount, 0, Root, ?id). % returns a pointer to the new root
 dict_delete(Key, Dict) ->
     case csc:read({?id, Key}, Dict) of
-        error -> Dict;
+        %error -> Dict;
         {empty, _} -> Dict;
         {ok, ?id, Val} ->
             Val2 = Val#sub_acc{balance = 0},

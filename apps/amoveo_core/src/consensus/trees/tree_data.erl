@@ -111,19 +111,19 @@ internal_dict_update_trie(Trees, Dict, H, ProofTree, RootHash) ->
     if
         H > F52 -> verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, H);
         true ->
-    Types2 = [accounts, oracles, channels, existence, governance, matched, unmatched],
-    Types3 = Types2 ++ [sub_accounts, contracts, trades],
-    Types4 = Types3 ++ [markets],
-    Types5 = Types4 ++ [receipts, stablecoins],
-    Types = 
-        case element(1, Trees) of
-            trees2 -> Types2;
-            trees3 -> Types3;
-            trees4 -> Types4;
-            trees5 -> Types5
-        end,
-    Keys = dict:fetch_keys(Dict),
-    idut2(Types, Trees, Dict, Keys)
+            Types2 = [accounts, oracles, channels, existence, governance, matched, unmatched],
+            Types3 = Types2 ++ [sub_accounts, contracts, trades],
+            Types4 = Types3 ++ [markets],
+            Types5 = Types4 ++ [receipts, stablecoins],
+            Types = 
+                case element(1, Trees) of
+                    trees2 -> Types2;
+                    trees3 -> Types3;
+                    trees4 -> Types4;
+                    trees5 -> Types5
+                end,
+            Keys = dict:fetch_keys(Dict),
+            idut2(Types, Trees, Dict, Keys)
     end.
 verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
     true = is_integer(Trees),
@@ -140,15 +140,15 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
     Leaves2 = lists:filter(
                 fun(X) -> not(X == 0) end, Leaves),
     %we never delete from the verkle tree, so we can remove anything that seems empty.
-    if
-        true -> ok;
-        ((Height == 6) and (length(Leaves2) > 1)) ->
-            io:fwrite({Leaves2});
-        true -> ok
-    end,
     Leaves2b = lists:map(
                  fun(#consensus_state{val = X}) -> X;
                     (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
+    if
+        true -> ok;
+        ((Height == 13) and (not(ProofTree == unknown))) ->
+            io:fwrite({Leaves2b});
+        true -> ok
+    end,
     Trees3 = case ProofTree of
                  unknown -> 
                      %io:fwrite({Leaves2}),

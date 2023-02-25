@@ -1,5 +1,6 @@
-receipts and trades are sharing the same id, so we can't store them in the verkle tree together.
-We need to update to use the unhashed key while processing txs, and to hash differently before and after the hard update.
+test_txs:test(48) isn't passing.
+it says we are trying to edit inaccessible state.
+I guess there is some issue with updating the markets in the verkle tree. the id is getting edited at some point or something.
 
 
 in explorer.html you cant look up info about an account.

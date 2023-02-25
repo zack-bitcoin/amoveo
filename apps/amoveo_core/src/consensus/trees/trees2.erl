@@ -176,6 +176,9 @@ hash_key(trades, {key, Val}) ->
     key(#trade{value = Val});
 hash_key(receipts, {key, ID}) ->
     key(#receipt{id = ID});
+hash_key(markets, X)
+  when is_binary(X) and (size(X) == 32) ->
+    key(#market{id = X});
 %hash_key(trades, X) 
 %  when is_binary(X) and (size(X) == 32) ->
 %    X;
@@ -438,7 +441,7 @@ deserialize(9, <<I:256, C1:256, C2:256, T1:16, T2:16,
             cid2 = <<C2:256>>, type1 = T1, type2 = T2,
             amount1 = A1, amount2 = A2, shares = S};
 deserialize(10, <<T:256, P:264, N:32>>) ->
-    P2 = decompress_pub(<<P:256>>),
+    P2 = decompress_pub(<<P:264>>),
     #receipt{tid = <<T:256>>, pubkey = P2, nonce = N};
 %deserialize(_, T) when is_tuple(T) -> T;
 deserialize(N, B) ->

@@ -509,7 +509,7 @@ test(11) ->
     %1 = many_txs(),
 
     %close the oracle with oracle_close
-    Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),%here
+    Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
     
 
     %Stx8 = keys:sign(Tx3),
@@ -1851,7 +1851,7 @@ int 0 int 1" >>),
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
     io:fwrite("test 40 before absorb 2\n"),
     absorb(Stx4),
-    1 = many_txs(),%here
+    1 = many_txs(),
     io:fwrite("test 40 before mine\n"),
     mine_blocks(1),
 
@@ -2162,7 +2162,7 @@ test(45) ->
 
     Question = <<"1=1">>,
     %Tx = oracle_new_tx:make_dict(MP, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
-    Tx = oracle_new_tx:make_dict(MP, Fee, Question, 5, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx = oracle_new_tx:make_dict(MP, Fee, Question, 5, 0, 0), %Fee, question, start, id gov, govamount 
     OID = oracle_new_tx:id(Tx),
     io:fwrite("test 45 oid is \n"),
     io:fwrite(packer:pack(OID)),
@@ -2562,7 +2562,7 @@ int 0 int 1000 \
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     1 = many_txs(),
-    mine_blocks(1),
+    mine_blocks(1),%here. it says we are trying to edit inaccessible state.
    
     io:fwrite("test txs mid is \n"),
     io:fwrite(base64:encode(MID)),
@@ -3165,7 +3165,7 @@ test(58) ->
     0 = many_txs(),
 
     Question = <<>>,
-    Tx2 = oracle_new_tx:make_dict(Pub, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx2 = oracle_new_tx:make_dict(Pub, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount 
     OID = oracle_new_tx:id(Tx2),
     Stx2 = signing:sign_tx(Tx2, Pub, Priv),
     absorb(Stx2),
@@ -3684,7 +3684,7 @@ test(61) ->
     Tx12 = contract_winnings_tx:make_dict(Pub, SubAcc1, CID, Fee, [Full, Empty]),
     Stx12 = signing:sign_tx(Tx12, Pub, Priv),
     absorb(Stx12),
-    5 = many_txs(),%HERE
+    5 = many_txs(),
     %mine_blocks(1),
     %0 = many_txs(),
 
