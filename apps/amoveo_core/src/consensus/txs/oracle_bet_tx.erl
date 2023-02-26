@@ -27,8 +27,8 @@ to_prove(OID, Trees) when (element(1, Trees) == trees) ->%
     orders:all(Orders);%
 to_prove(OID, Trees) -> %when (element(1, Trees) == trees2) -> 
     Root = trees:unmatched(Trees),
-    X = 8 * 65,
-    Head = unmatched:get({key, <<1:X>>, OID}, Root),
+    %X = 8 * 65,
+    %Head = unmatched:get({key, <<1:X>>, OID}, Root),
     unmatched:all(Root, OID).
     
 amount(X) -> X#oracle_bet.amount.

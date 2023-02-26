@@ -211,11 +211,9 @@ facts_to_dict([F|T], D) ->
                                orders = 0};
                          _ -> Value0
                      end,
-    %D2 = dict:store({Tree, Key}, Value3, D),
                  csc:add(Tree, HK, {Tree, Key}, 
                          Value3, D)
          end,
-    %D2 = csc:add(Tree, HK, Key, Value0, D),
     facts_to_dict(T, D2);
 facts_to_dict({_VerkleProof, Leaves}, D) ->
     lists:foldl(

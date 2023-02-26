@@ -161,7 +161,6 @@ key_to_int({key, Account, Oracle}) ->
     <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.
 get(K, Tree) ->
-    %we should check if this is a key for headers, and if it is, do headers_get instead.
     %ID = key_to_int({key, <<?Header:PS>>, OID}),
     PS = constants:pubkey_size() * 8,
     ID = key_to_int(K),
@@ -215,16 +214,32 @@ empty_book(OID, Tree) ->
 dict_head_get(Dict, OID) ->
     PS = constants:pubkey_size() * 8,
     Key = {key, <<?Header:PS>>, OID},
+    %io:fwrite({Key, keys, dict:fetch_keys(Dict)}),
     case csc:read({unmatched, Key}, Dict) of
         error -> error;
         {empty, _} -> {<<?Null:PS>>, 0};
         {ok, unmatched, 
-         {unmatched_head, Head, Many, OID}} ->
+         {unmatched_head, Head, Many, _OID}} ->
             {Head, Many};
+        {ok, unmatched, {Head, Many}} ->
+            {Head, Many};
+        {ok, unmatched, U = {unmatched, <<0:PS>>, Oracle, Many, Pointer}} ->
+            1=2,
+            <<0:256>> = Oracle, 
+            {Pointer, Many};
+        {ok, unmatched, U = {unmatched, Acc, _Oracle, _Many, _Pointer}} ->
+            io:fwrite("this is a normal unmatched object, it should not be stored in the header slot.\n"),
+            1=2,
+            ok;
         X ->
             io:fwrite("unmatched \n"),
+            %U = element(3, X),
+            %<<T:PS>> = element(2, U),
+            %<<T2:256>> = element(3, U),
+            %<<T3:PS>> = element(5, U),
             io:fwrite({X}),
             X
+                %#unmatched{account, oracle, amount, pointer}
     end.
 dict_head_get_old(Dict, OID) ->
     PS = constants:pubkey_size() * 8,

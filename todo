@@ -1,4 +1,12 @@
-test_txs:test(55) isn't passing.
+
+I got the tests to pass with the verkle tree.
+
+I still need to
+ 
+make sure I didn't break any tests in the pre-fork version of the code.
+make sure all the historical blocks can sync.
+set it up to sync blocks in reverse by default.
+update to the new version of ubuntu.
 
 
 in explorer.html you cant look up info about an account.
