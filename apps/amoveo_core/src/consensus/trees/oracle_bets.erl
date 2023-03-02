@@ -65,7 +65,10 @@ deserialize(B) ->%
     BAL = constants:balance_bits(),%
     <<ID:HS, True:BAL, False:BAL, Bad:BAL>> = B,%
     #oracle_bet{true = True, false = False, bad = Bad, id = <<ID:HS>>}.%
-dict_write(X, Pub, Dict) ->%
+dict_write(X, Pub, Dict) ->
+    csc:update({oracle_bets, {key, Pub, X#oracle_bet.id}},
+               X, Dict).
+dict_write_old(X, Pub, Dict) ->%
     dict:store({oracle_bets, {key, Pub, X#oracle_bet.id}},%
                %serialize(X),%
                X,%
@@ -76,7 +79,14 @@ write(X, Tree) ->%
     trie:put(key_to_int(Key), Z, 0, Tree, ?name).%
 dict_get(Key, Dict, _) ->
     dict_get(Key, Dict).
-dict_get(Key, Dict) ->%
+dict_get(Key, Dict) ->
+    case csc:read({oracle_bets, Key}, Dict) of
+        %error -> empty;
+        {empty, _} -> empty;
+        {ok, oracle_bets, Val} -> Val
+    end.
+            
+dict_get_old(Key, Dict) ->%
     X = dict:fetch({oracle_bets, Key}, Dict),%
     case X of%
         0 -> empty;%
@@ -93,7 +103,18 @@ get(ID, Tree) ->%
 	    L -> deserialize(leaf:value(L))%
 	end,%
     {X, V, Proof}.%
-dict_delete(Key, Dict) ->%
+dict_delete(Key, Dict) ->
+    case csc:read({oracle_bets, Key}, Dict) of
+        error -> Dict;
+        {empty, _} -> Dict;
+        {ok, oracle_bets, Val} ->
+            Val2 = Val#oracle_bet{
+                     id = 0 
+                    },
+            csc:update({oracle_bets, Key}, Val2, Dict)
+    end.
+             
+dict_delete_old(Key, Dict) ->%
     dict:store({oracle_bets, Key}, 0, Dict).%
 delete(ID, Tree) ->%
     trie:delete(ID, Tree, ?name).%

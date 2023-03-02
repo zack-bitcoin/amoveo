@@ -274,7 +274,7 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
                 HashedKey = trees2:hash_key(TreeID, Key),
                 case Val2 of
                     0 -> 
-                        io:fwrite("tx_pool_feeder, looked up an empty\n"),
+                        %io:fwrite("tx_pool_feeder, looked up an empty\n"),
                         csc:add_empty(TreeID,
                            HashedKey,
                            {TreeID, Key}, Dict);
@@ -283,7 +283,7 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
                         csc:add(TreeID, HashedKey, {TreeID, Key}, {unmatched_head, <<Head:PS>>, Many2, <<0:256>>}, Dict);
                     %    dict:store({unmatched, HashedKey}, Val2, Dict);
                     _ ->
-                        io:fwrite("tx_pool_feeder, looked up an unmatched link\n"),
+                        %io:fwrite("tx_pool_feeder, looked up an unmatched link\n"),
                         csc:add(
                           TreeID, HashedKey, {TreeID, Key}, Val2,
                           Dict)

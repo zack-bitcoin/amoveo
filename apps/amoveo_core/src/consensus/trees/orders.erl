@@ -20,6 +20,7 @@
 %-record(orders, {aid, amount, pointer}).%
 -include("../../records.hrl").
 dict_significant_volume(Dict, OID, OIL, _) ->%
+    io:fwrite("orders, dict_significant_volume\n"),
     ManyOrders = dict_many(Dict, OID),%
         if %
             ManyOrders == 0 ->%
@@ -81,7 +82,11 @@ deserialize(B) ->%
      AID:PS>> = B,%
     #orders{aid = <<AID:PS>>, amount = Amount,%
               pointer = <<P:PS>>}.%
-dict_write(Order, OID, Dict) ->%
+dict_write(Order, OID, Dict) ->
+    Pub = aid(Order), %
+    Key = {key, Pub, OID},%
+    csc:update({orders, Key}, Order, Dict).
+dict_write_old(Order, OID, Dict) ->%
     Pub = aid(Order), %
     Key = {key, Pub, OID},%
     dict:store({orders, Key},%
@@ -95,7 +100,14 @@ write(X, Root) -> %
     trie:put(HPID, V, 0, Root, ?name).%
 dict_get(Key, Dict, _) ->%
     dict_get(Key, Dict).
-dict_get(Key, Dict) ->%
+dict_get(Key, Dict) ->
+    case csc:read({orders, Key}, Dict) of
+        error -> empty;
+        {empty, _} -> empty;
+        {ok, orders, X}  -> X
+    end.
+
+dict_get_old(Key, Dict) ->%
     X = dict:fetch({orders, Key}, Dict),%
     case X of%
         0 -> empty;%
@@ -122,6 +134,26 @@ empty_book() ->%
 dict_head_get(Dict, OID) ->%
     PS = constants:pubkey_size() * 8,%
     Key = {key, <<?Header:PS>>, OID},%
+    case csc:read({orders, Key}, Dict) of
+        error -> error;
+        {empty, _} -> {<<?Null:PS>>, 0};
+        {ok, orders, {Head, Many}} ->
+            {Head, Many};
+        {ok, orders, X} ->
+            if
+                not(element(1, X) == orders) ->
+                    io:fwrite({X});
+                not(size(X) == 4) ->
+                    io:fwrite({X});
+                true -> ok
+            end,
+            S = serialize(X),
+            deserialize_head(S)
+    end.
+            
+dict_head_get_old(Dict, OID) ->%
+    PS = constants:pubkey_size() * 8,%
+    Key = {key, <<?Header:PS>>, OID},%
     X = dict:fetch({orders, Key}, Dict),%
     case X of%
         0 -> {<<?Null:PS>>, 0};%
@@ -144,11 +176,13 @@ dict_many_update(Many, OID, Dict) ->%
     {Head, _} = dict_head_get(Dict, OID),%
     dict_head_put(Head, Many, OID, Dict).%
 dict_head_put(Head, Many, OID, Dict) ->%
-    Y = serialize_head(Head, Many),%
+    %Y = serialize_head(Head, Many),%
     PS = constants:pubkey_size() * 8,%
     Key = {key, <<?Header:PS>>, OID},%
-    dict:store({orders, Key},%
-               Y,%
+    csc:update({orders, Key},
+    %dict:store({orders, Key},%
+               %Y,%
+               {Head, Many},
                Dict).%
 head_put(Head, Many, Root) ->%
     PS = constants:pubkey_size() * 8,%
@@ -224,6 +258,18 @@ dict_remove2(ID, OID, Dict, P) ->%
             dict_remove2(ID, OID, Dict, X)%
     end.%
 dict_delete(Pub, OID, Dict) ->%
+    Key = {key, Pub, OID},%
+    case csc:read({orders, Key}, Dict) of
+        error -> Dict;
+        {empty, _} -> Dict;
+        {ok, orders, Val} ->
+            AS = constants:pubkey_size(),
+            PS = AS * 8,
+            Val2 = Val#orders{pointer = <<1:PS>>},%set pointer to 2 to mean deleted
+            csc:update({orders, Key}, Val2, Dict)
+    end.
+            
+dict_delete_old(Pub, OID, Dict) ->%
     Key = {key, Pub, OID},%
     dict:store({orders, Key}, 0, Dict).%
 delete(Pub, Root) ->%

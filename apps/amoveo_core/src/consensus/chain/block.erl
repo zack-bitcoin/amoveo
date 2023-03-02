@@ -428,8 +428,16 @@ make(Header, Txs0, Trees, Pub) ->
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     if
         true -> ok;
-        ((Height == 8) and (length(Txs0) > 0)) ->
-            io:fwrite({Txs0, Querys, dict:fetch_keys(Dict), Facts});
+        ((Height == 11) and (length(Txs0) > 0)) ->
+            %io:fwrite({lists:map(fun(X) -> {X, dict:fetch(X, Dict)} end, dict:fetch_keys(Dict))});
+            Fact = hd(tl(tl(tl(tl(tl(tl(tl(tl(tl(tl(tl(tl(Facts))))))))))))),
+            Value = unmatched:deserialize(element(3, Fact)), %{unmatched, pub, <<0,...>>, 0, <<0,...>>}
+            Value2 = unmatched:deserialize_head(element(3, Fact)),
+            Pubkey = element(2, Value),
+            Dict2 = proofs:facts_to_dict([Fact], dict:new()),
+            Key = hd(dict:fetch_keys(Dict2)),
+            <<OracleNum:256>> = element(3, Value),
+            io:fwrite({OracleNum, Value2, Value, dict:fetch(Key, Dict2), base64:encode(Pubkey)});
         true -> ok;
         (Height == 10) and (1 == length(Txs0)) -> io:fwrite({Querys, facts, Facts});
         true -> ok

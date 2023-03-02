@@ -341,14 +341,20 @@ deserialize(SerializedGov) ->
     #gov{id = Id, value = Value, lock = Lock}.
 
 
-dict_get_value(Key, Dict, VP) 
-  when is_integer(VP) ->
-    N = name2number(Key), 
-    HC = hard_coded(-1, N),
-    HC2 = tree_number_to_value(HC),
-    case Key of
-        timeout -> -HC2;
-        _ -> HC2
+dict_get_value(Key, Dict, Height) 
+  when is_integer(Height) ->
+    F52 = forks:get(52),
+    if
+        Height < F52 -> dict_get_value(Key, Dict);
+        true ->
+            N = name2number(Key), 
+            HC = hard_coded(-1, N),
+            HC2 = tree_number_to_value(HC),
+            case Key of
+                timeout -> -HC2;
+                delete_acc_tx -> -HC2;
+                _ -> HC2
+            end
     end;
 dict_get_value(Key, Dict, _Trees) ->
     dict_get_value(Key, Dict).

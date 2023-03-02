@@ -159,6 +159,10 @@ hash_key(unmatched, {key, Account, OID}) ->
 hash_key(matched, {key, Account, OID}) ->
     key(#matched{
            account = Account, oracle = OID});
+hash_key(oracle_bets, Key = {key, _Account, OID}) ->
+    hash:doit(OID);
+hash_key(orders, Key = {key, Account, OID}) ->
+    accounts:ensure_decoded_hashed(Account);
 hash_key(contracts, CID) when is_binary(CID) ->
     CID;
 %hash_key(contracts, {key, C, M, S, T}) ->
@@ -229,6 +233,10 @@ key(K = #unmatched{account = A, oracle = B}) ->
     %false = (A2 == <<0:264>>),
     %false = (A2 == <<1:264>>),
     hash:doit(<<A2/binary, B/binary, 3>>);%66 bytes
+key(K = {oracle_bets, T, F, B, ID}) ->
+    hash:doit(ID);
+key(K = {orders, AID, Amount, Pointer}) ->
+    accounts:ensure_decoded_hashed(AID);
 key(#sub_acc{pubkey = P, type = T, 
              contract_id = CID}) ->
     sub_accounts:make_key(P, CID, T);%65+32+32 = 129 bytes

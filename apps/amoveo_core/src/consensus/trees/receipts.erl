@@ -61,6 +61,8 @@ write(R, Root) ->
     S = serialize(R),
     trie:put(key_to_int(ID), S, 0, Root, receipts).
 
+key_to_int({key, <<X:256>>}) ->
+    key_to_int(<<X:256>>);
 key_to_int(<<X:256>>) ->
     X.
 dict_get(Key, Dict) ->

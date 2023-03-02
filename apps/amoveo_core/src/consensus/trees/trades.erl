@@ -52,6 +52,8 @@ write(T, Root) ->
     trie:put(key_to_int(ID), M, 0, Root, trades).
 %returns a pointer to the new root.
 
+key_to_int({key, <<X:256>>}) ->
+    key_to_int(<<X:256>>);
 key_to_int(<<X:256>>) ->
     X.
 

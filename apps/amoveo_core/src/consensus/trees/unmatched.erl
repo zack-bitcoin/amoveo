@@ -18,6 +18,9 @@
          pointer/1,
 	 aid/1,
 	 dict_empty_book/2,
+
+         dict_many/2,
+
 	 test/0]).%common tree stuff
 %for accessing the proof of existence tree
 -record(unmatched, {account, %pubkey of the account
@@ -91,7 +94,11 @@ deserialize(B) ->
     BAL = constants:balance_bits(),
     PS = constants:pubkey_size()*8,
     <<Acc:PS, Oracle:HS, Amount:BAL, Pointer:PS>> = B,
-    #unmatched{amount = Amount, pointer = <<Pointer:PS>>, oracle = <<Oracle:HS>>, account = <<Acc:PS>>}.
+    case {Oracle, Amount} of
+        {0, 0} -> deserialize_head(B);
+        _ ->
+            #unmatched{amount = Amount, pointer = <<Pointer:PS>>, oracle = <<Oracle:HS>>, account = <<Acc:PS>>}
+    end.
 serialize_head(Head, Many) ->
     HS = constants:hash_size()*8,
     PS = constants:pubkey_size() * 8,
@@ -224,11 +231,12 @@ dict_head_get(Dict, OID) ->
         {ok, unmatched, {Head, Many}} ->
             {Head, Many};
         {ok, unmatched, U = {unmatched, <<0:PS>>, Oracle, Many, Pointer}} ->
-            1=2,
-            <<0:256>> = Oracle, 
+            %1=2,
+            %<<0:256>> = Oracle, 
             {Pointer, Many};
-        {ok, unmatched, U = {unmatched, Acc, _Oracle, _Many, _Pointer}} ->
+        {ok, unmatched, U = {unmatched, Acc, _Oracle, _Many, Pointer}} ->
             io:fwrite("this is a normal unmatched object, it should not be stored in the header slot.\n"),
+            io:fwrite({Key, Acc, Pointer}),
             1=2,
             ok;
         X ->

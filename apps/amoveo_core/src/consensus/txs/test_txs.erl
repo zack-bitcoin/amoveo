@@ -83,7 +83,16 @@ test(1) ->
     BP = block:get_by_height(block:height()),
     PH = block:hash(BP),
     Trees = block_trees(BP),
-    {NewPub,NewPriv} = signing:new_key(),
+    %{NewPub,NewPriv} = signing:new_key(),
+    {NewPub,NewPriv} = %signing:new_key(),
+        {<<4,175,48,50,202,47,72,21,98,10,251,128,243,51,147,
+           110,102,72,18,51,92,50,111,206,185,189,131,147,
+           187,108,88,6,192,76,202,96,234,45,125,72,58,116,
+           163,255,176,201,92,87,224,9,138,78,140,221,251,
+           176,0,93,114,14,1,152,50,120,133>>,
+         <<27,160,56,208,169,158,47,38,189,144,205,119,226,
+           6,81,210,189,55,47,160,244,79,66,230,11,6,247,
+           255,155,228,98,10>>},
 
     Fee = constants:initial_fee() + 20,
     {Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
@@ -112,6 +121,20 @@ test(1) ->
     Txs = (tx_pool:get())#tx_pool.txs,
     mine_blocks(1),
 
+
+    F52 = forks:get(52),
+    BH = block:height(),
+    if
+        BH < F52 ->
+
+    %io:fwrite({accounts:all_accounts()}),
+            PB0 = potential_block:read(),
+            #block{trees = Trees0} = PB0,
+            Accs0 = trees:accounts(Trees0),
+            <<54,251,220,70,_:(28*8)>> = trie:root_hash(accounts, Accs0),
+            <<152,56,71,123,_:(28*8)>> = trees:root_hash(Trees0);
+        true -> ok
+    end,
     success;
 test(2) ->
     headers:dump(),
@@ -501,12 +524,13 @@ test(11) ->
     OIL = governance:value(OIL_gov),
     Bal1 = api:balance(),
 
-    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), 
+    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), %only fails in the multi-tx.
 
 
     %Stx9 = keys:sign(Tx2),
     %absorb(Stx9),
     %1 = many_txs(),
+    %mine_blocks(1),
 
     %close the oracle with oracle_close
     Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
@@ -514,12 +538,14 @@ test(11) ->
 
     %Stx8 = keys:sign(Tx3),
     %absorb(Stx8),
-    %2 = many_txs(),
+    %1 = many_txs(),
+    %mine_blocks(1),
     %success = this_point,
     
 
 
     Tx7 = multi_tx:make_dict(MP, [Tx2, Tx3], Fee*2),
+    %Tx7 = multi_tx:make_dict(MP, [Tx2], Fee*2),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     1 = many_txs(),
@@ -541,6 +567,7 @@ test(11) ->
     %Stx8 = keys:sign(Tx4),
     %absorb(Stx8),
     %1 = many_txs(),
+    %mine_blocks(1),
 
 
     %get your winnings with oracle_shares
@@ -549,7 +576,8 @@ test(11) ->
 
     %Stx9 = keys:sign(Tx5),
     %absorb(Stx9),
-    %2 = many_txs(),
+    %1 = many_txs(),
+    %mine_blocks(1),
     %success = this_point,
 
 
@@ -576,7 +604,7 @@ test(16) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    mine_blocks(2),
+    mine_blocks(4),
     Amount = 1000000000,
     Ctx_1 = create_account_tx:make_dict(Pub1, Amount, Fee, constants:master_pub()),
     Stx_1 = keys:sign(Ctx_1),
