@@ -86,6 +86,12 @@ dict_write(Order, OID, Dict) ->
     Pub = aid(Order), %
     Key = {key, Pub, OID},%
     csc:update({orders, Key}, Order, Dict).
+dict_write_new(Order, OID, Dict) ->
+    Pub = aid(Order), %
+    Key = {key, Pub, OID},
+    HashKey = trees2:hash_key(orders, Key),
+    csc:add(orders, HashKey, {orders, Key}, 
+            Order, Dict).
 dict_write_old(Order, OID, Dict) ->%
     Pub = aid(Order), %
     Key = {key, Pub, OID},%
@@ -356,6 +362,6 @@ test2()->%
     CFG = trie:cfg(orders),%
     Dict0 = dict:new(),%
     Key = {key, Pub, OID},%
-    Dict1 = dict_write(Order1, OID, Dict0),%
+    Dict1 = dict_write_new(Order1, OID, Dict0),%
     Order1 = dict_get(Key, Dict1),%
     success.%

@@ -486,8 +486,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
 		[
 		 {governance, ?n2i(oracle_bet)},
 		 {governance, ?n2i(minimum_oracle_time)},
-		 {governance, OTG},
-		 {oracles, OID}] ++ [U] ++ Prove;
+		 %{governance, OTG},
+		 {oracles, OID}] ++ OTG ++ [U] ++ Prove;
 	    oracle_close -> 
                 AID = oracle_close_tx:from(Tx),
                 OID = oracle_close_tx:oracle_id(Tx),
@@ -518,10 +518,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(minimum_oracle_time)},
                  {governance, ?n2i(maximum_oracle_time)},
                  {governance, ?n2i(oracle_close)},
-                 {governance, OTG},
+                 %{governance, OTG},
                  {governance, ?n2i(oracle_bet)},
                  {oracles, OID}
-                ] ++ U ++ Prove ++ G;
+                ] ++ OTG ++ U ++ Prove ++ G;
 	    unmatched -> 
                 OID = oracle_unmatched_tx:oracle_id(Tx),
                 From = oracle_unmatched_tx:from(Tx),
@@ -1128,16 +1128,28 @@ test() ->
 oracle_type_get(Trees, OID, Height) 
   when is_integer(Trees) ->    
     %the version for verkle trees.
-    ?n2i(oracle_question_liquidity);
+    [{governance, 
+      ?n2i(oracle_question_liquidity)}];
 oracle_type_get(Trees, OID, Height) ->    
+    %using old way of looking up info from the oracle, because the new way is hard coded. %trees:oracles, oracles:get, instead of trees:get(oracle, ...
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
+    case Oracle of
+        empty -> [];
+        _ ->
+    if
+        not(is_record(Oracle, oracle)) ->
+            io:fwrite({Oracle, Oracles, Trees});
+        true -> ok
+    end,
     Gov = Oracle#oracle.governance,
     NF14 = Height < forks:get(14),
-    if 
+    X = if 
         NF14 -> ?n2i(oracle_initial_liquidity);
         (Gov == 0) -> ?n2i(oracle_question_liquidity);
         true -> ?n2i(oracle_initial_liquidity)
+    end,
+            [{governance, X}]
     end.
    
 use_contract_sub_accounts(Tx) ->    

@@ -496,7 +496,7 @@ test(11) ->
     io:fwrite("test 11 2\n"),
 
 
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount 
     OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     absorb(Stx),
@@ -2038,6 +2038,7 @@ else fail then ">>),
     SPBO = keys:sign(PBO),
     Swap2 = swap_tx2:make_dict(NewPub, SPBO, 1, Fee),
     Use2 = contract_use_tx:make_dict(NewPub, NewCID, OneVeo, Fee),
+
     Txs2 = [Swap2, Use2],
     Tx2 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
     Stx2 = signing:sign_tx(Tx2, NewPub, NewPriv),
@@ -2509,17 +2510,30 @@ test(47) ->
     Q = <<OracleTextPart/binary, 
           (integer_to_binary(Third))/binary
         >>, 
-    OracleNewTx = oracle_new_tx:make_dict(MP, 0, Q, StartHeight, 0, 0),
+    OracleNewTx = oracle_new_tx:make_dict(MP, Fee*2, Q, StartHeight, 0, 0),
+
+    
+    %Stx22 = keys:sign(OracleNewTx),
+    %absorb(Stx22),
+    %1 = many_txs(),
+    %mine_blocks(1),
+
     OID = oracle_new_tx:id(OracleNewTx),
     OIL_gov = trees:get(governance, oracle_initial_liquidity),
     OIL = governance:value(OIL_gov),
-    OracleBetTx = oracle_bet_tx:make_dict(MP, 0, OID, 1, OIL+1),
+    OracleBetTx = oracle_bet_tx:make_dict(MP, Fee*2, OID, 1, OIL+1),
+
+    %Stx23 = keys:sign(OracleBetTx),
+    %absorb(Stx23),
+    %1 = many_txs(),
+    %mine_blocks(1),
+    %success = to_here,
     
     Txs3 = [OracleNewTx, OracleBetTx],
     Tx3 = multi_tx:make_dict(MP, Txs3, Fee*length(Txs3)),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
-    1 = many_txs(),
+    1 = many_txs(),%here
     mine_blocks(1),
 
     Tx4 = oracle_close_tx:make_dict(MP, Fee, OID),
@@ -3179,7 +3193,7 @@ test(58) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    mine_blocks(1),
+    mine_blocks(4),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -3198,7 +3212,7 @@ test(58) ->
     Stx2 = signing:sign_tx(Tx2, Pub, Priv),
     absorb(Stx2),
     1 = many_txs(),
-    mine_blocks(1),
+    mine_blocks(1),%here
     0 = many_txs(),
     Tx3 = oracle_bet_tx:make_dict(Pub, Fee, OID, 1, 2100000), 
     Stx3 = signing:sign_tx(Tx3, Pub, Priv),
@@ -4196,7 +4210,8 @@ wait_till_next_block(Height, N) ->
     TP = tx_pool:get(),
     H2 = TP#tx_pool.height,
     if
-        H2 > Height -> wait_till_mineable(H2, 200);
+        H2 > Height -> wait_till_mineable(H2, 200),
+                       timer:sleep(50);
         true ->
             timer:sleep(50),
             wait_till_next_block(Height, N-1)

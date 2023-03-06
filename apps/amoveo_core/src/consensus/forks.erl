@@ -69,7 +69,7 @@ get(49) -> common(154500, %refund for money trapped in channels
                   test_height()+1);
 get(50) -> common(160900, test_height());%let anyone sign oracle_winnings and oracle_unmatched in a multi-tx.
 get(51) -> common(165250, test_height());%create tx type contract_timeout_tx2. If this tx is creating a new smart contract, the contract id of that new smart contract needs to be included in the tx. That way we can process txs in the same block in parallel, even when we include txs related to the child contract in the same block. Also updates contract_simplify and contract_winnings so they can be included in the same block as the contract was created in.
-get(52) -> common(9999999237687, test_height()+3);%the verkle update.
+get(52) -> common(9999999237687, test_height()+30000);%the verkle update.
 
 %get(50) -> common(99999149729, %perpetual stablecoin hard update.
 %                  test_height()+1);

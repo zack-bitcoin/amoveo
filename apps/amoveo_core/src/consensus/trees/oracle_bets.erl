@@ -68,6 +68,10 @@ deserialize(B) ->%
 dict_write(X, Pub, Dict) ->
     csc:update({oracle_bets, {key, Pub, X#oracle_bet.id}},
                X, Dict).
+dict_write_new(X, Pub, Dict) ->
+    Key = {key, Pub, X#oracle_bet.id},
+    HashKey = trees2:hash_key(oracle_bets, Key),
+    csc:add(oracle_bets, HashKey, {oracle_bets, Key}, X, Dict).
 dict_write_old(X, Pub, Dict) ->%
     dict:store({oracle_bets, {key, Pub, X#oracle_bet.id}},%
                %serialize(X),%
@@ -163,7 +167,7 @@ test2() ->%
     Dict0 = dict:new(),%
     Pub = keys:pubkey(),%
     Key = {key, Pub, ID},%
-    Dict1 = dict_write(C, Pub, Dict0),%
+    Dict1 = dict_write_new(C, Pub, Dict0),%
     Account = #acc{balance = 100000, nonce = 0, pubkey = Pub},%
     Dict2 = accounts:dict_write_new(Account, 0, Dict1),%
     C = dict_get(Key, Dict2),%

@@ -160,6 +160,7 @@ hash_key(matched, {key, Account, OID}) ->
     key(#matched{
            account = Account, oracle = OID});
 hash_key(oracle_bets, Key = {key, _Account, OID}) ->
+    %stored in a smaller merkle tree with a root in this account.
     hash:doit(OID);
 hash_key(orders, Key = {key, Account, OID}) ->
     accounts:ensure_decoded_hashed(Account);
