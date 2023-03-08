@@ -94,7 +94,7 @@ dict_get(Key = {key, Account, Oracle},
         end,
     case csc:read({matched, Key}, Dict) of
         error -> C;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, matched, Val} -> Val
     end.
 dict_get_old(Key = {key, Account, Oracle}, 
@@ -125,6 +125,8 @@ dict_get_old(Key = {key, Account, Oracle},
 %            end
     end.
 
+key_to_int({matched, Key}) -> 
+    key_to_int(Key);
 key_to_int({key, Account, Oracle}) -> 
     <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.
@@ -139,14 +141,7 @@ get(ID, Tree) ->%should probably be generalized to trees module.
 	end,
     {X, V, Proof}.
 dict_delete(Key, Dict) ->
-    case csc:read({matched, Key}, Dict) of
-        error -> Dict;
-        {empty, _} -> Dict;
-        {ok, matched, Val} ->
-            Val2 = Val#matched{
-                     true = 0, false = 0, bad = 0},
-            csc:update({matched, Key}, Val2, Dict)
-    end.
+    csc:remove({matched, Key}, Dict).
 delete(Key, Tree) ->
     Int = key_to_int(Key),
     trie:delete(Int, Tree, ?name).

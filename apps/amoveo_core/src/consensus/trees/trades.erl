@@ -62,7 +62,7 @@ dict_get(Key, Dict, _Height) ->
 dict_get(Key = {key, _}, Dict) ->
     case csc:read({trades, Key}, Dict) of
         error -> error;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, trades, Val} -> Val
     end.
             
@@ -92,7 +92,8 @@ get({key, ID}, Channels) ->
 	end,
     {RH, V, Proof}.
 dict_delete(Key = {key, _}, Dict) ->      
-    dict:store({trades, Key}, 0, Dict).
+    csc:remove({trades, Key}, Dict).
+%dict:store({trades, Key}, 0, Dict).
 delete(ID,Tree) ->
     trie:delete(ID, Tree, trade).
 make_leaf(Key, V, CFG) ->

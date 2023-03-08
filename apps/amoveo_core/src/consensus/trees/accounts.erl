@@ -75,7 +75,7 @@ dict_get(Pub, Dict, Height) ->
         end,
     case csc:read({accounts, Pub}, Dict) of
         error -> C;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, accounts, Val2} -> Val2
     end.
             
@@ -154,7 +154,8 @@ write(Account, Root) ->
     %io:fwrite("\n"),
     trie:put(PubId, SerializedAccount, Meta, Root, ?id). % returns a pointer to the new root
 dict_delete(Pub, Dict) ->
-    dict:store({accounts, Pub}, 0, Dict).
+    %dict:store({accounts, Pub}, 0, Dict).
+    csc:remove({accounts, Pub}, Dict).
 delete(Pub0, Accounts) ->
     PubId = key_to_int(Pub0),
     trie:delete(PubId, Accounts, ?id).

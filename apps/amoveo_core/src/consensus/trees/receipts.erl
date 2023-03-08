@@ -70,7 +70,7 @@ dict_get(Key, Dict) ->
 dict_get(Key = {key, _}, Dict, _Height) ->
     case csc:read({receipts, Key}, Dict) of
         error -> error;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, receipts, Val} -> Val
     end.
             
@@ -99,7 +99,8 @@ get({key, ID}, Receipts) ->
 	end,
     {RH, V, Proof}.
 dict_delete(Key, Dict) ->      
-    dict:store({receipts, Key}, 0, Dict).
+    csc:remove({receipts, Key}, Dict).
+    %dict:store({receipts, Key}, 0, Dict).
 delete(ID,Tree) ->
     trie:delete(ID, Tree, receipts).
 make_leaf(Key, V, CFG) ->

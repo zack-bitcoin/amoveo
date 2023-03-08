@@ -186,7 +186,7 @@ dict_get(ID, Dict, Height) ->
         end,
     case csc:read({oracles, ID}, Dict) of
         error -> C;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, oracles, Val} -> Val
     end.
 
@@ -211,13 +211,15 @@ dict_get_old(ID, Dict, Height) ->
         {ok, Y3} -> Y3
            %trees2:deserialize(3, Y3)
     end.
+key_to_int({oracles, X}) -> 
+    key_to_int(X);
 key_to_int(X) -> 
     %<<Y:256>> = hash:doit(<<X:256>>),
     <<_:256>> = X,
     <<Y:256>> = hash:doit(X),
     Y.
 get(ID, Root) ->
-    <<_:256>> = ID,
+    %<<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Root, ?name),
     V = case Leaf of 
 	    empty -> empty;

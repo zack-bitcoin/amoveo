@@ -1,6 +1,8 @@
-before fork 52, test_txs:test(47).
-it currently isn't possible to make an oracle, and bet on it in the same multi-tx. This happens because proofs.erl doesn't know which parts of the consensus state to provide. Different kinds of oracles use different governance values, and if the oracle isn't on-chain, it doesn't know where to get that data.
+stuck on block 2016.
+the oracle_bet tx is editing the consensus state incorrectly.
+making test_txs:test(65) for this. it reproduces the error. run the same test in the master branch to see the different hash.
 
+tester:test()
 
 
 

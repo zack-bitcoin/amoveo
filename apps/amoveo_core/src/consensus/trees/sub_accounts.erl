@@ -67,7 +67,7 @@ dict_get(Key, Dict, _) ->
 dict_get(Key, Dict) ->
     case csc:read({?id, Key}, Dict) of
         error -> error;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, ?id, Val} -> Val
     end.
 dict_get_old(Key, Dict) ->
@@ -117,13 +117,7 @@ write(Account, Root) ->
     PubId = key_to_int(Key),
     trie:put(PubId, SerializedAccount, 0, Root, ?id). % returns a pointer to the new root
 dict_delete(Key, Dict) ->
-    case csc:read({?id, Key}, Dict) of
-        %error -> Dict;
-        {empty, _} -> Dict;
-        {ok, ?id, Val} ->
-            Val2 = Val#sub_acc{balance = 0},
-            csc:update({?id, Key}, Val2, Dict)
-    end.
+    csc:remove({?id, Key}, Dict).
              
 dict_delete_old(Key, Dict) ->
     dict:store({?id, Key}, 0, Dict).
@@ -169,6 +163,8 @@ deserialize(SerializedAccount) ->
              type = Type,
              contract_id = <<CID:HashSizeBits>>}.
 
+ensure_decoded_hashed({sub_accounts, Pub}) ->
+    ensure_decoded_hashed(Pub);
 ensure_decoded_hashed(Pub) ->
     HashSize = constants:hash_size(),
     PubkeySize = constants:pubkey_size(),

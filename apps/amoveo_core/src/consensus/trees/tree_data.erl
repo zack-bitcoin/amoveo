@@ -302,10 +302,16 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->%
         case Pub of%
             <<1:PS>> ->%
                 %update the header.%
-                S = dict:fetch(H, Dict),%
-		PS = constants:pubkey_size() * 8,%
-		ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl%
-		leaf:new(ID, S, 0, trie:cfg(orders));%
+                case csc:read(H, Dict) of
+                    error -> 1=2;
+                    {empty, _, _} -> 1=2;
+                    {ok, orders, {Head, Many}} ->
+                        %S = dict:fetch(H, Dict),
+                        S = orders:serialize_head(Head, Many),
+                        PS = constants:pubkey_size() * 8,%
+                        ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl%
+                        leaf:new(ID, S, 0, trie:cfg(orders))
+                end;
             _ ->%
                 New2 = %
                     case orders:dict_get(Key, Dict) of%
@@ -338,7 +344,11 @@ get_things(Type0, L, Dict) ->
 get_things(_, [], Found, Rest, _) -> 
     {Found, Rest};
 get_things(Type0, [H|T], A, LeftoverKeys, Dict) ->
-    {_, Type, _}  = csc:read(H, Dict),
+    Type = case csc:read(H, Dict) of
+               {ok, X, _} -> X;
+               {empty, X, _} -> X
+           end,
+    %{_, Type, _}  = csc:read(H, Dict),
     {A2, LeftoverKeys2} = 
         case Type of
             Type0 -> {[H|A], 

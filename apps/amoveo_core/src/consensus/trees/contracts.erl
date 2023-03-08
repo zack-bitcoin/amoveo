@@ -169,7 +169,7 @@ dict_get(Key, Dict, _) ->
 dict_get(Key, Dict) ->
     case csc:read({contracts, Key}, Dict) of
         error -> error;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, contracts, Val} -> Val
     end.
             
@@ -199,7 +199,8 @@ get(ID, Channels) ->
 	end,
     {RH, V, Proof}.
 dict_delete(Key, Dict) ->      
-    dict:store({contracts, Key}, 0, Dict).
+    csc:remove({contracts, Key}, Dict).
+    %dict:store({contracts, Key}, 0, Dict).
 delete(ID,Channels) ->
     trie:delete(ID, Channels, contracts).
 make_leaf(Key, V, CFG) ->

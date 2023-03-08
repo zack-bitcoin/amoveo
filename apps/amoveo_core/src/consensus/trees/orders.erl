@@ -109,7 +109,7 @@ dict_get(Key, Dict, _) ->%
 dict_get(Key, Dict) ->
     case csc:read({orders, Key}, Dict) of
         error -> empty;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, orders, X}  -> X
     end.
 
@@ -142,7 +142,7 @@ dict_head_get(Dict, OID) ->%
     Key = {key, <<?Header:PS>>, OID},%
     case csc:read({orders, Key}, Dict) of
         error -> error;
-        {empty, _} -> {<<?Null:PS>>, 0};
+        {empty, _, _} -> {<<?Null:PS>>, 0};
         {ok, orders, {Head, Many}} ->
             {Head, Many};
         {ok, orders, X} ->
@@ -265,15 +265,7 @@ dict_remove2(ID, OID, Dict, P) ->%
     end.%
 dict_delete(Pub, OID, Dict) ->%
     Key = {key, Pub, OID},%
-    case csc:read({orders, Key}, Dict) of
-        error -> Dict;
-        {empty, _} -> Dict;
-        {ok, orders, Val} ->
-            AS = constants:pubkey_size(),
-            PS = AS * 8,
-            Val2 = Val#orders{pointer = <<1:PS>>},%set pointer to 2 to mean deleted
-            csc:update({orders, Key}, Val2, Dict)
-    end.
+    csc:remove({orders, Key}, Dict).
             
 dict_delete_old(Pub, OID, Dict) ->%
     Key = {key, Pub, OID},%

@@ -125,7 +125,7 @@ dict_get(Key = {key, _Account, _Oracle}, Dict, Height) ->
         end,
     case csc:read({unmatched, Key}, Dict) of
         error -> C;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, unmatched, Val} -> Val
     end.
              
@@ -158,6 +158,8 @@ dict_get_old(Key = {key, Account, Oracle}, Dict, Height) ->
 %                    deserialize(Y)
 %            end
     end.
+key_to_int({unmatched, Key}) ->
+    key_to_int(Key);
 key_to_int({key, Account, Oracle}) ->
     true = is_binary(Account),
     true = is_binary(Oracle),
@@ -224,7 +226,7 @@ dict_head_get(Dict, OID) ->
     %io:fwrite({Key, keys, dict:fetch_keys(Dict)}),
     case csc:read({unmatched, Key}, Dict) of
         error -> error;
-        {empty, _} -> {<<?Null:PS>>, 0};
+        {empty, _, _} -> {<<?Null:PS>>, 0};
         {ok, unmatched, 
          {unmatched_head, Head, Many, _OID}} ->
             {Head, Many};
@@ -416,17 +418,13 @@ dict_remove2(ID, OID, Dict, P) ->
             dict_remove2(ID, OID, Dict, X)
     end.
 dict_delete(Pub, OID, Dict) ->
-    Key = {key, Pub, OID},
+    Key = {unmatched, {key, Pub, OID}},
     %dict:store({unmatched, Key}, 0, Dict).
-    AS = constants:pubkey_size(),
-    PS = AS * 8,
-    case csc:read({unmatched, Key}, Dict) of
-        error -> Dict;
-        {empty, _} -> Dict;
-        {ok, unmatched, Val} ->
-            Val2 = Val#unmatched{amount = 0, pointer = <<1:PS>>},%setting pointer to 1 means this was deleted.
-            csc:update({unmatched, Key}, Val2, Dict)
-    end.
+    %AS = constants:pubkey_size(),
+    %PS = AS * 8,
+            %Val2 = Val#unmatched{amount = 0, pointer = <<1:PS>>},%setting pointer to 1 means this was deleted.
+    csc:remove(Key, Dict).
+            %csc:update({unmatched, Key}, 0, Dict)
 delete(Pub, Root) ->
     ID = key_to_int(Pub),
     trie:delete(ID, Root, ?name).

@@ -1,5 +1,5 @@
 -module(csc).%consensus state cache.
--export([new_db/0, is_empty/2, add_empty/4, add/5, update/3, read/2, read2/2, test/0]).
+-export([new_db/0, is_empty/2, add_empty/4, add/5, update/3, read/2, read2/2, remove/2, test/0]).
 
 %While processing txs, there is a slice of the consensus state that these txs will be touching. We store this slice in ram. Parts can get updated while processing the txs. We will use this updated data to calculate the new consensus state root for the block.
 
@@ -39,6 +39,11 @@ update(UK, Val, DB) ->
     R2 = R#consensus_state{empty = false, val = Val},
     dict:store(UK, R2, DB).
 
+remove(UK, DB) ->
+    {ok, R} = dict:find(UK, DB),
+    R2 = R#consensus_state{empty = true},
+    dict:store(UK, R2, DB).
+
 read2(UK, DB) ->
     dict:find(UK, DB).
 
@@ -51,7 +56,7 @@ read(UK, DB) ->
                 true -> ok
             end,
             case R#consensus_state.empty of
-                true -> {empty, R#consensus_state.type};
+                true -> {empty, R#consensus_state.type, R#consensus_state.unhashed_key};
                 false -> {ok, R#consensus_state.type, R#consensus_state.val}
             end
     end.

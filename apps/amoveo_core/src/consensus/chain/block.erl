@@ -999,17 +999,18 @@ check3(OldBlock, Block) ->
     %io:fwrite("block check 5.0\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    NewDict3 = if
-		   Height < FG6 -> NewDict2;
-		   Height < FG9 ->
+    NewDict3 = 
+        if
+            Height < FG6 -> NewDict2;
+            Height < FG9 ->
 %    MinerAccount = accounts:dict_get(MinerAddress, Dict),
-		       MinerAccount = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward, none),
-		       accounts:dict_write(MinerAccount, NewDict2);
-		   true ->
-		       GovFees = gov_fees(Txs0, NewDict2, Height),
-		       MinerAccount2 = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward - GovFees, none),
-		       accounts:dict_write(MinerAccount2, NewDict2)
-	       end,
+                MinerAccount = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward, none),
+                accounts:dict_write(MinerAccount, NewDict2);
+            true ->
+                GovFees = gov_fees(Txs0, NewDict2, Height),
+                MinerAccount2 = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward - GovFees, none),
+                accounts:dict_write(MinerAccount2, NewDict2)
+        end,
     %io:fwrite("block check 5.1\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -1133,9 +1134,13 @@ dict_data2([], _) -> [];
 dict_data2([H = {existence, Key}|T], D) ->
     dict_data2(T, D);
 dict_data2([H = {Type, Key}|T], D) ->
-    Y = case dict:fetch(H, D) of
-            {B, _} -> B;
-            B2 -> B2
+    %Y = case dict:fetch(H, D) of
+    %        {B, _} -> B;
+    %        B2 -> B2
+    %    end,
+    Y = case csc:read(H, D) of
+            {empty, _, _} -> 0;
+            {ok, _, Y3} -> Y3
         end,
     Z = case Y of
             0 -> 
@@ -1148,7 +1153,8 @@ dict_data2([H = {Type, Key}|T], D) ->
                        end,
                 Key2 ++ [{type, Type},{empty, true}];
             _ ->
-                X = Type:deserialize(Y),
+                %X = Type:deserialize(Y),
+                X = Y,
                 unpack_tree_element(X)
         end,
     [{Z}|dict_data2(T, D)].
@@ -1877,7 +1883,8 @@ sum_amounts_helper(unmatched, UM, _Dict, _, Key) ->
     PS = constants:pubkey_size() * 8,
     case Key of
         {key, <<1:PS>>, _} -> 0;
-        _ -> unmatched:amount(UM)
+        _ -> 
+            unmatched:amount(UM)
     end;
 sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
     {key, Pub, OID} = Key,

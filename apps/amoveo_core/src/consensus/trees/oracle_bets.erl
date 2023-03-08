@@ -86,7 +86,7 @@ dict_get(Key, Dict, _) ->
 dict_get(Key, Dict) ->
     case csc:read({oracle_bets, Key}, Dict) of
         %error -> empty;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, oracle_bets, Val} -> Val
     end.
             
@@ -108,15 +108,7 @@ get(ID, Tree) ->%
 	end,%
     {X, V, Proof}.%
 dict_delete(Key, Dict) ->
-    case csc:read({oracle_bets, Key}, Dict) of
-        error -> Dict;
-        {empty, _} -> Dict;
-        {ok, oracle_bets, Val} ->
-            Val2 = Val#oracle_bet{
-                     id = 0 
-                    },
-            csc:update({oracle_bets, Key}, Val2, Dict)
-    end.
+    csc:remove({oracle_bets, Key}, Dict).
              
 dict_delete_old(Key, Dict) ->%
     dict:store({oracle_bets, Key}, 0, Dict).%

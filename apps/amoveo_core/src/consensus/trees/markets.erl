@@ -120,7 +120,7 @@ key_to_int(<<X:256>>) -> X.
 
 dict_empty(Key, Dict) ->
     case csc:read(Key, Dict) of
-        {empty, markets} -> ok;
+        {empty, markets, _} -> ok;
         _ -> 1=2
     end,
     empty.
@@ -133,7 +133,7 @@ dict_get(Key, Dict, _Height) ->
 dict_get(Key, Dict) ->
     case csc:read({markets, Key}, Dict) of
         error -> error;
-        {empty, _} -> empty;
+        {empty, _, _} -> empty;
         {ok, markets, Val} -> Val
     end.
             
@@ -162,12 +162,7 @@ get(ID, Markets) ->
 	end,
     {RH, V, Proof}.
 dict_delete(Key, Dict) ->      
-    case csc:read({markets, Key}, Dict) of
-        {empty, _} -> Dict;
-        {ok, markets, Val} ->
-            Val2 = Val#market{id = <<0:256>>},
-            csc:update({markets, Key}, Val2, Dict)
-    end.
+    csc:remove({markets, Key}, Dict).
     %dict:store({markets, Key}, 0, Dict).
 delete(ID,Channels) ->
     trie:delete(ID, Channels, markets).

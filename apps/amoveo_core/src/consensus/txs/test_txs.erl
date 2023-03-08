@@ -3092,7 +3092,7 @@ int 0 int 1" >>),
 
     success;
 test(56) ->
-    io:fwrite("test swap_tx2, a limit order that cannot be partially matched.\n"),
+    io:fwrite("test swap_tx2, a limit order that cannot be partially matched. test 56\n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -3932,6 +3932,66 @@ test(64) ->
                           api:spend(NewPub, 101)
                   end, R),
     X;
+test(65) ->
+    io:fwrite("test 65\n"),
+    io:fwrite("minimal oracle_bet determinism test\n"),
+    Question = <<>>,
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee() + 20,
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+
+    {Pub,Priv} = %signing:new_key(),
+{<<4,246,183,170,64,225,129,182,244,36,226,50,201,
+   110,202,228,43,130,188,42,132,193,89,13,17,212,
+   208,198,132,149,228,81,100,38,74,181,88,173,47,
+   176,168,181,171,49,143,82,22,8,126,2,35,171,23,
+   186,217,38,216,117,31,9,172,147,164,213,45>>,
+ <<243,186,70,5,153,164,216,216,40,5,63,71,205,
+   81,107,2,46,155,95,10,192,134,183,77,18,229,
+   159,193,132,59,205,212>>},
+    Amount = 1000000000,
+    Ctx0 = create_account_tx:make_dict(Pub, Amount, Fee, constants:master_pub()),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    mine_blocks(1),
+
+
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount 
+    OID = oracle_new_tx:id(Tx),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(5),
+    true = 3 == (trees:get(oracles, OID))#oracle.type,
+    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 50000000), 
+    Stx20 = signing:sign_tx(Tx20, Pub, Priv),
+    absorb(Stx20),
+    1 = many_txs(),
+    mine_blocks(1),
+
+    Block = block:top(),
+    #block{trees_hash = TH} = Block,
+    <<20, 64, 169, 157, _:(8*28)>> = TH,
+
+    Tx3 = oracle_bet_tx:make_dict(MP, Fee, OID, 1, 100000000),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    #block{trees_hash = TH2, trees = Trees} = block:top(),
+    <<218, 205, 113, 244, _:(8*28)>> = TH2,
+
+    Unmatched = Trees#trees5.unmatched,
+    %UA = lists:map(fun(A) -> unmatched:deserialize(leaf:value(A)) end, trie:get_all(Unmatched, unmatched)),
+    %io:fwrite({UA}), %[{unmatched, <<4, 246,...>>, <<160, 142,...>>, 0, <<0,0,0,0...>>},{unmatched, <<4, 133, ...>>, <<160,142,...>>, 50000000, <<0:?>>}, {<<4, 133, 89,...>>, 1}
+
+
+    success;
+   
 test(unused) ->
     io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),

@@ -288,7 +288,7 @@ lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
                           TreeID, HashedKey, {TreeID, Key}, Val2,
                           Dict)
                 end;
-	    {empty, _} -> Dict;
+	    {empty, _, _} -> Dict;
 	    {ok, _, _} -> Dict
 	end,
     lookup_merkel_proofs(Dict2, T, Trees, Height).
