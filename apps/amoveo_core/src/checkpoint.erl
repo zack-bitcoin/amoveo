@@ -225,6 +225,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
             load_pages(NextCompressed, NewBottom, NextRoots, Peer)
     end.
+tree_types(trees5) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts];
 tree_types(trees4) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets];
 tree_types(trees3) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades];
 tree_types(trees2) -> [accounts, channels, existence, oracles, governance, matched, unmatched];

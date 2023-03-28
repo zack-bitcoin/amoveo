@@ -970,6 +970,8 @@ unpack_tree_element(X) ->
         channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
         matched -> [{type, matched},{account, base64:encode(X#matched.account)}, {oracle, base64:encode(X#matched.oracle)}, {true, X#matched.true}, {false, X#matched.false}, {bad, X#matched.bad}];
         unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)},{pointer, base64:encode(unmatched:pointer(X))}];
+        oracle_bet -> [{type, oracle_bet},{id, base64:encode(oracle_bets:id(X))}, {true, oracle_bets:true(X)}, {false, oracle_bets:false(X)}, {bad, oracle_bets:bad(X)}];
+        orders -> [{type, order}, {id, base64:encode(orders:aid(X))}, {amount, orders:amount(X)}, {pointer, base64:encode(element(4, X))}];
         _ -> []
     end.
 get_txs_main(L, T, O, N, H) ->

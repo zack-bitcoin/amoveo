@@ -77,10 +77,19 @@ test(1) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
+    mine_blocks(4),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
-    {NewPub,NewPriv} = signing:new_key(),
+    {NewPub,NewPriv} = %signing:new_key(),
+        {<<4,175,48,50,202,47,72,21,98,10,251,128,243,51,147,
+           110,102,72,18,51,92,50,111,206,185,189,131,147,
+           187,108,88,6,192,76,202,96,234,45,125,72,58,116,
+           163,255,176,201,92,87,224,9,138,78,140,221,251,
+           176,0,93,114,14,1,152,50,120,133>>,
+         <<27,160,56,208,169,158,47,38,189,144,205,119,226,
+           6,81,210,189,55,47,160,244,79,66,230,11,6,247,
+           255,155,228,98,10>>},
 
     Fee = constants:initial_fee() + 20,
     {Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
@@ -88,6 +97,15 @@ test(1) ->
     0 = many_txs(),
     absorb(Stx),
     1 = many_txs(),
+
+    %PB0 = potential_block:read(),
+    %#block{trees = Trees0} = PB0,
+    %Accs0 = trees:accounts(Trees0),
+   
+    %<<132,70,24,214,_:(8*28)>> = trees:root_hash(Trees0),
+    %<<142,15,146,252,_:(8*28)>> = trie:root_hash(accounts, Accs0),
+    %io:fwrite({trees:root_hash(Trees0), trie:root_hash(accounts, Accs0)}),
+
     Ctx2 = spend_tx:make_dict(NewPub, 10, Fee, constants:master_pub()),
     Stx2 = keys:sign(Ctx2),
     absorb(Stx2),
@@ -107,6 +125,13 @@ test(1) ->
 
     Txs = (tx_pool:get())#tx_pool.txs,
     mine_blocks(1),
+
+    %io:fwrite({accounts:all_accounts()}),
+    PB0 = potential_block:read(),
+    #block{trees = Trees0} = PB0,
+    Accs0 = trees:accounts(Trees0),
+    <<54,251,220,70,_:(28*8)>> = trie:root_hash(accounts, Accs0),
+    <<152,56,71,123,_:(28*8)>> = trees:root_hash(Trees0),
 
     success;
 test(2) ->
@@ -3837,6 +3862,124 @@ test(64) ->
                           api:spend(NewPub, 101)
                   end, R),
     X;
+test(65) ->
+    io:fwrite("test 65\n"),
+    io:fwrite("minimal oracle_bet determinism test\n"),
+    Question = <<>>,
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee() + 20,
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+
+    {Pub,Priv} = %signing:new_key(),
+{<<4,246,183,170,64,225,129,182,244,36,226,50,201,
+   110,202,228,43,130,188,42,132,193,89,13,17,212,
+   208,198,132,149,228,81,100,38,74,181,88,173,47,
+   176,168,181,171,49,143,82,22,8,126,2,35,171,23,
+   186,217,38,216,117,31,9,172,147,164,213,45>>,
+ <<243,186,70,5,153,164,216,216,40,5,63,71,205,
+   81,107,2,46,155,95,10,192,134,183,77,18,229,
+   159,193,132,59,205,212>>},
+    Amount = 1000000000,
+    Ctx0 = create_account_tx:make_dict(Pub, Amount, Fee, constants:master_pub()),
+    Stx0 = keys:sign(Ctx0),
+    absorb(Stx0),
+    1 = many_txs(),
+    mine_blocks(1),
+
+
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount 
+    OID = oracle_new_tx:id(Tx),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(5),
+    true = 3 == (trees:get(oracles, OID))#oracle.type,
+    Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 50000000), 
+    Stx20 = signing:sign_tx(Tx20, Pub, Priv),
+    absorb(Stx20),
+    1 = many_txs(),
+    mine_blocks(1),
+    Block = block:top(),
+    #block{trees_hash = TH} = Block,
+    <<20, 64, 169, 157, _:(8*28)>> = TH,
+
+    Tx3 = oracle_bet_tx:make_dict(MP, Fee, OID, 1, 100000000),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    #block{trees_hash = TH2, trees = Trees} = 
+        block:top(),
+    <<218, 205, 113, 244, _:(8*28)>> = TH2,
+
+
+    Unmatched = Trees#trees5.unmatched,
+    UA = lists:map(fun(A) -> unmatched:deserialize(leaf:value(A)) end, trie:get_all(Unmatched, unmatched)),
+    %io:fwrite({UA}), [{unmatched,<<4,133,...>>,<<160,142,...>>,50000000,<<0:?>>},{unmatched, <<4,133,...>>,<<0:?>>,0,<<0:?>>}]
+    
+
+
+    SR = trees:serialized_roots(Trees),
+    SR = 
+<<189,177,88,20,214,49,254,255,220,34,26,93,57,
+  153,200,228,187,84,139,112,196,214,97,121,115,
+  220,233,130,51,147,196,28, 7,106,39,199,158,90,
+  206,42,61,71,249,221,46,131,228,255,110,168,135,
+  43,60,34,24,246,108,146,184,155,85,243,101,96, 7,
+  106,39,199,158,90,206,42,61,71,249,221,46,131,
+  228,255,110,168,135,43,60,34,24,246,108,146,184,
+  155,85,243,101,96, 160,108,66,157,84,247,144,166,
+  39,165,133,45,141,136,167,166,255,101,215,44,
+  159,205,240,194,121,108,38,37,117,252,123,8, 10,
+  4,188,191,3,81,29,122,88,33,22,149,140,110,80,
+  43,37,118,138,12,101,45,175,128,232,233,161,249,
+  78,149,43,236, 105,39,130,232,191,95,223,190,157,
+  42,54,129,35,251,81,151,205,137,198,61,22,251,
+  23,136,10,212,170,159,61,146,138,22, 4,93,115,
+  153,72,211,68,151,237,163,124,211,55,191,44,183,
+  97,79,118,78,105,194,243,209,138,224,22,215,83,
+  39,224,34,
+7,106,39,199,158,90,206,42,61,71,249,
+  221,46,131,228,255,110,168,135,43,60,34,24,246,
+  108,146,184,155,85,243,101,96,7,106,39,199,158,
+  90,206,42,61,71,249,221,46,131,228,255,110,168,
+  135,43,60,34,24,246,108,146,184,155,85,243,101,
+  96,7,106,39,199,158,90,206,42,61,71,249,221,46,
+  131,228,255,110,168,135,43,60,34,24,246,108,146,
+  184,155,85,243,101,96,7,106,39,199,158,90,206,
+  42,61,71,249,221,46,131,228,255,110,168,135,43,
+  60,34,24,246,108,146,184,155,85,243,101,96,7,
+  106,39,199,158,90,206,42,61,71,249,221,46,131,
+  228,255,110,168,135,43,60,34,24,246,108,146,184,
+  155,85,243,101,96,7,106,39,199,158,90,206,42,61,
+  71,249,221,46,131,228,255,110,168,135,43,60,34,
+  24,246,108,146,184,155,85,243,101,96>>,
+
+<<"{\"following\":[{\"type\":\"gov\",\"id\":\"block_reward\",\"value\":1620,\"lock\":0},
+{\"type\":\"unmatched\",\"account\":\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\",\"oracle\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"amount\":50000000,\"pointer\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\"},
+{\"type\":\"matched\",\"account\":\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\",\"oracle\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"true\":100000000,\"false\":0,\"bad\":0},
+{\"type\":\"gov\",\"id\":\"max_block_size\",\"value\":940,\"lock\":0},
+{\"type\":\"gov\",\"id\":\"oracle_question_liquidity\",\"value\":1200,\"lock\":0},
+{\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=\",\"type\":\"accounts\",\"empty\":true},
+{\"type\":\"unmatched\",\"account\":\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\",\"oracle\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"amount\":0,\"pointer\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=\"},
+{\"type\":\"gov\",\"id\":\"developer_reward\",\"value\":429,\"lock\":0},
+{\"type\":\"account\",\"pubkey\":\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\",\"balance\":15301863171,\"nonce\":3},
+{\"type\":\"gov\",\"id\":\"minimum_oracle_time\",\"value\":1,\"lock\":0},
+{\"type\":\"account\",\"pubkey\":\"BPa3qkDhgbb0JOIyyW7K5CuCvCqEwVkNEdTQxoSV5FFkJkq1WK0vsKi1qzGPUhYIfgIjqxe62SbYdR8JrJOk1S0=\",\"balance\":949848862,\"nonce\":1},
+{\"account\":\"BPa3qkDhgbb0JOIyyW7K5CuCvCqEwVkNEdTQxoSV5FFkJkq1WK0vsKi1qzGPUhYIfgIjqxe62SbYdR8JrJOk1S0=\",\"oracle\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"type\":\"unmatched\",\"empty\":true},
+{\"type\":\"matched\",\"account\":\"BPa3qkDhgbb0JOIyyW7K5CuCvCqEwVkNEdTQxoSV5FFkJkq1WK0vsKi1qzGPUhYIfgIjqxe62SbYdR8JrJOk1S0=\",\"oracle\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"true\":0,\"false\":100000000,\"bad\":0},
+{\"type\":\"gov\",\"id\":\"oracle_bet\",\"value\":905,\"lock\":0},
+{\"type\":\"oracle\",\"oid\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"result\":0,\"starts\":6,\"type\":1,\"done_timer\":13,\"governance\":0,\"governance_amount\":0}]}">>,
+    
+
+
+    success;
+
+
+
 test(unused) ->
     io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),
