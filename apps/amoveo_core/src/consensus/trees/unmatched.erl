@@ -354,7 +354,6 @@ all2(X, Root, OID) ->
     PS = constants:pubkey_size() * 8,
     case X of
         <<?Null:PS>> -> [<<?Header:PS>>];
-	
         Pub -> 
             {_, Order, _} = get({key, Pub, OID}, Root),
             [Pub|all2(Order#unmatched.pointer, Root, OID)]

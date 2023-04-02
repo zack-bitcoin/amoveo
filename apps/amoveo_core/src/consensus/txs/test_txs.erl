@@ -1759,7 +1759,11 @@ binary 32 ",
     SubAdd8_1 = sub_accounts:make_key(MP, CID3, 1),
     case trees:get(sub_accounts, SubAdd8_1) of
         empty -> ok;
-        SA -> true = (SA#sub_acc.balance == 0)%the verkle tree cannot delete things.
+        SA -> 
+            if
+                (SA#sub_acc.balance == 0) -> ok; %the verkle tree cannot delete things.
+                true -> io:fwrite({SA#sub_acc.balance, balance, SA})
+            end
     end,
 
     %do the simplification from 1 to 3
@@ -1848,6 +1852,7 @@ int 0 int 1" >>),
     Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
     CID = contracts:make_id(CH, Many,<<0:256>>,0),
     Stx = keys:sign(Tx),
+    io:fwrite("test 40 contract new\n"),
     absorb(Stx),
     1 = many_txs(),
     mine_blocks(1),
@@ -1857,6 +1862,7 @@ int 0 int 1" >>),
     Amount = 100000000,
     Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
     Stx2 = keys:sign(Tx2),
+    io:fwrite("test 40 contract use\n"),
     absorb(Stx2),
     1 = many_txs(),
     mine_blocks(1),
@@ -1865,6 +1871,7 @@ int 0 int 1" >>),
     {NewPub,NewPriv} = signing:new_key(),
     Tx3 = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
     Stx3 = keys:sign(Tx3),
+    io:fwrite("test 40 create account\n"),
     absorb(Stx3),
     1 = many_txs(),
     mine_blocks(1),
@@ -3002,7 +3009,7 @@ int 0 int 1" >>),
     Tx4 = swap_tx2:make_dict(NewPub, SSO, 3456, Fee*2),
     %matching 34.56% of the limit order.
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
-    empty = trees:get(trades, {key, TID}),
+    empty = trees:get(trades, TID),
     100000000 = (trees:get(accounts, NewPub))#acc.balance,
     SubAcc1 = sub_accounts:make_key(MP, CID, 1),
     SubAcc21 = sub_accounts:make_key(NewPub, CID, 1),
@@ -3017,7 +3024,7 @@ int 0 int 1" >>),
 
 
 
-    Trade1 = trees:get(trades, {key, TID}),
+    Trade1 = trees:get(trades, TID),
     3457 = Trade1#trade.height,
     96241724 = (trees:get(accounts, NewPub))#acc.balance,
     96544000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
@@ -3036,7 +3043,7 @@ int 0 int 1" >>),
     absorb(Stx5),%testing that the same tx can't be re-published.
     0 = many_txs(),
     
-    Trade2 = trees:get(trades, {key, TID}),
+    Trade2 = trees:get(trades, TID),
     Nonce0 = Trade2#trade.height,
 
     %next testing in a multi-tx
@@ -3051,7 +3058,7 @@ int 0 int 1" >>),
     mine_blocks(1),
     0 = many_txs(),
 
-    Trade3 = trees:get(trades, {key, TID}),
+    Trade3 = trees:get(trades, TID),
     Nonce1 = Nonce0 + MatchMany2,
     Nonce1 = Trade3#trade.height,
 
@@ -3067,7 +3074,7 @@ int 0 int 1" >>),
     mine_blocks(1),
     0 = many_txs(),
     
-    Trade4 = trees:get(trades, {key, TID}),
+    Trade4 = trees:get(trades, TID),
     Nonce2 = Trade4#trade.height,
 
 
@@ -3150,7 +3157,7 @@ int 0 int 1" >>),
     SubAcc1 = sub_accounts:make_key(MP, CID, 1),
     SubAcc2 = sub_accounts:make_key(NewPub, CID, 1),
 
-    empty = trees:get(trades, {key, TID}),
+    empty = trees:get(trades, TID),
     100000000 = (trees:get(accounts, NewPub))#acc.balance,
     100000000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
     empty = (trees:get(sub_accounts, SubAcc2)),
@@ -3159,7 +3166,7 @@ int 0 int 1" >>),
     1 = many_txs(),
     mine_blocks(1),
 
-    2 = (trees:get(trades, {key, TID}))#trade.height,
+    2 = (trees:get(trades, TID))#trade.height,
     89697724 = (trees:get(accounts, NewPub))#acc.balance,
     90000000 = (trees:get(sub_accounts, SubAcc1))#sub_acc.balance,
     10000000 = (trees:get(sub_accounts, SubAcc2))#sub_acc.balance,
@@ -3168,7 +3175,7 @@ int 0 int 1" >>),
 
     success;
 test(57) ->
-    io:fwrite("test trade_cancel_tx when the trade id doesn't yet exist\n"),
+    io:fwrite("test trade_cancel_tx when the trade id doesn't yet exist, test 57 \n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),

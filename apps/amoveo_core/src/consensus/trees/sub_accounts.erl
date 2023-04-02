@@ -117,7 +117,10 @@ write(Account, Root) ->
     PubId = key_to_int(Key),
     trie:put(PubId, SerializedAccount, 0, Root, ?id). % returns a pointer to the new root
 dict_delete(Key, Dict) ->
-    csc:remove({?id, Key}, Dict).
+    Acc = dict_get(Key, Dict),
+    Acc2 = Acc#sub_acc{balance = 0},
+    Dict2 = csc:update({?id, Key}, Acc2, Dict),
+    csc:remove({?id, Key}, Dict2).
              
 dict_delete_old(Key, Dict) ->
     dict:store({?id, Key}, 0, Dict).

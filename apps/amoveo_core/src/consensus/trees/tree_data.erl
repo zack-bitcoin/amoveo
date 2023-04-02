@@ -145,6 +145,9 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
                     (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
     if
         true -> ok;
+        ((Height == 8) and (not(ProofTree == unknown))) ->
+            io:fwrite({Keys});
+        true -> ok;
         ((Height == 13) and (not(ProofTree == unknown))) ->
             io:fwrite({Leaves2b});
         true -> ok
@@ -156,8 +159,11 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
                      Trees4;
                  _ ->
                      %ProofTree = dict:fetch(proof, Dict),
-                     %io:fwrite("about to update the proof in tree_data\n"),
+                     io:fwrite("about to update the proof in tree_data\n"),
+                     io:fwrite(integer_to_list(Height)),
+                     io:fwrite("\n"),
                      ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
+                     io:fwrite("updated the proof in tree_data\n"),
                      RootHash = stem_verkle:hash_point(hd(ProofTreeB)),%verify that the new state root matches what was written on the block.
                      trees2:store_verified(Trees, ProofTreeB)
              end,
@@ -302,14 +308,17 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->%
         case Pub of%
             <<1:PS>> ->%
                 %update the header.%
+                PS = constants:pubkey_size() * 8,%
+                ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl%
                 case csc:read(H, Dict) of
                     error -> 1=2;
                     {empty, _, _} -> 1=2;
+                    {ok, orders, {orders_head, Head, Many, _OID}} ->
+                        S = orders:serialize_head(Head, Many),
+                        leaf:new(ID, S, 0, trie:cfg(orders));
                     {ok, orders, {Head, Many}} ->
                         %S = dict:fetch(H, Dict),
                         S = orders:serialize_head(Head, Many),
-                        PS = constants:pubkey_size() * 8,%
-                        ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl%
                         leaf:new(ID, S, 0, trie:cfg(orders))
                 end;
             _ ->%

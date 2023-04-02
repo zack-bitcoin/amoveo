@@ -39,7 +39,9 @@ deserialize(<<V:256, R/binary>>) ->
             height = H}.
 
 dict_write(T, Dict) ->
-    csc:update({trades, {key, T#trade.value}}, T, Dict).
+    V = T#trade.value,
+    true = is_binary(V),
+    csc:update({trades, V}, T, Dict).
 
 dict_write_old(T, Dict) ->
     dict:store({trades, T#trade.value},
@@ -59,9 +61,20 @@ key_to_int(<<X:256>>) ->
 
 dict_get(Key, Dict, _Height) ->
     dict_get(Key, Dict).
-dict_get(Key = {key, _}, Dict) ->
-    case csc:read({trades, Key}, Dict) of
-        error -> error;
+dict_get(K, Dict)
+  when is_binary(K) and (size(K) == 32) ->
+    dict_get({key, K}, Dict);
+dict_get(Key = {key, K}, Dict) ->
+    case csc:read({trades, K}, Dict) of
+        error -> 
+            L = dict:fetch_keys(Dict),
+            if
+                not(L == []) ->
+                    io:fwrite({K, L}),
+                    ok;
+                true -> ok
+            end,
+            error;
         {empty, _, _} -> empty;
         {ok, trades, Val} -> Val
     end.
@@ -83,7 +96,8 @@ dict_get_old(Key, Dict) ->
 %                    deserialize(Y)
 %            end
     end.
-get({key, ID}, Channels) ->
+%get({key, ID}, Channels) ->
+get(ID, Channels) when is_binary(ID) ->
     <<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Channels, trades),
     V = case Leaf of

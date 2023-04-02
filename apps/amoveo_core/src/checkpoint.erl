@@ -7,6 +7,8 @@
          chunk_name/1,
          sync/2,
          sync/0,
+         reverse_sync/0,
+         reverse_sync/2, 
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
 %Eventually we will need a function that can recombine the chunks, and unencode the gzipped tar to restore from a checkpoint.
@@ -193,9 +195,41 @@ sync(IP, Port) ->
     potential_block:dump(),
 
 
-
-
     sync:start(),
+    reverse_sync2(Height, Peer, Block2, Roots).
+
+reverse_sync() ->
+    %find a peer that has a checkpoint.
+    spawn(fun() ->
+                  Ps = peers:all(),
+                  Ps2 = sync:shuffle(Ps),
+                  P = hd(Ps2),
+                  case talker:talk(
+                         {checkpoint}, P) of
+                      {ok, CPL} -> reverse_sync(P);
+                      X -> io:fwrite(X)
+                  end
+          end).
+
+reverse_sync(Peer) ->
+    Height = block:bottom() + 1,
+    reverse_sync(Height, Peer).
+
+reverse_sync(Height, Peer) ->
+    io:fwrite("reverse_sync\n"),
+    {ok, Block} = talker:talk({block, Height-1}, Peer),
+    {ok, NBlock} = talker:talk({block, Height}, Peer),
+    Roots = NBlock#block.roots,
+
+    {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
+    Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
+    %TDB = Block#block.trees,
+    %Roots = block:make_roots(TDB),
+    reverse_sync2(Height, Peer, Block2, Roots).
+
+
+reverse_sync2(Height, Peer, Block2, Roots) ->
+    io:fwrite("reverse_sync2\n"),
     {ok, ComPage0} = talker:talk({blocks, 50, Height}, Peer),
     Page0 = block_db:uncompress(ComPage0),
     Page = dict:filter(%remove data that is already in block_db.
@@ -206,7 +240,6 @@ sync(IP, Port) ->
     CompressedPage = block_db:compress(Page),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
-    %TODO start syncing blocks backward
     Page = block_db:uncompress(CompressedPage),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
     %TODO
@@ -225,6 +258,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
             load_pages(NextCompressed, NewBottom, NextRoots, Peer)
     end.
+tree_types(trees5) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts, stablecoins];
 tree_types(trees4) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets];
 tree_types(trees3) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades];
 tree_types(trees2) -> [accounts, channels, existence, oracles, governance, matched, unmatched];
@@ -251,17 +285,23 @@ verify_blocks(B, P, PrevRoots, N) ->
             (B#block.height < 38700) -> 
                 {true, []};
             (B#block.height < 109000) -> 
-                {_, _NewDict3, _} = block:check3(NB, B),
+                {_, _NewDict3, _, _} = block:check3(NB, B),
                 {true, []};
             true ->
-                {_, NewDict3, _} = block:check3(NB, B),
+                {_, NewDict3, _, _} = block:check3(NB, B),
                 
                 {RootsList, Leaves0} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
-                Roots2 = [roots2|RootsList],
-                {check_roots_match(
-                   Roots2, 
-                   tuple_to_list(PrevRoots)),
-                 Leaves0}
+                %Roots2 = [roots2|RootsList],
+                Bool = 
+                    check_roots_match(
+                      RootsList, 
+                      tl(tuple_to_list(PrevRoots))),
+                if
+                    not(Bool) -> 
+                        io:fwrite({{height, Height}, {lengths, length(RootsList), length(tl(tuple_to_list(PrevRoots))), length(TreeTypes)}, {roots_list, RootsList}, {prev_roots, PrevRoots}, {tree_types, TreeTypes}});
+                    true -> ok
+                end,
+                {Bool, Leaves0}
         end,
     case CRM of
         true -> ok;
@@ -312,8 +352,11 @@ calc_roots2([Tree|TT], Proof, Keys, NewDict3, RL, LL) ->
     CFG = trie:cfg(Tree),
     K2 = lists:filter(
            fun({Tree2, _K}) ->
-                   Tree2 == Tree
-           end, 
+                   Tree2 == Tree;
+              (X) -> io:fwrite({X}),
+                     1=2
+           end,
+               
            Keys),%[{unmatched, {key, Pub, OID}}|...]
     P2 = lists:filter(
            fun(X) ->
@@ -439,7 +482,9 @@ check_roots_match([A|T1], [A|T2]) ->
     check_roots_match(T1, T2);
 check_roots_match([0|T1], [_|T2]) -> 
     check_roots_match(T1, T2);
-check_roots_match(_, _) -> 
+check_roots_match(X1, X2) -> 
+    %io:fwrite("roots don't match \n"),
+    %io:fwrite({X1, X2}),
     false.
 
 clean_helper([]) -> [];

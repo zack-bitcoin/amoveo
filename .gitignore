@@ -25,3 +25,4 @@ rebar.lock
 .DS_Store
 sys.config.tmpl
 *.so
+*.chunk

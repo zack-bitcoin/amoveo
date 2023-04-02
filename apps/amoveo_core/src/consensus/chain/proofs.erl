@@ -267,9 +267,9 @@ dict_key(#sub_acc{pubkey = P, contract_id = CID,
     sub_accounts:make_v_key(P, CID, T);
 dict_key(C = #contract{}) -> 
     contracts:make_id(C);
-dict_key(#trade{value = V}) -> {key, V};
+dict_key(#trade{value = V}) -> V;
 dict_key(#market{id = X}) -> X;
-dict_key(#receipt{id = Z}) -> {key, Z}.
+dict_key(#receipt{id = Z}) -> Z.
 
 hash(F) ->
     hash:doit(F).
@@ -816,7 +816,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                sub_accounts:make_v_key(Acc2, CID2, Type2)}]
                      end,
                 [{governance, ?n2i(swap_tx)},
-                 {trades, {key, TradeID}}] ++
+                 {trades, TradeID}] ++
                 F1 ++ F2 ++ U ++ U2;
             swap_tx2 ->
 
@@ -867,10 +867,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         true ->
                             Receipt = receipts:new(TradeID, Acc2, StartNonce),
                             RID = receipts:id(Receipt),
-                            [{receipts, {key, RID}}]
+                            [{receipts, RID}]
                     end,
                 [{governance, ?n2i(swap_tx2)},
-                 {trades, {key, TradeID}}] ++
+                 {trades, TradeID}] ++
                 F2 ++ U ++ U2 ++ R;
             market_new_tx ->
                 #market_new_tx{
@@ -960,7 +960,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 TID = swap_tx:trade_id_maker(From, Salt),
                 [{accounts, From},
                  {governance, ?n2i(trade_cancel_tx)},
-                 {trades, {key, TID}}
+                 {trades, TID}
                 ];
 	    coinbase_old -> 
                 [

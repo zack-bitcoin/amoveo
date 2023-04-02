@@ -24,7 +24,7 @@ make_offer(From, StartLimit, EndLimit,
            CID2, Type2, Amount2, 
            Parts, Fee1, Salt) ->
     TID = swap_tx:trade_id_maker(From, Salt),
-    Trade = trees:get(trades, {key, TID}),
+    Trade = trees:get(trades, TID),
     Nonce = case Trade of
                 empty -> 1;
                 #trade{height = H} -> H
@@ -72,10 +72,11 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     true = NewHeight >= SL,
     true = NewHeight =< EL,
     TID = swap_tx:trade_id_maker(Acc1, Salt),
-    Trade = trades:dict_get({key, TID}, Dict0),
+    Trade = trades:dict_get(TID, Dict0),
     CurrentNonce = 
         case Trade of
             empty -> 1;
+            error -> io:fwrite({TID, dict:fetch_keys(Dict0)});
             _ -> #trade{height = CN} = Trade,
                  CN
         end,
@@ -119,8 +120,9 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     if 
         (Parts == 1) and (NewHeight > F48) ->
             R = receipts:new(TID, Acc2, StartNonce),
-            empty = receipts:dict_get(
-                      {key, receipts:id(R)}, Dict5),
+            %Receipt = receipts:dict_get(
+            %          {key, receipts:id(R)}, Dict5),
+            %error = Receipt,
             receipts:dict_write(R, Dict5);
         true ->
             Dict5

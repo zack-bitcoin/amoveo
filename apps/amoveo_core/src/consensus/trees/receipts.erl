@@ -49,7 +49,9 @@ deserialize(<<T:256, P:520, N0/binary>>) ->
     new(<<T:256>>, <<P:520>>,  N).
 
 dict_write(R, Dict) ->
-    csc:update({receipts, {key, R#receipt.id}}, R, Dict).
+    %csc:update({receipts, {key, R#receipt.id}}, R, Dict).
+    true = is_binary(R#receipt.id),
+    csc:update({receipts, R#receipt.id}, R, Dict).
 
 dict_write_old(R, Dict) ->
     dict:store({receipts, R#receipt.id},
@@ -67,8 +69,11 @@ key_to_int(<<X:256>>) ->
     X.
 dict_get(Key, Dict) ->
     dict_get(Key, Dict, 0).
-dict_get(Key = {key, _}, Dict, _Height) ->
-    case csc:read({receipts, Key}, Dict) of
+dict_get(K, Dict, Height) 
+  when is_binary(K) and (size(K) == 32) ->
+    dict_get({key, K}, Dict, Height);
+dict_get(Key = {key, K}, Dict, _Height) ->
+    case csc:read({receipts, K}, Dict) of
         error -> error;
         {empty, _, _} -> empty;
         {ok, receipts, Val} -> Val
@@ -90,7 +95,8 @@ dict_get_old(Key, Dict) ->
 %            end
     end.
 %deserialize 10
-get({key, ID}, Receipts) ->
+%get({key, ID}, Receipts) when is_binary(ID) ->
+get(ID, Receipts) when is_binary(ID) ->
     <<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Receipts, receipts),
     V = case Leaf of
@@ -98,7 +104,7 @@ get({key, ID}, Receipts) ->
 	    L -> deserialize(leaf:value(L))
 	end,
     {RH, V, Proof}.
-dict_delete(Key, Dict) ->      
+dict_delete(Key, Dict) when is_binary(Key) ->      
     csc:remove({receipts, Key}, Dict).
     %dict:store({receipts, Key}, 0, Dict).
 delete(ID,Tree) ->

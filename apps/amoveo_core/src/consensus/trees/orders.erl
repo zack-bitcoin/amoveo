@@ -67,6 +67,8 @@ deserialize_head(X) ->%
     <<Head:Y, Many:AB>> = X,%
     {<<Head:Y>>, Many}.%
     %
+serialize({orders_head, Pointer, Many, _OID}) ->
+    serialize_head(Pointer, Many);
 serialize(A) ->%
     BAL = constants:balance_bits(),%
     true = size(A#orders.aid) == constants:pubkey_size(),%
@@ -82,7 +84,7 @@ deserialize(B) ->%
      AID:PS>> = B,%
     #orders{aid = <<AID:PS>>, amount = Amount,%
               pointer = <<P:PS>>}.%
-dict_write(Order, OID, Dict) ->
+dict_write(Order = #orders{}, OID, Dict) ->
     Pub = aid(Order), %
     Key = {key, Pub, OID},%
     csc:update({orders, Key}, Order, Dict).
@@ -145,6 +147,8 @@ dict_head_get(Dict, OID) ->%
         {empty, _, _} -> {<<?Null:PS>>, 0};
         {ok, orders, {Head, Many}} ->
             {Head, Many};
+        {ok, orders, {orders_head, Head, Many, _OID}} ->
+            {Head, Many};
         {ok, orders, X} ->
             if
                 not(element(1, X) == orders) ->
@@ -188,7 +192,8 @@ dict_head_put(Head, Many, OID, Dict) ->%
     csc:update({orders, Key},
     %dict:store({orders, Key},%
                %Y,%
-               {Head, Many},
+               %{Head, Many},
+               {orders_head, Head, Many, OID},
                Dict).%
 head_put(Head, Many, Root) ->%
     PS = constants:pubkey_size() * 8,%

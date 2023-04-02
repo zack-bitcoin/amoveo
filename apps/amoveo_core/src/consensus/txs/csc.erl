@@ -35,9 +35,13 @@ add(Type, K, UK, Val, DB) ->
 
 update(UK, Val, DB) ->
     %io:fwrite({K, dict:fetch_keys(DB)}),
-    {ok, R} = dict:find(UK, DB),
-    R2 = R#consensus_state{empty = false, val = Val},
-    dict:store(UK, R2, DB).
+    case dict:find(UK, DB) of
+        {ok, R}  ->
+            R2 = R#consensus_state{empty = false, val = Val},
+            dict:store(UK, R2, DB);
+        error ->
+            io:fwrite({UK, dict:fetch_keys(DB)})
+    end.
 
 remove(UK, DB) ->
     {ok, R} = dict:find(UK, DB),

@@ -179,14 +179,18 @@ hash_key(governance, N) ->
     hash:doit(<<N, 27>>);
 hash_key(trades, {key, Val}) ->
     key(#trade{value = Val});
+hash_key(trades, X)
+  when is_binary(X) and (size(X) == 32) ->
+    key(#trade{value = X});
+hash_key(receipts, ID) 
+  when is_binary(ID) and (size(ID) == 32) ->
+    %ID;
+    key(#receipt{id = ID});
 hash_key(receipts, {key, ID}) ->
     key(#receipt{id = ID});
 hash_key(markets, X)
   when is_binary(X) and (size(X) == 32) ->
     key(#market{id = X});
-hash_key(trades, X)
-  when is_binary(X) and (size(X) == 32) ->
-    key(#trade{value = X});
 %hash_key(trades, X) 
 %  when is_binary(X) and (size(X) == 32) ->
 %    X;

@@ -3,7 +3,7 @@
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2,
-         top/0, genesis_maker/0, height/0,
+         top/0, genesis_maker/0, height/0, bottom/0,
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
 	 period_estimate/1, hashrate_estimate/1,
@@ -134,7 +134,29 @@ get_by_hash(H) ->
 %        [] -> empty;
 %        Block -> binary_to_term(zlib:uncompress(Block))
 %    end.
-top() -> top(headers:top_with_block()).%what we actually want is the highest header for which we have a stored block.
+bottom() ->
+    %the lowest block (besides 0) that we have synced.
+    %O((log(# blocks))^2)
+    %binary search over our chain of headers, looking up a block each time until we find the empty slot.
+    T = top(),
+    case get_by_height(1) of
+        error -> bottom(1, T#block.height);
+        _ -> 0
+    end.
+bottom(M, N) when (N == M+1) -> N;
+bottom(M, N) when (N > M) -> 
+    %M is a height we don't have a block for.
+    %N is a height we do have a block for.
+    L = (M + N) div 2,
+    case get_by_height(L) of
+        error -> bottom(L, N);
+        _ -> bottom(M, L)
+    end.
+            
+
+top() -> 
+    %O(log(# blocks))
+    top(headers:top_with_block()).%what we actually want is the highest header for which we have a stored block.
 top(Header) ->
     false = element(2, Header) == undefined,
     case get_by_hash(hash(Header)) of
@@ -1076,7 +1098,15 @@ check2(OldBlock, Block) ->
     %io:fwrite([NewTrees3, Roots]),
     %io:fwrite("\n"),
     %TreesHash = trees:root_hash2(NewTrees3, Roots),
-    TreesHash = trees:root_hash(NewTrees3),
+    TreesHash2 = trees:root_hash(NewTrees3),
+    if
+        (TreesHash2 == TreesHash) -> ok;
+        true -> io:fwrite(
+                  {broken_tree_hash,
+                   %Block2#block.meta,
+                   orders:all(trees:orders(NewTrees3))
+                   })
+    end,
     {true, Block2}.
 calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
     %json encoded with keys
@@ -1159,14 +1189,35 @@ dict_data2([H = {Type, Key}|T], D) ->
         end,
     [{Z}|dict_data2(T, D)].
 unpack_tree_element(X) ->
-    case element(1, X) of
-        gov -> [{type, gov},{id, governance:number2name(X#gov.id)},{value, X#gov.value},{lock, X#gov.lock}];
-        acc -> [{type, account},{pubkey, base64:encode(X#acc.pubkey)},{balance, X#acc.balance},{nonce, X#acc.nonce}];
-        oracle -> [{type, oracle},{oid, base64:encode(X#oracle.id)},{result, X#oracle.result},{starts, X#oracle.starts},{type, X#oracle.type},{done_timer, X#oracle.done_timer},{governance, X#oracle.governance},{governance_amount, X#oracle.governance_amount}];
-        channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
-        matched -> [{type, matched},{account, base64:encode(X#matched.account)}, {oracle, base64:encode(X#matched.oracle)}, {true, X#matched.true}, {false, X#matched.false}, {bad, X#matched.bad}];
-        unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)},{pointer, base64:encode(unmatched:pointer(X))}];
-        _ -> []
+    case X of
+        {<<B:520>>, N} -> [{type, unmatched_head2}, {pointer, base64:encode(<<B:520>>)}, {many, N}];
+        _ ->
+            case element(1, X) of
+                gov -> [{type, gov},{id, governance:number2name(X#gov.id)},{value, X#gov.value},{lock, X#gov.lock}];
+                acc -> [{type, account},{pubkey, base64:encode(X#acc.pubkey)},{balance, X#acc.balance},{nonce, X#acc.nonce}];
+                oracle -> [{type, oracle},{oid, base64:encode(X#oracle.id)},{result, X#oracle.result},{starts, X#oracle.starts},{type, X#oracle.type},{done_timer, X#oracle.done_timer},{governance, X#oracle.governance},{governance_amount, X#oracle.governance_amount}];
+                channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
+                matched -> [{type, matched},{account, base64:encode(X#matched.account)}, {oracle, base64:encode(X#matched.oracle)}, {true, X#matched.true}, {false, X#matched.false}, {bad, X#matched.bad}];
+                unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)},{pointer, base64:encode(unmatched:pointer(X))}];
+                unmatched_head -> [{type, unmatched_head},{pointer, base64:encode(element(2, X))}, {many, element(3, X)}, {oid, base64:encode(element(4, X))}];
+                oracle_bet -> [{type, oracle_bet},{id, base64:encode(oracle_bets:id(X))}, {true, oracle_bets:true(X)}, {false, oracle_bets:false(X)}, {bad, oracle_bets:bad(X)}];
+                orders -> [{type, order}, {id, base64:encode(orders:aid(X))}, {amount, orders:amount(X)}, {pointer, base64:encode(element(4, X))}
+                  ];
+                orders_head -> [{type, orders_head},{pointer, base64:encode(element(2, X))}, {many, element(3, X)}, {oid, base64:encode(element(4, X))}];
+                contract -> [{type, contract}, 
+                             {code, base64:encode(X#contract.code)}, 
+                             {many_types, X#contract.many_types}, 
+                             {result, base64:encode(X#contract.result)}, 
+                             {source, base64:encode(X#contract.source)}, 
+                             {source_type, X#contract.source_type}];
+                sub_acc -> [{type, sub_acc}];
+                receipt -> [{type, receipt}];
+                trade -> [{type, trade}];
+                Y -> 
+                    %io:fwrite({failed_to_make_following, X}),
+                    [];
+                _ -> []
+            end
     end.
 get_txs_main(L, T, O, N, H) ->
     P1 = get_txs(L, T, O, N, H),

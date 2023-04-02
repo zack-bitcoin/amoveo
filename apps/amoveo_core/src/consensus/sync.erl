@@ -259,7 +259,6 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
 	    new_get_blocks2(TheirBlockHeight,  N, Peer, Tries - 1);
 	{ok, Bs} -> 
             %io:fwrite("got compressed blocks, height many: "),
-            %io:fwrite(Bs),
             L = if
                     is_list(Bs) -> Bs;
                     true ->
@@ -418,10 +417,10 @@ trade_txs(Peer) ->
 %    end.
    
 sync_peer(Peer) ->
-    %io:fwrite("trade peers\n"),
+    io:fwrite("trade peers\n"),
     spawn(fun() -> trade_peers(Peer) end),
     MyTop = headers:top(),
-    %io:fwrite("get their top header\n"),
+    io:fwrite("get their top header\n"),
     spawn(fun() -> get_headers(Peer) end),
     {ok, HB} = ?HeadersBatch,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
@@ -437,11 +436,12 @@ sync_peer(Peer) ->
         true -> sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
+    io:fwrite("sync_peer2\n"),
     TTHH = TheirTopHeader#header.height,
     MTHH = (headers:top())#header.height,
     if
 	TTHH < MTHH ->
-	    %io:fwrite("send them headers.\n"),
+	    io:fwrite("send them headers.\n"),
 	    H = headers:top(),
 	    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
 	    GiveHeaders = list_headers([H], FT),
@@ -456,18 +456,23 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
             RS = reverse_syncing(),
             BH = block_db:ram_height(),
             if
-                (RS and (BH < 2)) -> ok;
-                true -> new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
+                (RS and (BH < 2)) -> 
+                    io:fwrite("reverse sync prevents normal sync here.\n"),
+                    %todo, download and sync from a checkpoint.
+                    ok;
+                true -> 
+                    io:fwrite("new get blocks start\n"),
+                    new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
             end;
 	%true ->
 	(TheirBlockHeight == MyBlockHeight) ->
 	    spawn(fun() ->
 			  trade_txs(Peer)
 		  end),
-	    %io:fwrite("already synced with this peer \n"),
+	    io:fwrite("already synced with this peer \n"),
 	    ok;
 	true ->
-            %we have more blocks than them, so we don't need to trade txs.
+            io:fwrite("we have more blocks than them, so we don't need to trade txs."),
             ok
     end.
 top_common_header(L) when is_list(L) ->
