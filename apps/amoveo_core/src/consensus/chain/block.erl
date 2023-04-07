@@ -2,7 +2,7 @@
 -export([block_to_header/1, %get_by_height_in_chain/2,
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
-         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2,
+         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2, verify/1,
          top/0, genesis_maker/0, height/0,
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
@@ -718,6 +718,23 @@ proofs_roots_match([P|T], R) when is_record(R, roots5)->
 	   end,
     proofs_roots_match(T, R).
 
+verify(Block) ->
+   %entire process of verifying the block in one place. Does not update the hard drive, does not calculate new tree root pointers.
+    %does calculate the meta.
+    
+    X = check0(Block),
+    B2 = Block#block{trees = X},
+    OldBlock = get_by_hash(Block#block.prev_hash),
+    {NewDict4, NewDict3, Dict} = 
+        check3(OldBlock, B2), 
+    Height = Block#block.height,
+    OldTrees = OldBlock#block.trees,
+    HeightCheck = Height,
+    %Block2 = Block#block{trees = NewTrees3, meta = calculate_block_meta(Block, OldTrees, Dict, NewDict3)},
+    Block2 = B2#block{meta = calculate_block_meta(Block, OldTrees, Dict, NewDict3)},
+    TreesHash = Block2#block.trees_hash,
+    %TreesHash = trees:root_hash(NewTrees3),
+    {true, Block2}.
 
 check0(Block) ->%This verifies the txs in ram. is parallelizable
     %assume_valid {height, hash}
@@ -915,6 +932,7 @@ calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
                     _ -> []
                 end,
             TxPart = case application:get_env(amoveo_core, block_meta_txs) of
+                         %{ok, true} -> [{txs, get_txs(Block#block.txs, OldTrees, OldDict, NewDict, H)}];
                          {ok, true} -> [{txs, get_txs(Block#block.txs, OldTrees, OldDict, NewDict, H)}];
                          _ -> []
                          end,
@@ -972,6 +990,7 @@ unpack_tree_element(X) ->
         unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)},{pointer, base64:encode(unmatched:pointer(X))}];
         oracle_bet -> [{type, oracle_bet},{id, base64:encode(oracle_bets:id(X))}, {true, oracle_bets:true(X)}, {false, oracle_bets:false(X)}, {bad, oracle_bets:bad(X)}];
         orders -> [{type, order}, {id, base64:encode(orders:aid(X))}, {amount, orders:amount(X)}, {pointer, base64:encode(element(4, X))}];
+        receipt -> [{type, receipt}, {id, base64:encode(receipts:id(X))}, {pubkey, base64:encode(receipts:pubkey(X))}, {tid, base64:encode(receipts:tid(X))}];
         _ -> []
     end.
 get_txs_main(L, T, O, N, H) ->

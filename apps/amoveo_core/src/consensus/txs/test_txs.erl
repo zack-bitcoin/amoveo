@@ -4148,7 +4148,45 @@ test(unused) ->
     %check that the winning bid account received long-veo2
     %check that the stablecoins are still spendable.
     sucess;
-   
+  
+test(66) -> 
+    io:fwrite("test 66\n"),
+    io:fwrite("testing determinism when contract evidence tx fails.\n"),
+    %seems like receipts wasn't deterministic after the update for fork 52, this test is to see.
+
+    %make a contract. provide invalid evidence. check the root hash.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    Code = compiler_chalang:doit(
+             <<"fail \
+">>),
+    CH = hash:doit(Code),
+    Many = 2,
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    
+    Tx2 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    
+    RootHash = trees:root_hash(
+                 (block:top())#block.trees),
+    io:fwrite({(block:top())#block.trees}),
+%                            {{trees5,87,1,1,1,
+%                              793,1,1,1,9,1,1,1,
+%                              1}},
+    <<191,217,58,101,_:(8*28)>> = RootHash,
+    success;
 
 
 test(empty) ->

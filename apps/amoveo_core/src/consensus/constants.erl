@@ -31,7 +31,7 @@ master_pub() ->
 	     124,15,19,53,47,199,101,54,159,33,2,193,105,148,36,244,
 	     97,47,22,207,60,175,158,167,199,152,51,25,83,197,83,191,
 	     194,116,18,229,105,172,24,130,156,172,243,251,252,92,53,
-	     89,87>>;
+	     89,87>>; % base64 encoded, this is: <<"BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=">>
 	_ ->
 	    {ok, X} = application:get_env(amoveo_core, master_pub),
 	    base64:decode(X)
