@@ -1,29 +1,61 @@
-test_txs:test(39) isn't passing when we are in verkle mode.
-It says we are trying to edit inaccessible state.
-So, lets find out what all the accessible state is, and lets find out what we are trying to edit.
+we have a test of restoring a database with dump, and with verkle. it is time to make one for the full node.
 
-
-working on syncing in reverse.
-Make sure we download from a node that has checkpoints.
-
-next get the checkpoint.
-`checkpoint:sync().`
+we have a test of restoring the verkle part of the database in the full node, but it is still failing to sync the checkpoint. maybe we are missing some of the other files.
 
 
 
-tester:test()
+we updated one of the servers to use hd mode. now we are trying to sync a checkpoint from that server.
+we should probaby write a test in dump of saving to the hard drive and restoring.
+
+
+looks like the verkle tree has some problems with using hd mode. We can't sync the checkpoint.
+1) update the current network to use hd  mode. make sure we don't break checkpoints.
+2) make the 52 fork work with checkpoints too.
+
+
+we are having difficulty getting the checkpoint to copy over.
+It seems like the data is written to the hard drive correctly, but then when we try to read from it, it is all zero bytes.
+
+There should be a bunch of other files in the tarball checkpoint.
 
 
 
-I got the tests to pass with the verkle tree.
+When we try to load a checkpoint and then clean it, we end up trying to read stems from places in the memory that haven't been written to.
+checkpoint:sync/3
+there is a test `make tests`.
 
-I still need to
- 
-make sure I didn't break any tests in the pre-fork version of the code.
-make sure all the historical blocks can sync.
-set it up to sync blocks in reverse by default.
-update to the new version of ubuntu.
 
+in checkpoint:verify_blocks/4, for old blocks, we just check that the header is right. maybe we should also check that the header is in the longest chain.
+
+
+
+
+After update 52 activates
+* for blocks earlier than 52, just don't bother calculating the merkle root of the new consensus state. (so don't do check2. just check0 and check3)
+* update block:trees_hash_maker/5 for this.
+
+
+
+Needed for Fork 52
+==============
+
+in the verkle code, it looks like tree:clean_ets isn't working. I made a test in test_verkle:clean_ets_test/0, but that test isn't passing yet either.
+
+Write the new checkpoint code for calculating the Roots in checkpoint:sync/3
+
+make checkpoints work even if the checkpoint was built after fork 52.
+we have a test in tests/checkpoint.py
+
+checkpoint:verify_blocks/4 should be tested for the verkle case.
+
+new version of ubuntu.
+
+===================
+
+
+
+
+in tx explorer, it doesn't say who sent the tx.
 
 in explorer.html you cant look up info about an account.
 maybe just link to the working page instead: http://159.89.87.58:8080/explorers/account_explorer.html?pubkey=BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=

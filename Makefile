@@ -175,6 +175,8 @@ old-clean: $$(KIND)
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/data
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/checkpoints/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/checkpoints/
 	@touch ./config/$(KIND)/sys.config
 	@rm  ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/
@@ -301,7 +303,7 @@ tests: killall
 	make multi-clean
 	make multi-go
 	@sleep 6
-	@python tests/test_all.py
+	@python tests/checkpoint.py
 	make multi-stop
 
 multi-quick: kill

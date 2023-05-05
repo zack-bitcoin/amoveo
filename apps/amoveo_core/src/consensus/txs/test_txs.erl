@@ -3998,6 +3998,55 @@ test(65) ->
 
 
     success;
+test(66) ->
+    %testing out the machinery for updating from a checkpoint. This way we don't need to do multi-node testing for so much.
+    restart_chain(),
+    CFG = tree:cfg(amoveo),
+    ID = cfg_verkle:id(CFG),
+    LeafID = ids_verkle:leaf(CFG),
+    StemID = ids_verkle:stem(CFG),
+
+    mine_blocks(6),
+
+    %verify that some data exists in the consensus state.
+
+    DS = dump:top(StemID),
+    DL = dump:top(LeafID),
+    true = (DS > 1),
+    true = (DL > 1),
+
+    Block = block:top(),
+    Trees = Block#block.trees,
+    true = (Trees > 1),
+
+    %record to the hard drive
+    tree:quick_save(ID),
+
+    %delete the consensus state stuff from ram.
+    dump:delete_all(LeafID),
+    dump:delete_all(StemID),
+    timer:sleep(100),
+
+    %verify that the data was deleted (or top pointer decremented below it.)
+    1 = dump:top(StemID),
+    1 = dump:top(LeafID),
+    
+    %restore the consensus state from the hard drive version.
+    tree:reload_ets(ID),
+    timer:sleep(200),
+
+    %verify that the data is back.
+    DS2 = dump:top(StemID),
+    DL2 = dump:top(LeafID),
+    if
+        (not (DS == (DS2 - 1))) ->
+            io:fwrite({stem, DS, DS2});
+        (not (DL == DL2)) ->
+            io:fwrite({leaf, DL, DL2});
+        true -> ok
+    end,
+
+    success;
    
 test(unused) ->
     io:fwrite("test stablecoin_new_tx\n"),
@@ -4167,8 +4216,47 @@ test(unused) ->
     %check that the winning bid account received long-veo2
     %check that the stablecoins are still spendable.
     sucess;
-   
+test(66) -> 
+    io:fwrite("test 66\n"),
+    io:fwrite("testing determinism when contract evidence tx fails.\n"),
 
+    true = forks:get(52) > 6,
+
+    %seems like receipts wasn't deterministic after the update for fork 52, this test is to see.
+
+    %make a contract. provide invalid evidence. check the root hash.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    MP = constants:master_pub(),
+    Fee = constants:initial_fee()*100,
+    Code = compiler_chalang:doit(
+             <<"fail \
+">>),
+    CH = hash:doit(Code),
+    Many = 2,
+    Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
+    CID = contracts:make_id(CH, Many,<<0:256>>,0),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    1 = many_txs(),
+    mine_blocks(1),
+    
+    Tx2 = contract_evidence_tx:make_dict(MP, Code, CID, <<>>, [], Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+    mine_blocks(1),
+    
+    RootHash = trees:root_hash(
+                 (block:top())#block.trees),
+    %io:fwrite({(block:top())#block.trees}),
+                            %{{trees5,45,1,1,1,
+                            %  473,1,1,1,5,1,1,1,
+                            %  1}},
+    <<191,217,58,101,_:(8*28)>> = RootHash,
+    success;
 
 test(empty) ->
     io:fwrite("test 55\n"),
@@ -4278,7 +4366,7 @@ wait_till_next_block(Height, N) ->
     H2 = TP#tx_pool.height,
     if
         H2 > Height -> wait_till_mineable(H2, 200),
-                       timer:sleep(50);
+                       timer:sleep(100);
         true ->
             timer:sleep(50),
             wait_till_next_block(Height, N-1)

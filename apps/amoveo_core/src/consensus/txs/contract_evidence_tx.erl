@@ -46,6 +46,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             io:fwrite("\n in contract_evidence_tx, contract has an error\n"),
             io:fwrite(Error),
             io:fwrite("\n"),
+            io:fwrite("block height: "),
+            io:fwrite(integer_to_list(NewHeight)),
+            io:fwrite("\n"),
             %io:fwrite(packer:pack([Prove, Evidence, ContractBytecode])),
             %io:fwrite("\n"),
             Dict2;
@@ -121,6 +124,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 Output ->
                     io:fwrite("in contract_evidence_tx, contract has invalid output\n"),
                     io:fwrite(packer:pack(Output)),
+                    io:fwrite("\n"),
+                    io:fwrite("block height: "),
+                    io:fwrite(integer_to_list(NewHeight)),
                     io:fwrite("\n"),
                     Dict2
             end

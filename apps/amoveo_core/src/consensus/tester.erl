@@ -1,5 +1,5 @@
 -module(tester).
--export([test/0, test_helper/1, encryption_test/0]).
+-export([test/0, test_helper/1, encryption_test/0, coverage_test/0]).
 test() ->
     case keys:status() of
 	unlocked -> test1();
@@ -35,3 +35,74 @@ encryption_test() ->
     io:fwrite(packer:pack(EM)),
     ok.
     
+
+coverage_test() ->
+    Start = 161191,
+    End = 251202,
+    %End = 162000,
+    coverage_test3(Start, End, dict:new()).
+
+coverage_test3(Start, End, D) 
+  when not(End > Start) ->
+    D;
+coverage_test3(Start, End, D) ->
+    io:fwrite("coverage test height: "),
+    io:fwrite(integer_to_list(Start)),
+    io:fwrite("\n"),
+    Bs0 = block_db:read_by_height(Start),
+    Bs = block_db:uncompress(Bs0),
+    %Bs is a dictionary storing blocks by blockhash.
+    Keys = dict:fetch_keys(Bs),
+    D2 = lists:foldl(
+            fun(K, D1) -> 
+                    Block = dict:fetch(K, Bs),
+                    Txs = tl(element(11, Block)),
+                    Txs2 = lists:map(
+                             fun(X) -> 
+                                     element(2, X) 
+                             end, Txs),
+                    coverage_txs(Txs2, D1)
+            end, D, Keys),
+    coverage_test3(Start + length(Keys), End, D2).
+%Bs.
+    
+
+coverage_test2(A, B, D) when (A > B) ->
+    D;
+coverage_test2(A, B, D) ->
+    if
+        ((A rem 100) == 0) ->
+            io:fwrite("tester coverage test height: "),
+            io:fwrite(integer_to_list(A)),
+            io:fwrite("\n");
+        true -> ok
+    end,
+    Block = block:get_by_height(A),
+    Txs = tl(element(11, Block)),
+    Txs2 = lists:map(
+             fun(X) -> element(2, X) end, Txs),
+    D2 = coverage_txs(Txs2, D),
+    coverage_test2(A+1, B, D2).
+
+coverage_txs([], D) -> D;
+coverage_txs([Tx|T], D) -> 
+    if
+        is_binary(Tx) -> io:fwrite({Tx});
+        true -> ok
+    end,
+    Type = element(1, Tx),
+    D2 = case Type of
+             multi_tx -> 
+                 Txs = element(5, Tx),
+                 coverage_txs(Txs, D);
+             _ ->
+                 cov_inc(Type, D)
+         end,
+    coverage_txs(T, D2).
+
+cov_inc(X, D) ->
+    case dict:find(X, D) of
+        error -> dict:store(X, 1, D);
+        {ok, N} -> dict:store(X, N+1, D)
+    end.
+            

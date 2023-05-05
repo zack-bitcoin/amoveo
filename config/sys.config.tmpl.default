@@ -68,9 +68,9 @@
     {block_threads, 2},
     {push_blocks_batch, 50},
 
-    {checkpoint_depth, -100},
-    {reverse_syncing, false},
-    
+    {checkpoint_depth, 1},
+    {reverse_syncing, true},
+    {minimum_to_verify, 162000}, %below this block height, it does not verify blocks, it just checks that the blocks hash matches the header for the same height.
 
     {internal_ip, {127,0,0,1}},
     {external_ip, {0,0,0,0}},

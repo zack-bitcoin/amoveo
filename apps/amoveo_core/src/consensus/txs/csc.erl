@@ -40,7 +40,8 @@ update(UK, Val, DB) ->
             R2 = R#consensus_state{empty = false, val = Val},
             dict:store(UK, R2, DB);
         error ->
-            io:fwrite({UK, dict:fetch_keys(DB)})
+            io:fwrite({UK, dict:fetch_keys(DB)}),
+            ok
     end.
 
 remove(UK, DB) ->

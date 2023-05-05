@@ -24,7 +24,7 @@ def spend_test():
     pub1 = "BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo="
     request(2, "sync", [2, [127,0,0,1], 3010], 0.4)#get headers
     request(2, "sync", [[127,0,0,1], 3010], 0.8)
-    request(2, "spend", [pub1, 10000000])# 0.1 veo
+    request(2, "spend", [pub1, 10000000], 0.1)# 0.1 veo
     request(2, "mine_block", [1,100000], 0.1)
     request(1, "sync", [2, [127,0,0,1], 3020], 0.2)#get headers
     request(1, "sync", [[127,0,0,1], 3020], 0.1)

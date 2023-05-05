@@ -5,6 +5,7 @@
          recent/0, %returns a list of recent block hashes where the block is a checkpoint.
          clean/0, %deletes old unneeded checkpoints.
          chunk_name/1,
+         sync/3,
          sync/2,
          sync/0,
          reverse_sync/0,
@@ -57,12 +58,14 @@ handle_call(make, _, X) ->
     Header = headers:top_with_block(),
     B = backup_p(Header),%check if this is a checkpoint block.
     TH = headers:top(),
-    B2 = Header#header.height > 
+    Height = Header#header.height,
+    B2 = Height > 
         (TH#header.height - 
-             (7 * mft())),%2^7 > 100, less than 1% chance of no checkpoint in the range.
+             (7 * mft())),
     X2 = if
              (B and B2) ->
                  Hash = block:hash(Header),
+                 F52 = forks:get(52),
                  T = amoveo_sup:trees(),
                  CR = constants:custom_root(),
                  Tarball = CR ++ "backup.tar.gz",
@@ -70,15 +73,34 @@ handle_call(make, _, X) ->
                  Temp2 = Temp ++ "2",
                  make_temp_dir(Temp),
                  make_temp_dir(Temp2),
-                 ok = backup_trees(T, CR),%makes a copy of the tree files.
+                 if
+                     Height < F52 ->
+                         ok = backup_trees(T, CR);%makes a copy of the tree files.
+                     true ->
+                         tree:quick_save(amoveo),
+                         %Mode = verkle_trees_sup:mode(),
+                         %case Mode of
+                         %    ram ->
+                         %        tree:quick_save(amoveo);
+                         %    hd ->
+                         %        ok
+                         %end,
+                         os:cmd("cp " ++ CR ++ "data/amoveo_v_leaf.db " ++ Temp ++ "/amoveo_v_leaf.db"),
+                         os:cmd("cp " ++ CR ++ "data/amoveo_v_stem.db " ++ Temp ++ "/amoveo_v_stem.db"),
+                         VerkleTrees = ["accounts", "contracts", "existence", "markets", "matched", "oracles", "receipts", "sub_accounts", "trades", "unmatched"],
+                         lists:map(fun(X) ->
+                                           os:cmd("cp " ++ CR ++ "data/" ++ X ++ ".db " ++ Temp ++ "/" ++ X ++ ".db"),
+                                           os:cmd("cp " ++ CR ++ "data/" ++ X ++ "_rest.db " ++ Temp ++ "/" ++ X ++ "_rest.db")
+                                   end, VerkleTrees)
+                 end,
                  make_tarball(Tarball, Temp),%maybe we should do the packaging and zipping in erlang, so we don't need a sleep statement TODO
-                 timer:sleep(200),
+                 timer:sleep(200),%maybe this isn't necessary? seems like os:cmd waits for the command to finish before returning.
                  chunkify(Tarball, Temp2),%break up the gzipped tar file into 1 megabyte chunks, each in a different file.
                  remove_tarball(Tarball),%delete the gzipped file
                  move_chunks(Temp2, CR, Hash),
                  spawn(fun() ->
                                timer:sleep(1000),
-                               clean(),
+                               %clean(),
                                clean()
                        end),
                  os:cmd("rm -rf "++Temp),
@@ -98,13 +120,13 @@ remove_tree_copy(Temp) ->
     os:cmd("rm " ++ Temp ++ "/*").%delete the copy of the trees.
     
 make_tarball(Tarball, Temp) ->
+    io:fwrite("making tarball\n"),
     S = "tar -czvf " ++ Tarball ++ " " ++ Temp,%make a gzipped tar of the copy of the tree files. 
     %io:fwrite(S),
     %io:fwrite("\n"),
     os:cmd(S).%make a gzipped tar of the copy of the tree files. 
 remove_tarball(Tarball) ->
     spawn(fun() ->
-                  timer:sleep(100),
                   os:cmd("rm " ++ Tarball)%delete the gzipped file
           end).
 move_chunks(Temp, CR, Hash) ->
@@ -122,26 +144,61 @@ get_chunks(Hash, Peer, N) ->
             io:fwrite("get_chunks unknown error\n"),
             io:fwrite(E)
     end.
-sync() -> 
+sync_old() -> 
     block_db:set_ram_height(0),
-    IP = {46,101,185,98},
+    %IP = {46,101,185,98},
     %IP = {159,89,87,58},
+    IP = {159,223,201,207},
     Port = 8080,
     spawn(fun() ->
                   sync(IP, Port)
           end).
-sync({IP, Port}) ->
-    sync(IP, Port).
+sync() ->
+    spawn(fun() ->
+                  block_db:set_ram_height(0),
+                  Ps = peers:all(),
+                  Ps2 = sync:shuffle(Ps),
+                  P = hd(Ps2),
+                  checksync(P)
+          end).
+checksync(P = {IP, Port}) ->
+    io:fwrite("checksync\n"),
+    Y = talker:talk(
+          {checkpoint}, P),
+    timer:sleep(100),
+    case Y of
+        {ok, []} -> 
+            io:fwrite("changing peer\n"),
+            1=2,
+            sync();
+        {ok, CPL} -> sync(P, CPL);
+        X -> io:fwrite(X),
+             sync()
+    end.
+    
+sync({IP, Port}, CPL) ->
+    sync(IP, Port, CPL);
 sync(IP, Port) ->
+    checksync({IP, Port}).
+
+sync(IP, Port, CPL) ->
     %set the config variable `reverse_syncing` to true.
     %let all the headers sync first before you run this.
     Peer = {IP, Port},
     CR = constants:custom_root(),
     io:fwrite("downloading checkpoint\n"),
-    {ok, CPL} = talker:talk({checkpoint}, Peer),
-    io:fwrite("unpacking checkpoint\n"),
-    CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
+    %{ok, CPL} = talker:talk({checkpoint}, Peer),
 
+    if
+        is_binary(CPL) -> io:fwrite({CPL}),
+                          1=2;
+        is_list(CPL) -> ok;
+        true -> 
+            io:fwrite("is not a list\n"),
+            1=2
+    end,
+    CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
+    io:fwrite("read header\n"),
     Header = case headers:read(CP1) of
                  error ->
                      io:fwrite("we need to sync more headers first\n"),
@@ -150,10 +207,18 @@ sync(IP, Port) ->
              end,
         
     Height = Header#header.height,
+    io:fwrite("checkpoint height is "),
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite("\n"),
+    io:fwrite("hash is "),
+    %io:fwrite(packer:pack(CP1)),
+    io:fwrite(base58:binary_to_base58(CP1)),
+    io:fwrite("\n"),
     TopHeader = headers:top(),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
     {ok, NBlock} = talker:talk({block, Height}, Peer),
     TDB = Block#block.trees,
+    %io:fwrite({TDB}),
     TDBN = NBlock#block.trees,
     true = check_header_link(TopHeader, Header),
     Header = block:block_to_header(NBlock),
@@ -166,20 +231,102 @@ sync(IP, Port) ->
     Tarball = CR ++ "backup.tar.gz",
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
-    S = "tar -C "++ CR ++" -xf " ++ Tarball,
+    %S = "tar -C "++ CR ++" -xf " ++ Tarball,
+    S = "tar -xf " ++ Tarball ++ " " ++ Temp,
     os:cmd(S),
-    os:cmd("mv "++CR++"db/backup_temp/* " 
-           ++ CR ++ "data/."),
-    os:cmd("rm -rf "++ CR ++ "db"),
-    os:cmd("rm " ++ CR ++ "backup.tar.gz"),
-    TreeTypes = tree_types(element(1, TDB)),
-    lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),
-    Roots = block:make_roots(TDB),
-    lists:map(fun(Type) -> 
+
+    Roots = if
+        is_integer(TDB) ->
+                    %io:fwrite("mv " ++ Temp ++ "/amoveo_v_stem " ++ CR ++ "data/amoveo_v_stem.db\n"),
+                    os:cmd("mv " ++ Temp ++ "/*.db " ++ CR ++ "data/."),
+                    %os:cmd("mv " ++ Temp ++ "/amoveo_v_leaf.db " ++ CR ++ "data/amoveo_v_leaf.db"),
+                    %os:cmd("rm -rf "++ Temp),
+                    %os:cmd("rm "++ Tarball),
+                    
+                    io:fwrite("verkle checkpoint\n"),
+                    %todo, load the table from the hard drive into ram.
+                    ID = amoveo,
+                    %Pointer = NBlock#block.trees,
+                    Pointer = TDB,
+                    CFG = tree:cfg(ID),
+                    %Mode = verkle_trees_sup:mode(),
+                    %case Mode of
+                    %    ram ->
+                    %        tree:reload_ets(ID);
+                    %    hd -> tree:reload_ets(ID)
+                    %end,
+                    tree:reload_ets(ID),
+                    
+                    Stem0 = stem_verkle:get(Pointer, CFG),
+                    <<Stem0A:256, Stem0B:256,
+                      Stem0C:256, Stem0D:256>> = 
+                        element(2, Stem0),
+                    %io:fwrite({Stem0A, Stem0B, Stem0C, Stem0D}),
+                    CleanedPoint = ed:e_mul(element(2, Stem0), <<8:256/little>>),
+                    <<Stem1A:256, Stem1B:256,
+                      Stem1C:256, Stem1D:256>> = 
+                        CleanedPoint,
+                    io:fwrite("Pointer"),
+                    io:fwrite(integer_to_list(Pointer)),
+                    io:fwrite("stem Z is "),
+                    io:fwrite(integer_to_list(Stem0A)),
+                    io:fwrite(" "),
+                    io:fwrite(integer_to_list(Stem0B)),
+                    io:fwrite(" "),
+                    io:fwrite(integer_to_list(Stem0C)),
+                    io:fwrite(" "),
+                    io:fwrite(integer_to_list(Stem0D)),
+                    io:fwrite("\n"),
+                    io:fwrite("cleaned stem Z is "),
+                    io:fwrite(integer_to_list(Stem1A)),
+                    io:fwrite(" "),
+                    io:fwrite(integer_to_list(Stem1B)),
+                    io:fwrite(" "),
+                    io:fwrite(integer_to_list(Stem1C)),
+                    io:fwrite(" "),
+                    io:fwrite(integer_to_list(Stem1D)),
+                    io:fwrite("\n"),
+                    io:fwrite(stem_verkle:check_root_integrity(Stem0)),
+                    io:fwrite("\n"),
+                    Types = element(3, Stem0),
+                    true = all_zero(tuple_to_list(Types)),
+                    %io:fwrite({Stem0}),
+                    StemHash = stem_verkle:hash(Stem0),
+                    tree:clean_ets(ID, Pointer),
+                    Stem = stem_verkle:get(Pointer, CFG),
+                    %io:fwrite({stem_verkle:root(Stem) == ed:extended_zero(), stem_verkle:hash(Stem)}),
+                    %try doing tree:root_hash of ed:extended_zero()
+                    
+                    tree:root_hash(ID, Pointer);
+                    %todo, delete everything from the table besides what can be proved from this single root.
+                    %todo, return the root hash of the tree.
+        true ->
+                    os:cmd("mv "++ Temp ++ "/* " ++ CR ++ "data/."),
+                    os:cmd("rm -rf "++ Temp),
+                    os:cmd("rm "++ Tarball),
+                    %os:cmd("mv "++CR++"db/backup_temp/* " 
+                    %       ++ CR ++ "data/."),
+                    %os:cmd("rm -rf "++ CR ++ "db"),
+                    %os:cmd("rm " ++ CR ++ "backup.tar.gz"),
+
+            TreeTypes = tree_types(element(1, TDB)),
+
+    %TDB is trees from the old block.
+            io:fwrite("about to reload ets\n"),
+
+    %todo. what if a page is empty? we need to load an empty table with the correct configuration.
+    %the configuration data is in a bunch of tree_child/6 in amoveo_sup. 
+
+            lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),%grabs the copy of the table from the hard drive, and loads it into ram.
+            io:fwrite("reloaded ets\n"),
+            MRoots = block:make_roots(TDB),%this works because when we downloaded the checkpoint from them, it is the same data being stored at the same pointer locations.
+            lists:map(fun(Type) -> 
     %delete everything from the checkpoint besides the merkel trees of the one block we care about. Also verifies all the links in the merkel tree.
-                      Pointer = trees:Type(TDB),
-                      trie:clean_ets(Type, Pointer)
-              end, TreeTypes),
+                              Pointer = trees:Type(TDB),
+                              trie:clean_ets(Type, Pointer)
+                      end, TreeTypes),
+                    MRoots
+    end,
     %try syncing the blocks between here and the top.
     block_hashes:add(CP1),
     {true, NBlock3} = block:check2(Block, NBlock2),
@@ -197,6 +344,11 @@ sync(IP, Port) ->
 
     sync:start(),
     reverse_sync2(Height, Peer, Block2, Roots).
+
+all_zero([]) -> true;
+all_zero([0|T]) -> 
+    all_zero(T);
+all_zero(_) -> false.
 
 reverse_sync() ->
     %find a peer that has a checkpoint.
@@ -216,7 +368,6 @@ reverse_sync(Peer) ->
     reverse_sync(Height, Peer).
 
 reverse_sync(Height, Peer) ->
-    io:fwrite("reverse_sync\n"),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
     {ok, NBlock} = talker:talk({block, Height}, Peer),
     Roots = NBlock#block.roots,
@@ -240,12 +391,13 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     CompressedPage = block_db:compress(Page),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
+    go = sync_kill:status(),
     Page = block_db:uncompress(CompressedPage),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
     %TODO
     %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
     %if a block has an unknown header, then drop this peer.
-    %if any block is invalid, then lock the keys, and display a big error message.
+    %if any block is invalid, display a big error message.
 
     block_db:load_page(Page),
     StartHeight = NewBottom#block.height,
@@ -266,6 +418,10 @@ tree_types(trees) -> [accounts, channels, existence, oracles, governance].
 verify_blocks(B, _, Roots, 0) -> {true, B, Roots};
 verify_blocks(B, P, PrevRoots, N) -> 
     Height = B#block.height,
+    {ok, MTV} = application:get_env(
+                  amoveo_core, minimum_to_verify),
+    {ok, TestMode} = application:get_env(
+                       amoveo_core, test_mode),
     if
         ((Height rem 100) == 0) ->
             io:fwrite("absorb in reverse " ++
@@ -273,66 +429,63 @@ verify_blocks(B, P, PrevRoots, N) ->
                           "\n");
         true -> ok
     end,
-    {ok, NB} = dict:find(B#block.prev_hash, P),
+    {ok, NB0} = dict:find(B#block.prev_hash, P),
+    F52 = forks:get(52),
+    if
+        ((not TestMode) and (Height < MTV)) -> 
+            BH = block:hash(B),
+            {ok, Header} = headers:read(BH),
+            true = (Header#header.height == 
+                        B#block.height),
+            %Maybe we should verify that this header is in the longest chain.
+            verify_blocks(
+              NB0, P, B#block.roots, N-1);
+        (Height > F52) ->
+            {NewDict4, _, _, ProofTree} = 
+                block:check3(NB0, B),
+            block:root_hash_check(
+              NB0, B, NewDict4, ProofTree),
+            {NDict, NNewDict, NProofTree, Hash} = 
+                block:check0(NB0),
+            NB2 = NB0#block{
+                    trees = {NDict, NNewDict, 
+                             NProofTree, Hash}},
+            verify_blocks(NB2, P, 0, N-1);
+        true ->
+            NB = NB0,
 
-    Proof = B#block.proofs,
+            Proof = B#block.proofs,
     %io:fwrite("verify blocks "),
     %io:fwrite(NB#block.trees),
     %io:fwrite("\n"),
-    TreeTypes = tree_types(element(1, NB#block.trees)),
-    {CRM, Leaves} = 
-        if
-            (B#block.height < 38700) -> 
-                {true, []};
-            (B#block.height < 109000) -> 
-                {_, _NewDict3, _, _} = block:check3(NB, B),
-                {true, []};
-            true ->
-                {_, NewDict3, _, _} = block:check3(NB, B),
-                
-                {RootsList, Leaves0} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
-                %Roots2 = [roots2|RootsList],
-                Bool = 
-                    check_roots_match(
-                      RootsList, 
-                      tl(tuple_to_list(PrevRoots))),
+            TreeTypes = tree_types(element(1, NB0#block.trees)),
+            {CRM, Leaves} = 
                 if
-                    not(Bool) -> 
-                        io:fwrite({{height, Height}, {lengths, length(RootsList), length(tl(tuple_to_list(PrevRoots))), length(TreeTypes)}, {roots_list, RootsList}, {prev_roots, PrevRoots}, {tree_types, TreeTypes}});
-                    true -> ok
+                    ((not TestMode) and (B#block.height < 38700)) -> 
+                        {true, []};
+                    ((not TestMode) and (B#block.height < 109000)) -> 
+                        {_, _NewDict3, _, _} = block:check3(NB, B),
+                        {true, []};
+                    true ->
+                        {_, NewDict3, _, _} = block:check3(NB, B),
+                        
+                        {RootsList, Leaves0} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
+                                                %Roots2 = [roots2|RootsList],
+                        Bool = 
+                            check_roots_match(
+                              RootsList, 
+                              tl(tuple_to_list(PrevRoots))),
+                        if
+                            not(Bool) -> 
+                                io:fwrite({{height, Height}, {lengths, length(RootsList), length(tl(tuple_to_list(PrevRoots))), length(TreeTypes)}, {roots_list, RootsList}, {prev_roots, PrevRoots}, {tree_types, TreeTypes}, lists:map(fun(X) -> {X, dict:fetch(X, NewDict3)} end, dict:fetch_keys(NewDict3))});
+                            true -> ok
+                        end,
+                        {Bool, Leaves0}
                 end,
-                {Bool, Leaves0}
-        end,
-    case CRM of
-        true -> ok;
-        false ->
-            %io:fwrite("dict3 keys: "),
-            %io:fwrite("\n"),
-            %io:fwrite(packer:pack(dict:fetch_keys(NewDict3))),%[{unmatched, {key, Pub, ID}},{governance, 1}|...]
-            %io:fwrite("\n"),
-            %io:fwrite("all proofs: "),
-            %io:fwrite(packer:pack(Proof)),
-            %io:fwrite("\n"),
-            %io:fwrite(packer:pack({Roots2, tuple_to_list(PrevRoots)})),
-            %io:fwrite("\n"),
-            CFG = trie:cfg(unmatched),
-            P2 = lists:filter(
-                   fun(X) ->
-                           proofs:tree(X) == unmatched
-                   end, Proof),
-            P3 = lists:map(
-                   fun(X) ->
-                           proofs:value(X)
-                   end, P2),
-            Leaves2 = leaf_vals(TreeTypes, Leaves),
-            %io:fwrite(packer:pack(Leaves)),
-            io:fwrite(packer:pack(Leaves2)),
-            io:fwrite("\n"),
-            1=2
-    end,
-    {NDict, NNewDict, NProofTree, Hash} = block:check0(NB),
-    NB2 = NB#block{trees = {NDict, NNewDict, NProofTree, Hash}},
-    verify_blocks(NB2, P, B#block.roots, N-1).
+            {NDict, NNewDict, NProofTree, Hash} = block:check0(NB0),
+            NB2 = NB0#block{trees = {NDict, NNewDict, NProofTree, Hash}},
+            verify_blocks(NB2, P, B#block.roots, N-1)
+    end.
 leaf_vals([], []) -> [];
 leaf_vals([Tree|T], [Leafs|L]) ->
     V = lists:map(
@@ -378,31 +531,6 @@ calc_roots2([Tree|TT], Proof, Keys, NewDict3, RL, LL) ->
         end,
     calc_roots2(TT, Proof, Keys, NewDict3, [R|RL], [UL2|LL]).
 
-    
-calc_roots([], _, _, R, L) -> 
-    {lists:reverse(R), 
-     lists:reverse(L)};
-calc_roots([Tree|TT], Proof, NewDict3, RL, LL) -> 
-    CFG = trie:cfg(Tree),
-    P2 = lists:filter(
-           fun(X) ->
-                   proofs:tree(X) == Tree
-           end, 
-           Proof),
-    {R, UL2} = case P2 of
-            [] -> {0, []};
-            _ ->
-                StemHashes = hd(lists:reverse(proofs:path(hd(P2)))),
-                RS = stem:make(StemHashes, Tree),
-                RootHash = stem:hash(RS, CFG),
-                {M, Root} = mtree:new_restoration(RS, CFG),
-                {M2, Root2} = restore_all(P2, RootHash, Root, Tree, CFG, M),
-                UL = leaf_maker(P2, NewDict3, Tree, CFG),
-                {Root3, M3} = mtree:store_batch(UL, Root2, M2),
-                {mtree:root_hash(Root3, M3),
-                 UL}
-        end,
-    calc_roots(TT, Proof, NewDict3, [R|RL], [UL2|LL]).
         
 leaf_maker2([], _, _) -> [];
 leaf_maker2([{Tree, K}|P2], NewDict3, CFG) ->
@@ -543,9 +671,16 @@ chunk_name(N) ->
     "/" ++ integer_to_list(N) ++ 
         ".checkpoint.chunk".
 backup_p(Header) ->
-    <<H:256>> = block:hash(Header),
-    B = (H rem mft()),
-    B == 0.
+    H = Header#header.height,
+    %<<H:256>> = block:hash(Header),
+    MFT = mft(),
+    if
+        (MFT < 0) -> false;
+        true ->
+            B = (H rem mft()),
+            B == 0
+    end.
+    
 cp(CR, H, S) ->
     Name = atom_to_list(H)++S,
     os:cmd("cp " ++ CR ++ "data/" ++ Name ++ " " 
@@ -571,8 +706,12 @@ filtered(L) ->
                          %only share hashes for blocks that are on the longest chain of headers.
                          {ok, H} = headers:read(Hash),
                          B = block:get_by_height(H#header.height),
-                         Hash2 = block:hash(B),
-                         Hash2 == Hash
+                         case B of
+                             empty -> false;
+                             _ ->
+                                 Hash2 = block:hash(B),
+                                 Hash2 == Hash
+                         end
                  end, L).
     
     

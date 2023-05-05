@@ -1,7 +1,8 @@
 -module(tree_data).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	dict_update_trie/5, garbage/2, remove_before/2]).
+         dict_update_trie/5, dict_update_root/5, 
+         garbage/2, remove_before/2]).
 -include("../../records.hrl").
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -18,6 +19,10 @@ handle_call({garbage, Trash, Keep}, _, _) ->
 %handle_call({prune, Trash, Keep}, _, _) -> 
 %    internal(Trash, Keep, fun(A, B, C) -> trie:prune(A, B, C) end),
 %    {reply, ok, []};
+handle_call({update_root, Trees, Dict, Height, ProofTree, RootHash}, _, _) ->
+    Y = internal_dict_update_root(
+          Trees, Dict, Height, ProofTree, RootHash),
+    {reply, Y, []};
 handle_call({update, Trees, Dict, Height, ProofTree, RootHash}, 
             _From, _) -> 
     Y = internal_dict_update_trie(
@@ -27,6 +32,8 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 remove_before(Blocks, Work) ->
     gen_server:call(?MODULE, {remove_before, Blocks, Work}).
+dict_update_root(Trees, Dict, Height, ProofTree, RootHash) ->
+    gen_server:call(?MODULE, {update_root, Trees, Dict, Height, ProofTree, RootHash}).
 dict_update_trie(Trees, Dict, Height, ProofTree, RootHash) ->
     gen_server:call(?MODULE, {update, Trees, Dict, Height, ProofTree, RootHash}).
 garbage(Trash, Keep) ->
@@ -125,6 +132,34 @@ internal_dict_update_trie(Trees, Dict, H, ProofTree, RootHash) ->
             Keys = dict:fetch_keys(Dict),
             idut2(Types, Trees, Dict, Keys)
     end.
+internal_dict_update_root(Trees, Dict, ProofTree, RootHash, Height) ->
+    F52 = forks:get(52), 
+    if
+        Height > F52 -> verkle_dict_update_root(Dict, ProofTree, RootHash, Height);
+        true ->
+            Trees2 = internal_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height),
+            RootHash2 = trees:root_hash(Trees2),
+            RootHash == RootHash2
+    end.
+    
+verkle_dict_update_root(Dict, ProofTree, RootHash, Height) ->
+    Keys = dict:fetch_keys(Dict),
+    Leaves = 
+        lists:map(
+          fun(Key) -> 
+                  V = case dict:fetch(Key, Dict) of
+                          {V2, _Meta}  -> V2;
+                          V3 -> V3
+                      end,
+                  V
+          end, Keys),
+    Leaves2 = lists:filter(
+                fun(X) -> not(X == 0) end, Leaves),
+    Leaves2b = lists:map(
+                 fun(#consensus_state{val = X}) -> X;
+                    (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
+    ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
+    RootHash == stem_verkle:hash_point(hd(ProofTreeB)).
 verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
     true = is_integer(Trees),
     Keys = dict:fetch_keys(Dict),
@@ -145,6 +180,9 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
                     (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
     if
         true -> ok;
+        ((Height == 161186)) ->
+            io:fwrite({Leaves2b});
+        true -> ok;
         ((Height == 8) and (not(ProofTree == unknown))) ->
             io:fwrite({Keys});
         true -> ok;
@@ -159,11 +197,11 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
                      Trees4;
                  _ ->
                      %ProofTree = dict:fetch(proof, Dict),
-                     io:fwrite("about to update the proof in tree_data\n"),
-                     io:fwrite(integer_to_list(Height)),
-                     io:fwrite("\n"),
+                     %io:fwrite("about to update the proof in tree_data\n"),
+                     %io:fwrite(integer_to_list(Height)),
+                     %io:fwrite("\n"),
                      ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
-                     io:fwrite("updated the proof in tree_data\n"),
+                     %io:fwrite("updated the proof in tree_data\n"),
                      RootHash = stem_verkle:hash_point(hd(ProofTreeB)),%verify that the new state root matches what was written on the block.
                      trees2:store_verified(Trees, ProofTreeB)
              end,

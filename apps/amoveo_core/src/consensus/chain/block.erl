@@ -2,7 +2,7 @@
 -export([block_to_header/1, %get_by_height_in_chain/2,
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
-         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2,
+         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2, root_hash_check/4,
          top/0, genesis_maker/0, height/0, bottom/0,
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
@@ -321,17 +321,40 @@ governance_packer(L, DB) ->
 
     
  
+trees_hash_maker(HeightCheck, Trees, NewDict4, 
+                 ProofTree, RootHash) ->
+    F10 = forks:get(10),
+    F32 = forks:get(32),
+    F35 = forks:get(35),
+    F44 = forks:get(44),
+    F48 = forks:get(48),
+    F52 = forks:get(52),
+    case HeightCheck of
+        F10 -> true;
+        F32 -> true;
+        F35 -> true;
+        F44 -> true;
+        F48 -> true;
+        F52 -> true;
+        _ ->
+            tree_data:dict_update_root(
+              Trees, NewDict4, HeightCheck, 
+              ProofTree, RootHash)
+    end.
+
+
 trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     %io:fwrite("trees maker "),
     %io:fwrite(integer_to_list(HeightCheck)),
-    DEls = dict:fetch_keys(NewDict4),
+    %DEls = dict:fetch_keys(NewDict4),
     %io:fwrite(" "),
     %io:fwrite(integer_to_list(length(DEls))),
     %io:fwrite("\n"),
-    ND4_Keys = dict:fetch_keys(NewDict4),
     if
         true -> ok;
-        true -> io:fwrite({lists:map(fun(X) -> {X, dict:fetch(X, NewDict4)} end, ND4_Keys)});
+        true -> 
+    ND4_Keys = dict:fetch_keys(NewDict4),
+            io:fwrite({lists:map(fun(X) -> {X, dict:fetch(X, NewDict4)} end, ND4_Keys)});
         true -> ok
     end,
     %io:fwrite({lists:map(fun(X) -> dict:find(X, NewDict4) end, ND4_Keys)}),
@@ -872,8 +895,10 @@ proofs_roots_match(A, B) ->
 
 
 
-check0(Block) ->%This verifies the txs in ram. is parallelizable
-    %assume_valid {height, hash}
+check0(Block) ->
+    %This verifies the verkle proofs and the txs in ram. 
+    %checks that the consensus state before processing the block matches what the previous headers says it should be.
+    %is parallelizable
     Height = Block#block.height,
     Header = block_to_header(Block),
     BlockHash = hash(Header),
@@ -941,14 +966,25 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
             io:fwrite({dict:fetch_keys(Dict),
                        dict:fetch_keys(NewDict)})
     end,
-    {Dict, NewDict, ProofTree, BlockHash}.
+    {Dict, %consensus state proved by this block.
+     NewDict, %consensus state after processing this block.
+     ProofTree, %in verkle mode, this is the datastructure we can use to update the database. (maybe we use this to calculate the new root?)
+     BlockHash}.
 
 
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
     OldBlock = get_by_hash(Block#block.prev_hash),
     check2(OldBlock, Block).
 check3(OldBlock, Block) ->
-    %io:fwrite("block check 0\n"),
+    %old block is this block's parent.
+
+    %checks that checksums written on the block are correct. # of channels, # of accounts, marketcap, etc.
+    %checks that the total number of coins before and after processing this block hasn't changed.
+    %checks that the block isn't too big.
+    %pays the block reward (which is weird, because we pay that in the coinbase tx as well.)
+
+
+    %io:fwrite("block check3 0\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     Roots = Block#block.roots,
@@ -956,12 +992,12 @@ check3(OldBlock, Block) ->
         Block#block.trees,
     %{Dict, NewDict} = check0(Block),
     %BlockHash = hash(Block),
-    %io:fwrite("block check 1\n"),
+    %io:fwrite("block check3 1\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     {ok, Header} = headers:read(BlockHash),
     Height = Block#block.height,
-    %io:fwrite("block check 2\n"),
+    %io:fwrite("block check3 2\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     OldTrees = OldBlock#block.trees,
@@ -1056,8 +1092,26 @@ check3(OldBlock, Block) ->
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
     {NewDict4, NewDict3, Dict, ProofTree}.
 
+root_hash_check(OldBlock, Block, NewDict4, ProofTree) ->
+    TreesHash = Block#block.trees_hash,
+    Height = Block#block.height,
+    OldTrees = OldBlock#block.trees,
+    %NewTrees3 = 
+    true = %use tree_data:verkle_dict_update_root TODO.
+        trees_hash_maker(Height, OldTrees, NewDict4, 
+                    ProofTree, TreesHash).
+    %TreesHash2 = trees:root_hash(NewTrees3),
+%    {TreesHash == TreesHash2,
+%    Block#block{
+%      trees = 0, 
+%      meta = calculate_block_meta(
+%               Block, OldTrees, Dict, NewDict3)}}.
+    
 
 check2(OldBlock, Block) ->
+   %updates the merkle/verkle tree to store the new version of the consensus state. Checks that the resultant root hash matches what is written on the block. After the update it is using tree_data:verkle_dict_update_trie
+    %calculates the meta data we store with blocks. (as decided in the config file.)
+
     {NewDict4, NewDict3, Dict, ProofTree} = 
         check3(OldBlock, Block), 
     Height = Block#block.height,
@@ -1211,7 +1265,7 @@ unpack_tree_element(X) ->
                              {source, base64:encode(X#contract.source)}, 
                              {source_type, X#contract.source_type}];
                 sub_acc -> [{type, sub_acc}];
-                receipt -> [{type, receipt}];
+                receipt -> [{type, receipt}, {id, base64:encode(receipts:id(X))}, {pubkey, base64:encode(receipts:pubkey(X))}, {tid, base64:encode(receipts:tid(X))}];
                 trade -> [{type, trade}];
                 Y -> 
                     %io:fwrite({failed_to_make_following, X}),

@@ -65,6 +65,7 @@ start(P) ->
     %io:fwrite("sync start\n"),
     sync_kill:start(),
     H = api:height(),
+    {ok, Reverse} = application:get_env(amoveo_core, reverse_syncing),
     if
         (H == 0) ->
             spawn(fun() ->
