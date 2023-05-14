@@ -116,8 +116,6 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 make_temp_dir(Temp) ->
     os:cmd("mkdir " ++ Temp).%make temp file for backing up trees, also tells all the tree processes to make a backup on the hard drive of their current state.
-remove_tree_copy(Temp) ->
-    os:cmd("rm " ++ Temp ++ "/*").%delete the copy of the trees.
     
 make_tarball(Tarball, Temp) ->
     io:fwrite("making tarball\n"),
@@ -256,6 +254,11 @@ sync(IP, Port, CPL) ->
                     %    hd -> tree:reload_ets(ID)
                     %end,
                     tree:reload_ets(ID),
+                    io:fwrite("checkpoint loading stem pointer: "),
+                    io:fwrite(integer_to_list(Pointer)),
+                    io:fwrite("\n"),
+
+                    timer:sleep(2000),
                     
                     Stem0 = stem_verkle:get(Pointer, CFG),
                     <<Stem0A:256, Stem0B:256,

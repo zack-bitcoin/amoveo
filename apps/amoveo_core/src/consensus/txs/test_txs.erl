@@ -3999,10 +3999,11 @@ test(65) ->
 
     success;
 test(66) ->
-    %testing out the machinery for updating from a checkpoint. This way we don't need to do multi-node testing for so much.
+    %testing out updating from a checkpoint. This way we don't need to do multi-node testing for so much.
     restart_chain(),
     CFG = tree:cfg(amoveo),
     ID = cfg_verkle:id(CFG),
+    ID = amoveo,
     LeafID = ids_verkle:leaf(CFG),
     StemID = ids_verkle:stem(CFG),
 
@@ -4216,7 +4217,7 @@ test(unused) ->
     %check that the winning bid account received long-veo2
     %check that the stablecoins are still spendable.
     sucess;
-test(66) -> 
+test(67) -> 
     io:fwrite("test 66\n"),
     io:fwrite("testing determinism when contract evidence tx fails.\n"),
 
