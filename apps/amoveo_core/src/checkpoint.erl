@@ -1,3 +1,4 @@
+
 -module(checkpoint).
 -behaviour(gen_server).
 -export([backup_p/1,
@@ -292,7 +293,12 @@ sync(IP, Port, CPL) ->
                     io:fwrite(stem_verkle:check_root_integrity(Stem0)),
                     io:fwrite("\n"),
                     Types = element(3, Stem0),
-                    true = all_zero(tuple_to_list(Types)),
+                    %Bool0 = all_zero(tuple_to_list(Types)),
+                    %if
+                    %    not(Bool0) -> io:fwrite({Types, Stem0});
+                    %    true -> ok
+                    %end,
+                    %true = Bool0, 
                     %io:fwrite({Stem0}),
                     StemHash = stem_verkle:hash(Stem0),
                     tree:clean_ets(ID, Pointer),
@@ -384,13 +390,23 @@ reverse_sync(Height, Peer) ->
 
 reverse_sync2(Height, Peer, Block2, Roots) ->
     io:fwrite("reverse_sync2\n"),
-    {ok, ComPage0} = talker:talk({blocks, 50, Height}, Peer),
-    Page0 = block_db:uncompress(ComPage0),
-    Page = dict:filter(%remove data that is already in block_db.
-             fun(_, Value) ->
-                     Value#block.height < 
-                         (Height - 1)
-             end, Page0),
+    H2 = max(0, Height-50),
+    {ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
+    Page = if
+               is_binary(ComPage0) -> 
+                   Page0 = block_db:uncompress(ComPage0),
+                   dict:filter(%remove data that is already in block_db.
+                     fun(_, Value) ->
+                             Value#block.height < 
+                                 (Height - 1)
+                     end, Page0);
+               is_list(ComPage0) ->
+                   %block hash is slow, this version is bad. make sure it doesn't happen too frequently.
+                   lists:foldl(
+                     fun(X, Acc) -> 
+                             dict:store(block:hash(X), X, Acc) end, 
+                     dict:new(), ComPage0)
+           end,
     CompressedPage = block_db:compress(Page),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
@@ -420,22 +436,35 @@ tree_types(trees2) -> [accounts, channels, existence, oracles, governance, match
 tree_types(trees) -> [accounts, channels, existence, oracles, governance].
 verify_blocks(B, _, Roots, 0) -> {true, B, Roots};
 verify_blocks(B, P, PrevRoots, N) -> 
+    io:fwrite("checkpoint:verify_blocks\n"),
     Height = B#block.height,
+    if
+        (Height < 1) -> 
+            Genesis = block:get_by_height(0),
+            NewRoots = [],
+            {true, Genesis, NewRoots};
+        true ->
     {ok, MTV} = application:get_env(
                   amoveo_core, minimum_to_verify),
     {ok, TestMode} = application:get_env(
                        amoveo_core, test_mode),
     if
-        ((Height rem 100) == 0) ->
+        %((Height rem 100) == 0) ->
+        ((Height rem 1) == 0) ->
             io:fwrite("absorb in reverse " ++
                           integer_to_list(B#block.height) ++
                           "\n");
         true -> ok
     end,
-    {ok, NB0} = dict:find(B#block.prev_hash, P),
+    %{ok, NB0} = dict:find(B#block.prev_hash, P),
+    NB0 = case dict:find(B#block.prev_hash, P) of
+              error -> io:fwrite({P});
+              {ok, NB01} -> NB01
+          end,
     F52 = forks:get(52),
     if
-        ((not TestMode) and (Height < MTV)) -> 
+        %((not TestMode) and (Height < MTV)) -> 
+        ((Height < MTV)) -> 
             BH = block:hash(B),
             {ok, Header} = headers:read(BH),
             true = (Header#header.height == 
@@ -446,6 +475,7 @@ verify_blocks(B, P, PrevRoots, N) ->
         (Height > F52) ->
             {NewDict4, _, _, ProofTree} = 
                 block:check3(NB0, B),
+            false = is_integer(ProofTree),
             block:root_hash_check(
               NB0, B, NewDict4, ProofTree),
             {NDict, NNewDict, NProofTree, Hash} = 
@@ -453,7 +483,8 @@ verify_blocks(B, P, PrevRoots, N) ->
             NB2 = NB0#block{
                     trees = {NDict, NNewDict, 
                              NProofTree, Hash}},
-            verify_blocks(NB2, P, 0, N-1);
+            %verify_blocks(NB2, P, 0, N-1);
+            verify_blocks(NB2, P, B#block.roots, N-1);
         true ->
             NB = NB0,
 
@@ -474,6 +505,13 @@ verify_blocks(B, P, PrevRoots, N) ->
                         
                         {RootsList, Leaves0} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
                                                 %Roots2 = [roots2|RootsList],
+                        if
+                            (PrevRoots == 0) -> 
+                                io:fwrite({PrevRoots, RootsList});
+                            not(is_tuple(PrevRoots)) ->
+                                io:fwrite({PrevRoots, RootsList});
+                            true -> ok
+                        end,
                         Bool = 
                             check_roots_match(
                               RootsList, 
@@ -488,6 +526,7 @@ verify_blocks(B, P, PrevRoots, N) ->
             {NDict, NNewDict, NProofTree, Hash} = block:check0(NB0),
             NB2 = NB0#block{trees = {NDict, NNewDict, NProofTree, Hash}},
             verify_blocks(NB2, P, B#block.roots, N-1)
+    end
     end.
 leaf_vals([], []) -> [];
 leaf_vals([Tree|T], [Leafs|L]) ->

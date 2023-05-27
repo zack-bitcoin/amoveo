@@ -14,7 +14,9 @@ handle_cast(check, BS) ->
     BS2 = BS#d{blocks = B2},
     {noreply, BS2}.
 handle_call({add, Height, Many, Blocks}, _From, BS) ->
-    %io:fwrite("block organizer handler call add\n"),
+    io:fwrite("block organizer handler call add from height "),
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite("\n"),
     BS2 = merge(Height, Many, Blocks, BS#d.blocks, [], BS#d.top),
     %io:fwrite("block organizer handler call add 2\n"),
     %io:fwrite(BS),

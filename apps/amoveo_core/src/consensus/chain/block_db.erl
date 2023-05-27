@@ -241,7 +241,10 @@ compress(X) ->
 uncompress(X) ->
     S = zlib:open(),
     zlib:inflateInit(S),
-    Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
+    A = zlib:inflate(S, X),
+    B = list_to_binary(A),
+    Y = binary_to_term(B),
+    %Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
     zlib:close(S),
     Y.
     %binary_to_term(zlib:uncompress(X)).

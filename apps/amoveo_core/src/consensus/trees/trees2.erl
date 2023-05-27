@@ -81,6 +81,8 @@ cs2v([A|T]) ->
     
 
 update_proof(L, ProofTree) ->
+    io:fwrite("trees2 update proof\n"),
+    %io:fwrite({L, ProofTree}),
     %L is a list of accounts and contracts and whatever.
     CFG = tree:cfg(amoveo),
     Leaves = cs2v(L),

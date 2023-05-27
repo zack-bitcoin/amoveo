@@ -241,7 +241,8 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
     true = N < TheirBlockHeight + 1,
     go = sync_kill:status(),
     %BD = N+1 - BH0,
-    Blocks = talker:talk({blocks, 50, N}, Peer),
+    N2 = min(BH0, N),
+    Blocks = talker:talk({blocks, 50, N2}, Peer),
     BH2 = block:height(),
     %true = BH2 < (N+1),
     go = sync_kill:status(),
@@ -286,12 +287,18 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                         true -> ok
                     end
             end,
-            io:fwrite(packer:pack([N, S])),
-            io:fwrite("\n"),
+            %io:fwrite("sync n s: "),
+            %io:fwrite(packer:pack([N, S])),
+            %io:fwrite("\n"),
             %{ok, Cores} = application:get_env(amoveo_core, block_threads),
             %Cores = 20,
             %S2 = S div Cores,
-            %io:fwrite("add blocks\n"),
+            io:fwrite("add "),
+            io:fwrite(integer_to_list(length(L))),
+            io:fwrite(" blocks\n"),
+            io:fwrite("requested from "),
+            io:fwrite(integer_to_list(N2)),
+            io:fwrite("\n"),
             block_organizer:add(L)
                 %split_add(S2, Cores, L)
     end.
@@ -453,7 +460,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
     if
         TheirBlockHeight > MyBlockHeight ->
 	    %io:fwrite("get blocks from them.\n"),
-	    CommonHeight = TopCommonHeader#header.height,
+	    CommonHeight = min(TopCommonHeader#header.height, block:height()),
             RS = reverse_syncing(),
             BH = block_db:ram_height(),
             if
@@ -462,7 +469,9 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
                     %todo, download and sync from a checkpoint.
                     ok;
                 true -> 
-                    io:fwrite("new get blocks start\n"),
+                    io:fwrite("new get blocks start, common height is: "),
+                    io:fwrite(integer_to_list(CommonHeight)),
+                    io:fwrite("\n"),
                     new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
             end;
 	%true ->

@@ -3,7 +3,7 @@ OTP_PLT=.otp_plt
 
 BIN = ./bin
 NOSE = $(BIN)/nosetests
-PYTHON = $(BIN)/python
+PYTHON = $(BIN)/python2
 PIP = $(BIN)/pip
 
 VER = 0.1.0
@@ -303,7 +303,7 @@ tests: killall
 	make multi-clean
 	make multi-go
 	@sleep 6
-	@python tests/checkpoint.py
+	@python2 tests/checkpoint.py
 	make multi-stop
 
 multi-quick: kill

@@ -20,6 +20,7 @@ handle_call({garbage, Trash, Keep}, _, _) ->
 %    internal(Trash, Keep, fun(A, B, C) -> trie:prune(A, B, C) end),
 %    {reply, ok, []};
 handle_call({update_root, Trees, Dict, Height, ProofTree, RootHash}, _, _) ->
+    false = is_integer(ProofTree),
     Y = internal_dict_update_root(
           Trees, Dict, Height, ProofTree, RootHash),
     {reply, Y, []};
@@ -132,10 +133,12 @@ internal_dict_update_trie(Trees, Dict, H, ProofTree, RootHash) ->
             Keys = dict:fetch_keys(Dict),
             idut2(Types, Trees, Dict, Keys)
     end.
-internal_dict_update_root(Trees, Dict, ProofTree, RootHash, Height) ->
+internal_dict_update_root(Trees, Dict, Height, ProofTree, RootHash) ->
     F52 = forks:get(52), 
     if
-        Height > F52 -> verkle_dict_update_root(Dict, ProofTree, RootHash, Height);
+        Height > F52 -> 
+            false = is_integer(ProofTree),
+            verkle_dict_update_root(Dict, ProofTree, RootHash, Height);
         true ->
             Trees2 = internal_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height),
             RootHash2 = trees:root_hash(Trees2),
@@ -143,6 +146,8 @@ internal_dict_update_root(Trees, Dict, ProofTree, RootHash, Height) ->
     end.
     
 verkle_dict_update_root(Dict, ProofTree, RootHash, Height) ->
+    false = is_integer(ProofTree),
+    io:fwrite("verkle dict update root 0\n"),
     Keys = dict:fetch_keys(Dict),
     Leaves = 
         lists:map(
@@ -158,7 +163,12 @@ verkle_dict_update_root(Dict, ProofTree, RootHash, Height) ->
     Leaves2b = lists:map(
                  fun(#consensus_state{val = X}) -> X;
                     (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
+    io:fwrite("verkle dict update root 1\n"),
+    %io:fwrite({Leaves2b, Leaves2, ProofTree}),%prooftree is a integer here.
+    %same proof tree as verify_verkle:update/3, first variable.
+    %but it should be [OldRoot|ProofTree], a decompressed tree, like gets returned from verify_verkle:proof/2, the 3rd result in the tuple.
     ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
+    io:fwrite("verkle dict update root\n"),
     RootHash == stem_verkle:hash_point(hd(ProofTreeB)).
 verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
     true = is_integer(Trees),

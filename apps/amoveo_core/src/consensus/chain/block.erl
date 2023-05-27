@@ -940,6 +940,7 @@ check0(Block) ->
                 {true, ProofTree0} = 
                     trees2:verify_proof(
                       Proof, Leaves),
+                false = is_integer(ProofTree0),
                 Dict2 = proofs:facts_to_dict(
                          Facts, dict:new()),
                 {Dict2, ProofTree0};
@@ -990,6 +991,7 @@ check3(OldBlock, Block) ->
     Roots = Block#block.roots,
     {Dict, NewDict, ProofTree, BlockHash} = 
         Block#block.trees,
+    %false = is_integer(ProofTree), %before the merkle update, this was an integer.
     %{Dict, NewDict} = check0(Block),
     %BlockHash = hash(Block),
     %io:fwrite("block check3 1\n"),
@@ -997,6 +999,13 @@ check3(OldBlock, Block) ->
     %io:fwrite("\n"),
     {ok, Header} = headers:read(BlockHash),
     Height = Block#block.height,
+    F52 = forks:get(52),
+    if
+        Height > F52 ->
+            false = is_integer(ProofTree);
+        true ->
+            true = is_integer(ProofTree)
+    end,
     %io:fwrite("block check3 2\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -1096,6 +1105,7 @@ root_hash_check(OldBlock, Block, NewDict4, ProofTree) ->
     TreesHash = Block#block.trees_hash,
     Height = Block#block.height,
     OldTrees = OldBlock#block.trees,
+    false = is_integer(ProofTree),
     %NewTrees3 = 
     true = %use tree_data:verkle_dict_update_root TODO.
         trees_hash_maker(Height, OldTrees, NewDict4, 
