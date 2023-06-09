@@ -1135,6 +1135,7 @@ check2(OldBlock, Block) ->
 
     HeightCheck = Height,
     %NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, TreesHash),
+    %false = (Height == 39),
     NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, ProofTree, TreesHash),
     
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),

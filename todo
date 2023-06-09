@@ -1,9 +1,35 @@
+got reverse syncing working.
+Need to make sure all the tests pass, and we can schedule the hard update.
+
+
+
+reverse syncing corrupts your top block, if it was downloaded.
+If you mined the top block, it is immune to being corrupted this way.
+The corruption happens because the pointer to trees on the top block gets changed when we do the reverse sync.
+
+
+
+
+still working on checkpoints.
+The problem is that after syncing from the checkpoint in reverse, it is no longer possibile to sync new blocks on top of the chain.
+Something about the reverse sync process is corrupting the database.
+
+
+
 still working on checkpoints. The checkpoint seems to work, but then we are unable to sync blocks afterwards.
 `make tests` to compile.
 `make attach2`
 `api:sync(3, {127,0,0,1}, 3010).`
 % at this point we seem to have the checkpoint synced.
 `sync:start({{127,0,0,1}, 3010}).`
+
+block 39 is synced, but block:top() isn't pointing to it.
+
+```
+PrevHash = element(3, headers:top()).
+headers:read(PrevHash).
+block:get_by_hash(PrevHash).
+```
 
 
 

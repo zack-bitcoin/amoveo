@@ -10,6 +10,7 @@
          sync/2,
          sync/0,
          reverse_sync/0,
+         reverse_sync/1,
          reverse_sync/2, 
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
@@ -270,28 +271,7 @@ sync(IP, Port, CPL) ->
                     <<Stem1A:256, Stem1B:256,
                       Stem1C:256, Stem1D:256>> = 
                         CleanedPoint,
-                    io:fwrite("Pointer"),
-                    io:fwrite(integer_to_list(Pointer)),
-                    io:fwrite("stem Z is "),
-                    io:fwrite(integer_to_list(Stem0A)),
-                    io:fwrite(" "),
-                    io:fwrite(integer_to_list(Stem0B)),
-                    io:fwrite(" "),
-                    io:fwrite(integer_to_list(Stem0C)),
-                    io:fwrite(" "),
-                    io:fwrite(integer_to_list(Stem0D)),
-                    io:fwrite("\n"),
-                    io:fwrite("cleaned stem Z is "),
-                    io:fwrite(integer_to_list(Stem1A)),
-                    io:fwrite(" "),
-                    io:fwrite(integer_to_list(Stem1B)),
-                    io:fwrite(" "),
-                    io:fwrite(integer_to_list(Stem1C)),
-                    io:fwrite(" "),
-                    io:fwrite(integer_to_list(Stem1D)),
-                    io:fwrite("\n"),
-                    io:fwrite(stem_verkle:check_root_integrity(Stem0)),
-                    io:fwrite("\n"),
+                    ok = stem_verkle:check_root_integrity(Stem0),
                     Types = element(3, Stem0),
                     %Bool0 = all_zero(tuple_to_list(Types)),
                     %if
@@ -350,9 +330,14 @@ sync(IP, Port, CPL) ->
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
 
-
-    sync:start(),
-    reverse_sync2(Height, Peer, Block2, Roots).
+    io:fwrite("checkpoint starting reverse sync\n"),
+    timer:sleep(100),
+    %reverse_sync2(Height, Peer, Block2, Roots),
+    reverse_sync(Peer),
+    timer:sleep(100),
+    io:fwrite("checkpoint starting sync\n"),
+    sync:start([{IP, Port}]).
+    %ok.
 
 all_zero([]) -> true;
 all_zero([0|T]) -> 
@@ -392,21 +377,21 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     io:fwrite("reverse_sync2\n"),
     H2 = max(0, Height-50),
     {ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
-    Page = if
+    Page0 = if
                is_binary(ComPage0) -> 
-                   Page0 = block_db:uncompress(ComPage0),
-                   dict:filter(%remove data that is already in block_db.
-                     fun(_, Value) ->
-                             Value#block.height < 
-                                 (Height - 1)
-                     end, Page0);
+                   block_db:uncompress(ComPage0);
                is_list(ComPage0) ->
                    %block hash is slow, this version is bad. make sure it doesn't happen too frequently.
-                   lists:foldl(
-                     fun(X, Acc) -> 
-                             dict:store(block:hash(X), X, Acc) end, 
-                     dict:new(), ComPage0)
-           end,
+                    lists:foldl(
+                      fun(X, Acc) -> 
+                              dict:store(block:hash(X), X, Acc) end, 
+                      dict:new(), ComPage0)
+            end,
+    Page = dict:filter(%remove data that is already in block_db.
+             fun(_, Value) ->
+                     Value#block.height < 
+                         (Height - 1)
+             end, Page0),
     CompressedPage = block_db:compress(Page),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->

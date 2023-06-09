@@ -21,7 +21,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
-    %io:fwrite("sync main\n"),
+    io:fwrite("sync main\n"),
     BL = case application:get_env(amoveo_core, kind) of
 	     {ok, "production"} ->%don't blacklist peers in test mode.
 		 blacklist_peer:check(Peer);
@@ -65,7 +65,7 @@ start(P) ->
     %io:fwrite("sync start\n"),
     sync_kill:start(),
     H = api:height(),
-    {ok, Reverse} = application:get_env(amoveo_core, reverse_syncing),
+    %{ok, Reverse} = application:get_env(amoveo_core, reverse_syncing),
     if
         (H == 0) ->
             spawn(fun() ->
@@ -80,17 +80,19 @@ start(P) ->
     end.
 doit2([]) -> ok;
 doit2(L0) ->
+    io:fwrite("sync:doit2\n"),
     L = remove_self(L0),
     BH = block:height(),
     HH = api:height(),
     if
 	length(L) == 0 ->
-	    %io:fwrite("no one to sync with\n"),
+	    io:fwrite("no one to sync with\n"),
 	    ok;
 	BH < HH ->
+            io:fwrite("sync main\n"),
 	    gen_server:cast(?MODULE, {main, hd(shuffle(L))});
 	true -> 
-	    %io:fwrite("nothing to sync\n"),
+	    io:fwrite("nothing to sync\n"),
 	    ok
     end.
 blocks(CommonHash, Block) ->
@@ -293,12 +295,15 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
             %{ok, Cores} = application:get_env(amoveo_core, block_threads),
             %Cores = 20,
             %S2 = S div Cores,
-            io:fwrite("add "),
+            io:fwrite("sync:new_get_blocks2. add "),
             io:fwrite(integer_to_list(length(L))),
             io:fwrite(" blocks\n"),
             io:fwrite("requested from "),
             io:fwrite(integer_to_list(N2)),
             io:fwrite("\n"),
+            io:fwrite(integer_to_list((hd(L))#block.height)),
+            io:fwrite("\n"),
+            %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
             block_organizer:add(L)
                 %split_add(S2, Cores, L)
     end.
@@ -462,7 +467,8 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
 	    %io:fwrite("get blocks from them.\n"),
 	    CommonHeight = min(TopCommonHeader#header.height, block:height()),
             RS = reverse_syncing(),
-            BH = block_db:ram_height(),
+            %BH = block_db:ram_height(),
+            BH = block:height(),
             if
                 (RS and (BH < 2)) -> 
                     io:fwrite("reverse sync prevents normal sync here.\n"),

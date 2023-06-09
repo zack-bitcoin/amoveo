@@ -81,7 +81,7 @@ cs2v([A|T]) ->
     
 
 update_proof(L, ProofTree) ->
-    io:fwrite("trees2 update proof\n"),
+    %io:fwrite("trees2 update proof\n"),
     %io:fwrite({L, ProofTree}),
     %L is a list of accounts and contracts and whatever.
     CFG = tree:cfg(amoveo),
@@ -558,6 +558,10 @@ get_proof(Keys0, Loc, Type) ->
         fast -> ok;
         small -> ok
     end,
+    %io:fwrite({Keys0, Type, Loc}),
+    %io:fwrite("get proof many keys: "),
+    %io:fwrite(integer_to_list(length(Keys0))),
+    %io:fwrite("\n"),
     {Proof, MetasDict} =
         get_verkle:batch(Keys, Loc, CFG, Type),
     %io:fwrite({Proof}),

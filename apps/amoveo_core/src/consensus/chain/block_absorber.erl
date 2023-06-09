@@ -20,13 +20,13 @@ handle_call(check, _From, X) ->
     {reply, X, X};
 handle_call({doit, BP}, _From, X) -> 
     Y = absorb_internal(BP),
+    %io:fwrite("block absorber, absorb_internal finished\n"),
     {reply, Y, now()}.
 check() -> gen_server:call(?MODULE, check).
 save([]) -> ok;
 save([T]) -> save(T);
 save([B|T]) -> save(B), save(T);
 save(X) -> 
-    %io:fwrite("block_absorber:save \n"),
     case sync:status() of
 	go ->
 	    gen_server:call(?MODULE, {doit, X}, 10000);
@@ -45,7 +45,7 @@ absorb_internal(Block) ->
     %io:fwrite("\n"), 
     if
 	Height > (MyHeight + 1) ->
-	    %io:fwrite("too high"),
+	    io:fwrite("too high"),
             0;
 	Height < (MyHeight - 300) ->
 	    %io:fwrite("too low"),
@@ -90,20 +90,16 @@ absorb_internal(Block) ->
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 		    %headers:absorb([H]),
-                    %io:fwrite("block absorber 2\n"), % 0.00005
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 		    {true, Block2} = block:check(Block),%writing new block's data into the consensus state merkle trees.
-		    %io:fwrite("block absorber 3\n"), % 0.0025
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 		    do_save(Block2, BH),
-		    %io:fwrite("block absorber 4\n"), % 0.00144
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 		    headers:absorb_with_block([H]),
 		    Header = H,
-		    %io:fwrite("block absorber 5\n"), % 0.00008
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 
@@ -151,9 +147,6 @@ absorb_internal(Block) ->
 %                        true -> ok
 %                    end,
                     checkpoint:make(),
-
-
-		    %io:fwrite("block absorber 9\n"),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 		    if

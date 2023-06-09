@@ -207,13 +207,11 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
                      Trees4;
                  _ ->
                      %ProofTree = dict:fetch(proof, Dict),
-                     %io:fwrite("about to update the proof in tree_data\n"),
-                     %io:fwrite(integer_to_list(Height)),
-                     %io:fwrite("\n"),
                      ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
                      %io:fwrite("updated the proof in tree_data\n"),
                      RootHash = stem_verkle:hash_point(hd(ProofTreeB)),%verify that the new state root matches what was written on the block.
-                     trees2:store_verified(Trees, ProofTreeB)
+                     Trees5 = trees2:store_verified(Trees, ProofTreeB),
+                     Trees5
              end,
     %todo. before we can write the data to the tree, we need to somehow verify that the new verkle root match. or if the roothash is unknown, skip the check.
     %todo. we should calculate the hash first, then store the batch. Writing to the hard drive like this is falsely assuming that we are
