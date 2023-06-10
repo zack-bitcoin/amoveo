@@ -170,9 +170,9 @@ add2(Block, Out) ->
                     io:fwrite("block organizer add2 height 0 \n"),
                     {Out, 0};
 		BHC -> 
-                    io:fwrite("block organizer add2 block hash check activated \n"),
-                    io:fwrite(integer_to_list(Height)),
-                    io:fwrite("\n"),
+                    %io:fwrite("block organizer add2 block hash check activated \n"),
+                    %io:fwrite(integer_to_list(Height)),
+                    %io:fwrite("\n"),
                     {Out, 3}; %we have seen this block already
 		true -> 
 

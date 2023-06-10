@@ -1,56 +1,18 @@
+
+get a testnet connected to the light node, so we can make sure that verkle proof verification is working.
+
+
 got reverse syncing working.
 Need to make sure all the tests pass, and we can schedule the hard update.
 
 
 
-reverse syncing corrupts your top block, if it was downloaded.
-If you mined the top block, it is immune to being corrupted this way.
-The corruption happens because the pointer to trees on the top block gets changed when we do the reverse sync.
+checkpoint:verify_blocks/4 needs to be parallelized somehow. We are syncing in reverse so slow.
 
 
+ext_handler:many_headers might be inefficient. We should verify how long it takes to look up 5000 headers.
+Maybe it would make more sense to cache pages of headers for sharing.
 
-
-still working on checkpoints.
-The problem is that after syncing from the checkpoint in reverse, it is no longer possibile to sync new blocks on top of the chain.
-Something about the reverse sync process is corrupting the database.
-
-
-
-still working on checkpoints. The checkpoint seems to work, but then we are unable to sync blocks afterwards.
-`make tests` to compile.
-`make attach2`
-`api:sync(3, {127,0,0,1}, 3010).`
-% at this point we seem to have the checkpoint synced.
-`sync:start({{127,0,0,1}, 3010}).`
-
-block 39 is synced, but block:top() isn't pointing to it.
-
-```
-PrevHash = element(3, headers:top()).
-headers:read(PrevHash).
-block:get_by_hash(PrevHash).
-```
-
-
-
-
-when we are syncing from a checkpoint and going in reverse, it crashes when it is processing the block from before fork 52.
-recurses with PrevRoots as the invalid value of 0.
-working in checkpoint:verify_blocks/4
-maybe a > vs >= error.
-
-
-when we send the checkpoint after the verkle update, it seems like we are sending the decompressed version.
-another problem is that we are sending a list of blocks instead of as a dictionary.
-looking at checkpoint:reverse_sync2/4.
-it tries to decompress, and it tries to do a dict:filter.
-but in api:blocks/2 we are already uncompressing and unpacking the dictionary into a list.
-It seems like this problem happens because these very recent blocks are not stored in a compressed page yet.
-
-
-installation in ubuntu needs more libraries:
-`apt install erlang-parsetools`
-`apt install erlang-tools`
 
 
 

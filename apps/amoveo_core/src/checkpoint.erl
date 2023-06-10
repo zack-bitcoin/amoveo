@@ -9,6 +9,7 @@
          sync/3,
          sync/2,
          sync/0,
+         sync_hardcoded/0,
          reverse_sync/0,
          reverse_sync/1,
          reverse_sync/2, 
@@ -144,7 +145,7 @@ get_chunks(Hash, Peer, N) ->
             io:fwrite("get_chunks unknown error\n"),
             io:fwrite(E)
     end.
-sync_old() -> 
+sync_hardcoded() -> 
     block_db:set_ram_height(0),
     %IP = {46,101,185,98},
     %IP = {159,89,87,58},
@@ -207,13 +208,15 @@ sync(IP, Port, CPL) ->
              end,
         
     Height = Header#header.height,
-    io:fwrite("checkpoint height is "),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite("\n"),
-    io:fwrite("hash is "),
+    PrintString =
+    "Checkpoint height is " ++
+        integer_to_list(Height) ++
+        "\n" ++
+        "hash is " ++
     %io:fwrite(packer:pack(CP1)),
-    io:fwrite(base58:binary_to_base58(CP1)),
-    io:fwrite("\n"),
+        base58:binary_to_base58(CP1) ++
+        "\n",
+    io:fwrite(PrintString),
     TopHeader = headers:top(),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
     {ok, NBlock} = talker:talk({block, Height}, Peer),
@@ -232,16 +235,20 @@ sync(IP, Port, CPL) ->
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
     %S = "tar -C "++ CR ++" -xf " ++ Tarball,
-    S = "tar -xf " ++ Tarball ++ " " ++ Temp,
+    S = "tar -xf " ++ Tarball ++ " -C " ++ Temp,
+    %S = "tar -xf " ++ Tarball ++ " " ++ Temp, %this version was working for multi-node tests on one computer.
+    os:cmd("mkdir " ++ Temp),
     os:cmd(S),
+    io:fwrite(S),
+    io:fwrite("\n"),
 
     Roots = if
         is_integer(TDB) ->
                     %io:fwrite("mv " ++ Temp ++ "/amoveo_v_stem " ++ CR ++ "data/amoveo_v_stem.db\n"),
-                    os:cmd("mv " ++ Temp ++ "/*.db " ++ CR ++ "data/."),
+                    os:cmd("mv " ++ Temp ++ "/backup_temp/*.db " ++ CR ++ "data/."),
                     %os:cmd("mv " ++ Temp ++ "/amoveo_v_leaf.db " ++ CR ++ "data/amoveo_v_leaf.db"),
-                    %os:cmd("rm -rf "++ Temp),
-                    %os:cmd("rm "++ Tarball),
+                    os:cmd("rm -rf "++ Temp),
+                    os:cmd("rm "++ Tarball),
                     
                     io:fwrite("verkle checkpoint\n"),
                     %todo, load the table from the hard drive into ram.
@@ -290,30 +297,49 @@ sync(IP, Port, CPL) ->
                     %todo, delete everything from the table besides what can be proved from this single root.
                     %todo, return the root hash of the tree.
         true ->
-                    os:cmd("mv "++ Temp ++ "/* " ++ CR ++ "data/."),
+                    io:fwrite("merkle checkpoint\n"),
+                    io:fwrite(Tarball),
+                    io:fwrite("\n"),
+                    io:fwrite(Temp),
+                    io:fwrite("\n"),
+                    %os:cmd("mv "++ Temp ++ "/* " ++ CR ++ "data/."),
+                    io:fwrite("test -d " ++Temp ++ "/backup_temp && echo \"yes\""),
+                    case os:cmd("test -d " ++Temp ++ "/backup_temp && echo \"yes\"") of
+                        "yes\n" ->
+                            io:fwrite("getting from another updated node\n"),
+                            os:cmd("mv "++ Temp ++ "/backup_temp/* " ++ CR ++ "data/."),
+                            io:fwrite("mv "++ Temp ++ "/backup_temp/* " ++ CR ++ "data/.\n");
+                        X ->
+                            io:fwrite("getting it from an old node\n"),
+                            os:cmd("mv "++ Temp ++ "/db/backup_temp/* " ++ CR ++ "data/."),
+                            io:fwrite("mv "++ Temp ++ "/db/backup_temp/* " ++ CR ++ "data/.")
+                    end,
+                            
                     os:cmd("rm -rf "++ Temp),
                     os:cmd("rm "++ Tarball),
-                    %os:cmd("mv "++CR++"db/backup_temp/* " 
-                    %       ++ CR ++ "data/."),
-                    %os:cmd("rm -rf "++ CR ++ "db"),
-                    %os:cmd("rm " ++ CR ++ "backup.tar.gz"),
+
+
 
             TreeTypes = tree_types(element(1, TDB)),
 
     %TDB is trees from the old block.
+                    timer:sleep(500),
             io:fwrite("about to reload ets\n"),
 
     %todo. what if a page is empty? we need to load an empty table with the correct configuration.
     %the configuration data is in a bunch of tree_child/6 in amoveo_sup. 
 
             lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),%grabs the copy of the table from the hard drive, and loads it into ram.
+                    timer:sleep(2000),
             io:fwrite("reloaded ets\n"),
             MRoots = block:make_roots(TDB),%this works because when we downloaded the checkpoint from them, it is the same data being stored at the same pointer locations.
+            io:fwrite("made roots\n"),
             lists:map(fun(Type) -> 
     %delete everything from the checkpoint besides the merkel trees of the one block we care about. Also verifies all the links in the merkel tree.
                               Pointer = trees:Type(TDB),
                               trie:clean_ets(Type, Pointer)
                       end, TreeTypes),
+            io:fwrite("cleaned ets\n"),
                     MRoots
     end,
     %try syncing the blocks between here and the top.
@@ -358,8 +384,10 @@ reverse_sync() ->
           end).
 
 reverse_sync(Peer) ->
-    Height = block:bottom() + 1,
-    reverse_sync(Height, Peer).
+    spawn(fun() ->
+                  Height = block:bottom() + 1,
+                  reverse_sync(Height, Peer)
+          end).
 
 reverse_sync(Height, Peer) ->
     {ok, Block} = talker:talk({block, Height-1}, Peer),
@@ -395,6 +423,7 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     CompressedPage = block_db:compress(Page),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
+    erlang:garbage_collect(self()),
     go = sync_kill:status(),
     Page = block_db:uncompress(CompressedPage),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
@@ -421,7 +450,6 @@ tree_types(trees2) -> [accounts, channels, existence, oracles, governance, match
 tree_types(trees) -> [accounts, channels, existence, oracles, governance].
 verify_blocks(B, _, Roots, 0) -> {true, B, Roots};
 verify_blocks(B, P, PrevRoots, N) -> 
-    io:fwrite("checkpoint:verify_blocks\n"),
     Height = B#block.height,
     if
         (Height < 1) -> 
@@ -434,10 +462,15 @@ verify_blocks(B, P, PrevRoots, N) ->
     {ok, TestMode} = application:get_env(
                        amoveo_core, test_mode),
     if
-        %((Height rem 100) == 0) ->
-        ((Height rem 1) == 0) ->
+        ((Height rem 100) == 0) ->
+        %((Height rem 1) == 0) ->
+            {_, T1, T2} = erlang:timestamp(),
             io:fwrite("absorb in reverse " ++
                           integer_to_list(B#block.height) ++
+                          " time: " ++
+                          integer_to_list(T1) ++
+                          " " ++
+                          integer_to_list(T2) ++
                           "\n");
         true -> ok
     end,

@@ -1,6 +1,6 @@
 -module(test_txs).
--export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1, restart_chain/0]).
- 
+-export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1, restart_chain/0, test_gt/1]).
+
 -include("../../records.hrl").
 contracts() ->
     unlocked = keys:status(),
@@ -37,8 +37,14 @@ contracts() ->
     %S = test(64),
 
     S.
-    
-    
+   
+test_gt(N) -> 
+    L = [1, 2, 11, 16, 36, 37, 38, 39, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 55, 56, 57, 58],
+    L2 = lists:filter(fun(X) -> not(X < N) end, L),
+    lists:map(fun(X) ->
+                      success = test(X)
+              end, L2),
+    success.
     
     
 test() ->

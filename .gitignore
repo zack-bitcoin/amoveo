@@ -26,3 +26,5 @@ rebar.lock
 sys.config.tmpl
 *.so
 *.chunk
+backup.tar.gz
+backup_temp/*

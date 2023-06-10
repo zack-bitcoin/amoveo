@@ -1,10 +1,12 @@
 from get_request import request
 
+# for this test, sys.config.tmpl checkpoint_depth needs to be a low number. like 1.
+
 def checkpoint_test1():
     #in the config file, set the checkpoint_depth to 1 for this to work.
     #request(2, "add_peer", [[127,0,0,1], 3010], 1)
     #request(1, "add_peer", [[127,0,0,1], 3020], 1)
-    request(1, "mine_block", [40,1000000], 1)
+    request(1, "mine_block", [4,1000000], 1)
     request(2, "sync", [2, [127,0,0,1], 3010], 1)
     request(2, "sync", [3, [127,0,0,1], 3010], 5)
     fail()

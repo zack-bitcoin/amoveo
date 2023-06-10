@@ -21,7 +21,6 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
-    io:fwrite("sync main\n"),
     BL = case application:get_env(amoveo_core, kind) of
 	     {ok, "production"} ->%don't blacklist peers in test mode.
 		 blacklist_peer:check(Peer);
@@ -80,7 +79,6 @@ start(P) ->
     end.
 doit2([]) -> ok;
 doit2(L0) ->
-    io:fwrite("sync:doit2\n"),
     L = remove_self(L0),
     BH = block:height(),
     HH = api:height(),
@@ -89,7 +87,6 @@ doit2(L0) ->
 	    io:fwrite("no one to sync with\n"),
 	    ok;
 	BH < HH ->
-            io:fwrite("sync main\n"),
 	    gen_server:cast(?MODULE, {main, hd(shuffle(L))});
 	true -> 
 	    io:fwrite("nothing to sync\n"),
@@ -199,7 +196,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 get_headers3(Peer, N) ->
     AH = api:height(),
     {ok, HB} = ?HeadersBatch,
-    true = (N > AH - HB - 1),
+    %true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
     AH2 = api:height(),
     true = (N > AH2 - HB - 1),
@@ -430,10 +427,8 @@ trade_txs(Peer) ->
 %    end.
    
 sync_peer(Peer) ->
-    io:fwrite("trade peers\n"),
     spawn(fun() -> trade_peers(Peer) end),
     MyTop = headers:top(),
-    io:fwrite("get their top header\n"),
     spawn(fun() -> get_headers(Peer) end),
     {ok, HB} = ?HeadersBatch,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
@@ -449,7 +444,7 @@ sync_peer(Peer) ->
         true -> sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
-    io:fwrite("sync_peer2\n"),
+    %io:fwrite("sync_peer2\n"),
     TTHH = TheirTopHeader#header.height,
     MTHH = (headers:top())#header.height,
     if
