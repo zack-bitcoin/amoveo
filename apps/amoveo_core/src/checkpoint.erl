@@ -89,11 +89,16 @@ handle_call(make, _, X) ->
                          %        ok
                          %end,
                          os:cmd("cp " ++ CR ++ "data/amoveo_v_leaf.db " ++ Temp ++ "/amoveo_v_leaf.db"),
+                         os:cmd("cp " ++ CR ++ "data/amoveo_v_leaf_rest.db " ++ Temp ++ "/amoveo_v_leaf_rest.db"),
+                         os:cmd("cp " ++ CR ++ "data/amoveo_v_leaf_bits.db " ++ Temp ++ "/amoveo_v_leaf_bits.db"),
                          os:cmd("cp " ++ CR ++ "data/amoveo_v_stem.db " ++ Temp ++ "/amoveo_v_stem.db"),
+                         os:cmd("cp " ++ CR ++ "data/amoveo_v_stem_rest.db " ++ Temp ++ "/amoveo_v_stem_rest.db"),
+                         os:cmd("cp " ++ CR ++ "data/amoveo_v_stem_bits.db " ++ Temp ++ "/amoveo_v_stem_bits.db"),
                          VerkleTrees = ["accounts", "contracts", "existence", "markets", "matched", "oracles", "receipts", "sub_accounts", "trades", "unmatched"],
                          lists:map(fun(X) ->
                                            os:cmd("cp " ++ CR ++ "data/" ++ X ++ ".db " ++ Temp ++ "/" ++ X ++ ".db"),
-                                           os:cmd("cp " ++ CR ++ "data/" ++ X ++ "_rest.db " ++ Temp ++ "/" ++ X ++ "_rest.db")
+                                           os:cmd("cp " ++ CR ++ "data/" ++ X ++ "_rest.db " ++ Temp ++ "/" ++ X ++ "_rest.db"),
+                                           os:cmd("cp " ++ CR ++ "data/" ++ X ++ "_dump.db " ++ Temp ++ "/" ++ X ++ "_dump.db")
                                    end, VerkleTrees)
                  end,
                  make_tarball(Tarball, Temp),%maybe we should do the packaging and zipping in erlang, so we don't need a sleep statement TODO
@@ -262,12 +267,13 @@ sync(IP, Port, CPL) ->
                     %        tree:reload_ets(ID);
                     %    hd -> tree:reload_ets(ID)
                     %end,
+                    timer:sleep(1000),
                     tree:reload_ets(ID),
+                    timer:sleep(1000),
                     io:fwrite("checkpoint loading stem pointer: "),
                     io:fwrite(integer_to_list(Pointer)),
                     io:fwrite("\n"),
 
-                    timer:sleep(2000),
                     
                     Stem0 = stem_verkle:get(Pointer, CFG),
                     <<Stem0A:256, Stem0B:256,

@@ -4373,7 +4373,7 @@ wait_till_next_block(Height, N) ->
     H2 = TP#tx_pool.height,
     if
         H2 > Height -> wait_till_mineable(H2, 200),
-                       timer:sleep(100);
+                       timer:sleep(300);
         true ->
             timer:sleep(50),
             wait_till_next_block(Height, N-1)

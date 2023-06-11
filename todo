@@ -17,16 +17,6 @@ Maybe it would make more sense to cache pages of headers for sharing.
 
 
 
-
-we have a test of restoring a database with dump, and with verkle. it is time to make one for the full node.
-`make tests`
-`make attach2`
-`api:sync(3, {127,0,0,1}, 3010).`
-
-we have a test of restoring the verkle part of the database in the full node, but it is still failing to sync the checkpoint. maybe we are missing some of the other files.
-
-
-
 we updated one of the servers to use hd mode. now we are trying to sync a checkpoint from that server.
 we should probaby write a test in dump of saving to the hard drive and restoring.
 
