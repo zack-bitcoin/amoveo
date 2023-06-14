@@ -26,9 +26,27 @@ handle(Req, State) ->
              <<"/explorers", Rest/binary>> -> Rest;
              <<"/vm", Rest/binary>> -> Rest;
              <<"/wallet", Rest/binary>> -> Rest;
+             <<"/verkle", Rest/binary>> -> Rest;
              Otherwise -> Otherwise
          end,
-    B = case F1 of
+    WhiteListed = 
+        case F1 of
+            %first verkle stuff
+            <<"/binary.js">> -> true;
+            <<"/ed.js">> -> true;
+            <<"/finite_inverse.js">> -> true;
+            <<"/fq.js">> -> true;
+            <<"/fr.js">> -> true;
+            <<"/hash.js">> -> true;
+            <<"/ipa.js">> -> true;
+            <<"/multi_exponent.js">> -> true;
+            <<"/multiproof.js">> -> true;
+            <<"/noble-ed25519.js">> -> true;
+            <<"/points.js">> -> true;
+            <<"/poly.js">> -> true;
+            <<"/precomputes.js">> -> true;
+            <<"/verkle.js">> -> true;
+
             <<"/peer_scan.html">> -> true;
             <<"/peer_scan.js">> -> true;
             <<"/channels_interface.js">> -> true;
@@ -220,7 +238,7 @@ handle(Req, State) ->
                 false
         end,
     File = if
-               B ->
+               WhiteListed ->
     %File = << PrivDir/binary, <<"/external_web">>/binary, F/binary>>,
                    << PrivDir/binary, F/binary>>;
                true -> <<PrivDir/binary, "/home.html">>

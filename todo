@@ -1,9 +1,12 @@
+working on ext_handler:doit({proof, Ids, Hash}).
+it is making a verkle proof.
+we already added the verkle code to the light node, and updated the full node to allow the new pages of js.
+we still need to update merkle_proofs.js averify(tree, key) to do verkle.
 
-get a testnet connected to the light node, so we can make sure that verkle proof verification is working.
 
 
 got reverse syncing working.
-Need to make sure all the tests pass, and we can schedule the hard update.
+Need to make sure all the tests pass, and it is compatible with the light node, and we can schedule the hard update.
 
 
 

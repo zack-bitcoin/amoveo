@@ -299,18 +299,38 @@ doit({channel_sync, From, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
+doit({proof, IDs, Hash}) ->
+    %batch verkle proofs.
+    Loc = (block:get_by_hash(Hash))#block.trees,
+    true = is_integer(Loc),
+    
+    %io:fwrite({IDs, Loc}),%{<<_:520>>, 13}
+%    IDs2 = lists:map(fun([TreeName, ID]) ->
+                             %trees2:key({TreeName, ID}) end,
+%                             {TreeName, ID} end,
+%                     IDs),
+    {Proof, IDs3} = trees2:get_proof(IDs, Loc, fast),
+    %todo. put this proof in a format that javascript will understand.
+    {Proof, IDs3};
+    
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
 %curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5, Hash]' http://localhost:8080 
     %io:fwrite(base64:encode(Hash)),
     %io:fwrite("\n"),
-    Trees = (block:get_by_hash(Hash))#block.trees,%this line failed.b
-    TN = trees:name(TreeName),
-    Root = trees:TN(Trees),
-    %io:fwrite(packer:pack([ext_handler_proof2, TreeName, ID, Root])),
-    {RootHash, Value, Proof} = TN:get(ID, Root),
-    Proof2 = proof_packer(Proof),
-    {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}};
+    Trees = (block:get_by_hash(Hash))#block.trees,
+    TN = trees:name(TreeName), 
+    if
+        is_integer(Trees) ->
+            io:fwrite("we needed a verkle proof, not a merkle proof\n"),
+            doit({proof, [{TN, ID}], Hash});
+        true ->
+            %merkle case
+            Root = trees:TN(Trees),
+            {RootHash, Value, Proof} = TN:get(ID, Root),
+            Proof2 = proof_packer(Proof),
+            {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}}
+    end;
 doit({list_oracles}) ->
     {ok, order_book:keys()};
 doit({oracle, 2, QuestionHash}) ->
