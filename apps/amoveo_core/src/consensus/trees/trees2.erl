@@ -482,7 +482,6 @@ strip_tree_info([{Tree, X}|T], R, D) ->
     strip_tree_info(T, [K|R], D2);
 strip_tree_info([H|T], R, D) -> 
     io:fwrite("strip tree info 3\n"),
-    io:fwrite({H}),
     1=2,
     strip_tree_info(T, [H|R], D).
 

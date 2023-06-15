@@ -1,3 +1,9 @@
+we have an api for making verkle proofs.
+We are able to send those proofs to javascript, and javascript knows that it is looking at a verkle proof.
+The problem now is that the libraries for verifying the verkle proof are not loading correctly.
+
+
+
 working on ext_handler:doit({proof, Ids, Hash}).
 it is making a verkle proof.
 we already added the verkle code to the light node, and updated the full node to allow the new pages of js.
