@@ -115,6 +115,7 @@ http://stats.veopool.pw/
 https://amoveopool.com/#getting-started
 --->
 
+[Run your own pool.](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting_started/mining.md)
 
 ## Trading
 
