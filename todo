@@ -1,13 +1,22 @@
+
+* Double check that solo-mining and installation docs are understandable
+
+* make a script that downloads and installs everything you need to run a solo-miner.
+
+
+* we should update the full nodes to use hd mode and have checkpoints, so that the new code works with the main net.
+- use old computer to ssh in and update the key so the new computer can get access.
+
+* set up the mining pool on a server.
+
+* look into getting a domain name, or maybe buy Sy's.
+
+
+
 we have an api for making verkle proofs.
 We are able to send those proofs to javascript, and javascript knows that it is looking at a verkle proof.
-The problem now is that the libraries for verifying the verkle proof are not loading correctly.
-
-
-
-working on ext_handler:doit({proof, Ids, Hash}).
-it is making a verkle proof.
-we already added the verkle code to the light node, and updated the full node to allow the new pages of js.
-we still need to update merkle_proofs.js averify(tree, key) to do verkle.
+The javascript libraries seem to be loading.
+The problem now is probably that the proof isn't exactly in the format that the javascript expects.
 
 
 

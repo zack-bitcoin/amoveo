@@ -95,11 +95,12 @@ Commands such as:
 [This is a miner. it is for Nvidia or AMD GPUs. It is closed-source.](https://github.com/PhamHuong92/VeoMiner)
 
 [here is another closed source miner](https://github.com/krypdkat/AmoveoMinerMan)
+
+[Comino appears to be selling some fpga software to mine veo](https://comino.com/shop)
+
 ---->
 
 [here is miners for 5 different kinds of fpga](https://github.com/dedmarozz)
-
-[Comino appears to be selling some fpga software to mine veo](https://comino.com/shop)
 
 Amoveo's mining algorithm uses SHA256 like bitcoin. But it is a little different, so bitcoin ASICs cannot be used to mine Amoveo.
 
@@ -112,6 +113,8 @@ http://stats.veopool.pw/
 <!---
 https://amoveopool.com/#getting-started
 --->
+
+[Run your own pool.](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting_started/mining.md)
 
 
 ## Trading

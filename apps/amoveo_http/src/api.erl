@@ -888,17 +888,13 @@ txs(IP, Port) ->
     
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
+    %io:fwrite("api work\n"),
     Block = potential_block:check(),
     Height = Block#block.height,
-    F2 = forks:get(2),
-    N = if
-	       F2 > Height -> 
-		<<X:256>> = Nonce,
-		X;
-	       true -> 
-		<<X:184>> = Nonce,
-		X
-	end,
+    N = case Nonce of
+            <<X:256>> -> X;
+            <<X:184>> -> X
+        end,
     Block2 = Block#block{nonce = N},
     %io:fwrite("work block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
