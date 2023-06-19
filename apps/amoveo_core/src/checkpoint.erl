@@ -175,7 +175,7 @@ checksync(P = {IP, Port}) ->
     case Y of
         {ok, []} -> 
             io:fwrite("changing peer\n"),
-            1=2,
+            %1=2,
             sync();
         {ok, CPL} -> sync(P, CPL);
         X -> io:fwrite(X),
