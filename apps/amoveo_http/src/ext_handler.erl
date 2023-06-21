@@ -441,34 +441,77 @@ proof_packer(X) -> X.
 %            end
 %    end.
 get_header_by_height(N, H) ->
-    case H#header.height of
-	N -> H;
-	_ -> 
-	    {ok, Child} = headers:read(H#header.prev_hash),
-	    get_header_by_height(N, Child)
+    HH = H#header.height,
+    if
+        (HH == N) -> H;
+        (HH < N) -> H;
+        true ->
+            case headers:read(H#header.prev_hash) of
+                {ok, Child} ->
+                    get_header_by_height(N, Child);
+                error -> io:fwrite({N, H})
+            end
     end.
+        
+                         
+%    case H#header.height of
+        %0 -> H;
+%	N -> H;
+%	_ -> 
+%            case headers:read(H#header.prev_hash) of
+%                {ok, Child} ->
+%                    get_header_by_height(N, Child);
+%                error -> io:fwrite({N, H}),
+%                         1=2
+%            end
+%    end.
 	    
 many_headers(Many, X) ->
     %io:fwrite("many headers "), 
     %io:fwrite(packer:pack([Many, X])), 
     %io:fwrite("\n"),
-    Z = max(0, X + Many - 1),
+    Z = max(0, X + Many - 1),%number of highest header that we want.
     %H = headers:top(),
-    H = block:block_to_header(block:top()),
-    case (H#header.height) >= (X) of
+    APIHeight = api:height(),
+    case APIHeight >= (X) of
 	false -> [];
 	true ->
 	    {N, Many2} = 
 		if 
-		    Z < H#header.height ->
+		    Z < APIHeight ->
+                        %we have all the headers we need to create this batch.
 			{Z, Many};
 		    true ->
-			{H#header.height, Many - (Z - H#header.height)}
+                        %we don't have enough headers.
+			{APIHeight, Many - (Z - APIHeight)}
 		end,
 						%N = min(H#header.height, X + Many - 1),
-	    Nth = get_header_by_height(N, H),
-						%Many2 = max(0, N - X),
-	    many_headers2(Many2, Nth, [])
+            N = min(Z, APIHeight),
+            Many2 = Many - max(0, (Z - APIHeight)),
+	    %Nth = get_header_by_height(N, H),
+	    %Result = many_headers2(Many2, Nth, []),
+            N2 = (N - (N rem 5000)),
+            case Many2 of
+                5000 ->
+                    case header_cache:read(N2) of
+                        error ->
+                            %io:fwrite("slow\n"),
+                            io:fwrite(integer_to_list(N2)),
+                            %H = block:block_to_header(block:top()),
+                            H = headers:top(),
+                            Nth = get_header_by_height(N2, H),
+                            Result = many_headers2(Many2, Nth, []),
+                            header_cache:store(N2, Result),
+                            Result;
+                        {ok, Result2} ->
+                            %io:fwrite("fast\n"),
+                            Result2
+                    end;
+                _ ->
+                    H = block:block_to_header(block:top()),
+                    Nth = get_header_by_height(N, H),
+                    many_headers2(Many2, Nth, [])
+            end
     end.
 many_headers2(0, _, Out) -> Out;
 many_headers2(Many, H, Out) ->

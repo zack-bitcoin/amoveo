@@ -4,8 +4,14 @@
 	quick/0, normal/0, check/0, check_switch_to_normal/0]).
 init(ok) -> 
     {ok, Kind} = application:get_env(amoveo_core, kind),
+    {ok, RS} = application:get_env(amoveo_core, reverse_syncing),
     X = case Kind of
-	    "production" -> quick;
+	    "production" -> 
+                case RS of
+                    true -> normal;
+                    _ ->
+                        quick
+                end;
 	    _ -> normal
 	end,
     {ok, X}.

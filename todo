@@ -1,14 +1,18 @@
+install the mining pool on a server.
+* switch the server to pre-verkle code so it doesn't crash.
+* make sure the mining pool is stratum compatible.
 
-* set up the mining pool on a server.
-- update the experimental branch to be used for the mining pool.
-- rent a ubuntu 22 LTS server.
+
+the verkle update is using too much ram while syncing in reverse.
+when you stop syncing it mostly recovers, but it is still consuming an extra like 300 mb.
+
+
 
 * Double check that solo-mining and installation docs are understandable
 
 * make a script that downloads and installs everything you need to run a solo-miner.
 
 
-* we should update the full nodes to use hd mode and have checkpoints, so that the new code works with the main net.
 
 * look into getting a domain name, or maybe buy Sy's.
 

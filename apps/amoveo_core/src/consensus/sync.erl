@@ -466,7 +466,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
             BH = block:height(),
             if
                 (RS and (BH < 2)) -> 
-                    io:fwrite("reverse sync prevents normal sync here.\n"),
+                    %io:fwrite("reverse sync prevents normal sync here.\n"),
                     %todo, download and sync from a checkpoint.
                     ok;
                 true -> 

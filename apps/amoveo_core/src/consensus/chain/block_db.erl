@@ -123,6 +123,9 @@ handle_cast({write, Block, Hash}, X) ->
 handle_cast({load_page, U}, X) -> 
     {Loc, Size} = write_page(U, X),
     {Start, End} = height_range(U),
+    io:fwrite("block db load page "),
+    io:fwrite(integer_to_list(Start)),
+    io:fwrite("\n"),
     PageNumber = X#d.page_number,
     Pages2 = dict:store(PageNumber, {Loc, Size, Start, End}, X#d.pages),
     BK = dict:fetch_keys(U),

@@ -139,7 +139,7 @@ move_chunks(Temp, CR, Hash) ->
     Encoded = base58:binary_to_base58(Hash),
     os:cmd("mv " ++ Temp ++ " " ++ CR ++ "checkpoints/" ++ Encoded). %keep the chunks in a new folder in the checkpoints folder.
    
-get_chunks(Hash, Peer, N) ->
+get_chunks_old(Hash, Peer, N) ->
     case talker:talk({checkpoint, Hash, N}, Peer) of
         {ok, D} -> 
             R = get_chunks(Hash, Peer, N+1),
@@ -150,6 +150,21 @@ get_chunks(Hash, Peer, N) ->
             io:fwrite("get_chunks unknown error\n"),
             io:fwrite(E)
     end.
+get_chunks(Hash, Peer, N) ->
+    get_chunks2(Hash, Peer, N, []).
+get_chunks2(Hash, Peer, N, Result) ->
+    case talker:talk({checkpoint, Hash, N}, Peer) of
+        {ok, D} -> get_chunks2(Hash, Peer, N+1, [D|Result]);
+        {error, "out of bounds"} ->
+            R2 = lists:reverse(Result),
+            list_to_binary(R2);
+        {error, E} ->
+            io:fwrite("get_chunks2 unknown error\n"),
+            io:fwrite(E)
+    end.
+    
+
+
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
     %IP = {46,101,185,98},
@@ -169,6 +184,7 @@ sync() ->
           end).
 checksync(P = {IP, Port}) ->
     io:fwrite("checksync\n"),
+    sync_kill:start(),
     Y = talker:talk(
           {checkpoint}, P),
     timer:sleep(100),
@@ -396,6 +412,7 @@ reverse_sync(Peer) ->
           end).
 
 reverse_sync(Height, Peer) ->
+    sync_kill:start(),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
     {ok, NBlock} = talker:talk({block, Height}, Peer),
     Roots = NBlock#block.roots,
@@ -429,7 +446,6 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     CompressedPage = block_db:compress(Page),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
-    erlang:garbage_collect(self()),
     go = sync_kill:status(),
     Page = block_db:uncompress(CompressedPage),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
@@ -437,7 +453,9 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
     %if a block has an unknown header, then drop this peer.
     %if any block is invalid, display a big error message.
-
+    %io:fwrite("checkpoint \n"),
+    %io:fwrite(integer_to_list(NewBottom#block.height)),
+    %io:fwrite("\n"),
     block_db:load_page(Page),
     StartHeight = NewBottom#block.height,
     if 
@@ -447,7 +465,9 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
         true -> 
             {ok, NextCompressed} = talker:talk({blocks, 50, StartHeight-2}, Peer), %get next compressed page.
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
-            load_pages(NextCompressed, NewBottom, NextRoots, Peer)
+            spawn(fun() ->
+                       load_pages(NextCompressed, NewBottom, NextRoots, Peer)
+                  end)
     end.
 tree_types(trees5) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts, stablecoins];
 tree_types(trees4) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets];
@@ -455,8 +475,15 @@ tree_types(trees3) -> [accounts, channels, existence, oracles, governance, match
 tree_types(trees2) -> [accounts, channels, existence, oracles, governance, matched, unmatched];
 tree_types(trees) -> [accounts, channels, existence, oracles, governance].
 verify_blocks(B, _, Roots, 0) -> {true, B, Roots};
-verify_blocks(B, P, PrevRoots, N) -> 
+verify_blocks(B, %current block we are working on, heading towards genesis.
+              P, %dictionary of blocks
+              PrevRoots, 
+              N) -> 
+    %timer:sleep(30),
     Height = B#block.height,
+    %io:fwrite("verify blocks first "),
+    %io:fwrite(integer_to_list(Height)),
+    %io:fwrite("\n"),
     if
         (Height < 1) -> 
             Genesis = block:get_by_height(0),
@@ -482,13 +509,14 @@ verify_blocks(B, P, PrevRoots, N) ->
     end,
     %{ok, NB0} = dict:find(B#block.prev_hash, P),
     NB0 = case dict:find(B#block.prev_hash, P) of
-              error -> io:fwrite({P});
+              error -> io:fwrite({"checkpoint, can't find prev hash\n", P});
               {ok, NB01} -> NB01
           end,
     F52 = forks:get(52),
     if
         %((not TestMode) and (Height < MTV)) -> 
         ((Height < MTV)) -> 
+            %io:fwrite("before min to verify\n"),
             BH = block:hash(B),
             {ok, Header} = headers:read(BH),
             true = (Header#header.height == 
@@ -497,6 +525,7 @@ verify_blocks(B, P, PrevRoots, N) ->
             verify_blocks(
               NB0, P, B#block.roots, N-1);
         (Height > F52) ->
+            %after verkle update.
             {NewDict4, _, _, ProofTree} = 
                 block:check3(NB0, B),
             false = is_integer(ProofTree),
