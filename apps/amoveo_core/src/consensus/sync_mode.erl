@@ -10,7 +10,8 @@ init(ok) ->
                 case RS of
                     true -> normal;
                     _ ->
-                        quick
+                        %quick
+                        normal
                 end;
 	    _ -> normal
 	end,

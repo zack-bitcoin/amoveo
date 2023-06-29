@@ -2,7 +2,8 @@
 -include("../../amoveo_core/src/records.hrl").
 
 -export([init/3, handle/2, terminate/3, doit/1,
-	send_txs/4, init/2, many_headers/2]).
+	send_txs/4, init/2, many_headers/2,
+        get_header_by_height/2, many_headers2/3]).
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3010/", [], "application/octet-stream", "echo"}, [], []).
 %curl -i -d '["test"]' http://localhost:3011
@@ -130,8 +131,9 @@ doit({headers, _H}) ->
 %		  end
 %	  end),
     {ok, 0};
-doit({headers, Many, N}) -> 
-    X = many_headers(Many, N),
+doit({headers, _Many, N}) -> 
+    %X = many_headers(Many, N),
+    X = many_headers(5000, N + 5000 - (N rem 5000)),
     {ok, X};
 doit({header}) -> {ok, headers:top()};
 doit({peers}) ->

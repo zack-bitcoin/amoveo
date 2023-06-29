@@ -109,23 +109,23 @@ Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
 ## Mining Pools
 
-http://stats.veopool.pw/
-<!---
-https://amoveopool.com/#getting-started
---->
+[the only public mining pool](http://159.223.85.216:8085/main.html)
+
 
 [Run your own pool.](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting_started/mining.md)
 
 
 ## Trading
 
-Be very careful using exchanges. They are centralized, the operator can take all the veo if they wanted.
 
 There are people trading now on discord https://discord.gg/xJQcVaT
 
+<!---
+
+Be very careful using exchanges. They are centralized, the operator can take all the veo if they wanted.
+
 Qtrade exchange for BTC-VEO trading: https://qtrade.io/market/VEO_BTC
 
-<!---
 [graviex exchange](https://github.com/zack-bitcoin/amoveo/blob/master/docs/exchanges/graviex_links.md)
 
 A1 exchange for ETH-VEO and BTC-VEO trading (previously called amoveo.exchange): https://a1.exchange/
@@ -137,13 +137,12 @@ Firefox. It can be found here. https://addons.mozilla.org/en-US/firefox/addon/am
 
 ## Software to launch a new mining pool
 
-https://gitlab.com/ThatGuy02/nVeoPool an open source mining pool. WARNING!!! this pool has known security vulnerabilities that have not been patched.
 
-[Another open source mining pool](https://github.com/zack-bitcoin/amoveo-mining-pool)
+[A mining pool](https://github.com/zack-bitcoin/amoveo-mining-pool)
 
 
 ## Developers
 
 If you want to build on top of Amoveo [read the developer's guide](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting-started/quick_start_developer_guide.md)
 
-[If you want to get paid to build on Amoveo](https://github.com/zack-bitcoin/amoveo-docs/blob/master/use-cases-and-ideas/funding_development.md)
+

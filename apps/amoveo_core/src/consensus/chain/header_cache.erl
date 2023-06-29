@@ -1,13 +1,14 @@
 -module(header_cache).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-         store/2, read/1]).
+         store/2, read/1, fill/0]).
 init(ok) -> {ok, dict:new()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({store, N, Headers}, X) -> 
+    io:fwrite("header cache store internal\n"),
     X2 = dict:store(N, Headers, X),
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
@@ -20,4 +21,25 @@ read(N) ->
     gen_server:call(?MODULE, {read, N}).
 store(N, Headers) ->
     0 = N rem 5000,
+    io:fwrite("attempt to store in header cache "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
     gen_server:cast(?MODULE, {store, N, Headers}).
+
+
+fill() ->
+    H = headers:top(),
+    fill2(5000, H).
+fill2(Height, TopHeader) ->
+    Nth = ext_handler:get_header_by_height(Height, TopHeader),
+    Result = ext_handler:many_headers2(5000, Nth, []),
+    HH = element(2, (hd(lists:reverse(Result)))),
+    if
+        (Height == HH) ->
+            %(length(Result) == 5000) ->
+            store(Height, Result),
+            fill2(Height + 5000, TopHeader);
+        true -> 
+            %io:fwrite({length(Result), Result}),
+            ok
+    end.

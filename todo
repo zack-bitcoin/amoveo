@@ -1,20 +1,5 @@
-install the mining pool on a server.
-* switch the server to pre-verkle code so it doesn't crash.
-* make sure the mining pool is stratum compatible.
 
-
-the verkle update is using too much ram while syncing in reverse.
-when you stop syncing it mostly recovers, but it is still consuming an extra like 300 mb.
-
-
-
-* Double check that solo-mining and installation docs are understandable
-
-* make a script that downloads and installs everything you need to run a solo-miner.
-
-
-
-* look into getting a domain name, or maybe buy Sy's.
+checkpoint:reverse_sync() usually fails. we should fix that.
 
 
 
@@ -24,6 +9,7 @@ The javascript libraries seem to be loading.
 The problem now is probably that the proof isn't exactly in the format that the javascript expects.
 
 
+update the servers to use the verkle branch.
 
 got reverse syncing working.
 Need to make sure all the tests pass, and it is compatible with the light node, and we can schedule the hard update.

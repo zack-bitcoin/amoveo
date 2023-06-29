@@ -401,7 +401,9 @@ reverse_sync() ->
                   case talker:talk(
                          {checkpoint}, P) of
                       {ok, CPL} -> reverse_sync(P);
-                      X -> io:fwrite(X)
+                      X -> 
+                          io:fwrite("reverse_sync failure 0\n"),
+                          io:fwrite(X)
                   end
           end).
 
@@ -428,6 +430,7 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     io:fwrite("reverse_sync2\n"),
     H2 = max(0, Height-50),
     {ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
+    io:fwrite("reverse_sync 2 got blocks\n"),
     Page0 = if
                is_binary(ComPage0) -> 
                    block_db:uncompress(ComPage0);
@@ -438,14 +441,18 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
                               dict:store(block:hash(X), X, Acc) end, 
                       dict:new(), ComPage0)
             end,
+    io:fwrite("reverse_sync 2 decompressed blocks\n"),
     Page = dict:filter(%remove data that is already in block_db.
              fun(_, Value) ->
                      Value#block.height < 
                          (Height - 1)
              end, Page0),
+    io:fwrite("reverse_sync 2 filtered the blocks\n"),
     CompressedPage = block_db:compress(Page),
+    io:fwrite("reverse_sync 2 recompressed the blocks\n"),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
+    io:fwrite("load pages\n"),
     go = sync_kill:status(),
     Page = block_db:uncompress(CompressedPage),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
