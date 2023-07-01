@@ -455,7 +455,7 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     io:fwrite("reverse_sync 2 recompressed the blocks\n"),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
-    io:fwrite("load pages\n"),
+    %io:fwrite("load pages\n"),
     go = sync_kill:status(),
     Page = block_db:uncompress(CompressedPage),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
@@ -505,7 +505,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     {ok, TestMode} = application:get_env(
                        amoveo_core, test_mode),
     if
-        ((Height rem 100) == 0) ->
+        ((Height rem 1000) == 0) ->
         %((Height rem 1) == 0) ->
             {_, T1, T2} = erlang:timestamp(),
             io:fwrite("absorb in reverse " ++
