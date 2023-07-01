@@ -378,10 +378,10 @@ sync(IP, Port, CPL) ->
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
 
-    io:fwrite("checkpoint starting reverse sync\n"),
-    timer:sleep(100),
+    %io:fwrite("checkpoint starting reverse sync\n"),
+    %timer:sleep(100),
     %reverse_sync2(Height, Peer, Block2, Roots),
-    reverse_sync(Peer),
+    %reverse_sync(Peer),
     timer:sleep(100),
     io:fwrite("checkpoint starting sync\n"),
     sync:start([{IP, Port}]).
@@ -393,6 +393,7 @@ all_zero([0|T]) ->
 all_zero(_) -> false.
 
 reverse_sync() ->
+    io:fwrite("reverse sync/0\n"),
     %find a peer that has a checkpoint.
     spawn(fun() ->
                   Ps = peers:all(),
@@ -408,12 +409,14 @@ reverse_sync() ->
           end).
 
 reverse_sync(Peer) ->
+    io:fwrite("reverse sync/1\n"),
     spawn(fun() ->
                   Height = block:bottom() + 1,
                   reverse_sync(Height, Peer)
           end).
 
 reverse_sync(Height, Peer) ->
+    io:fwrite("reverse sync/2\n"),
     sync_kill:start(),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
     {ok, NBlock} = talker:talk({block, Height}, Peer),

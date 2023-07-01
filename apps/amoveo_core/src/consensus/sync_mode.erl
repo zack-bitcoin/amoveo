@@ -8,10 +8,11 @@ init(ok) ->
     X = case Kind of
 	    "production" -> 
                 case RS of
-                    true -> normal;
+                    true -> %normal;
+                        quick;
                     _ ->
-                        %quick
-                        normal
+                        quick
+                        %normal
                 end;
 	    _ -> normal
 	end,

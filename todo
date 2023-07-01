@@ -1,4 +1,13 @@
 
+update the servers to use the verkle branch.
+* rent new servers
+* update the default ips for the new servers. in the make file, and docs and readme.
+* install both explorers on both nodes that aren't the mining pool.
+* set up the twitter clone.
+* keep at least one old server, to help people sync with the network if they are using old code.
+
+
+
 checkpoint:reverse_sync() usually fails. we should fix that.
 
 
@@ -9,7 +18,6 @@ The javascript libraries seem to be loading.
 The problem now is probably that the proof isn't exactly in the format that the javascript expects.
 
 
-update the servers to use the verkle branch.
 
 got reverse syncing working.
 Need to make sure all the tests pass, and it is compatible with the light node, and we can schedule the hard update.

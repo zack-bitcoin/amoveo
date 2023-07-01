@@ -21,6 +21,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
+    %io:fwrite("sync main \n"),
     BL = case application:get_env(amoveo_core, kind) of
 	     {ok, "production"} ->%don't blacklist peers in test mode.
 		 blacklist_peer:check(Peer);
@@ -167,13 +168,11 @@ trade_peers(Peer) ->
     remote_peer({peers, MyPeers}, Peer),
     peers:add(TheirsPeers).
 get_headers(Peer) -> 
-    %io:fwrite("get headers 0\n"),
     N = (headers:top())#header.height,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     Start = max(0, N - FT), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
-    %io:fwrite("get headers 2\n"),
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
     case Headers of
@@ -232,9 +231,9 @@ new_get_blocks(Peer, N, TheirBlockHeight, Tries) ->
 new_get_blocks2(_TheirBlockHeight, _N, _Peer, 0) ->
     ok;
 new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
-    %io:fwrite("new get blocks 2 request blocks "),
-    %io:fwrite(integer_to_list(N)),
-    %io:fwrite("\n"),
+    io:fwrite("new get blocks 2 request blocks "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
     BH0 = block:height(),
     %true = BH0 < (N+1),
     true = N < TheirBlockHeight + 1,
