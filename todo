@@ -1,8 +1,3 @@
-* the light node is failing to sync headers.
-
-* some full nodes are stuck at an old block height. update to the verkle branch to fix. maybe we need to find out why this happened.
-
-
 
 * when we try to sync the explorer, it gets stuck at 135251.
 

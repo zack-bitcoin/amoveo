@@ -258,7 +258,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
 	    timer:sleep(600),
 	    new_get_blocks2(TheirBlockHeight,  N, Peer, Tries - 1);
 	{ok, Bs} -> 
-            %io:fwrite("got compressed blocks, height many: "),
+            io:fwrite("got compressed blocks, height many: "),
             L = if
                     is_list(Bs) -> Bs;
                     true ->
@@ -266,6 +266,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                         L0 = low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)),
                         L0
                 end,
+            io:fwrite("uncompressed the blocks\n"),
             S = length(L),
             if
                 S == 0 -> ok;
@@ -279,7 +280,8 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                                             (N + S) < (block:height() + DA)
                                     end,
                                     fun() ->
-                                            new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
+                                            %new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
+                                            new_get_blocks2(TheirBlockHeight, GH+1, Peer, 5)
                                     end,
                                     50);
                         true -> ok
