@@ -458,7 +458,8 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     %io:fwrite("load pages\n"),
     go = sync_kill:status(),
     Page = block_db:uncompress(CompressedPage),
-    {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, length(dict:fetch_keys(Page))),
+    PageLength = length(dict:fetch_keys(Page)),
+    {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, PageLength),
     %TODO
     %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
     %if a block has an unknown header, then drop this peer.
@@ -466,7 +467,16 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     %io:fwrite("checkpoint \n"),
     %io:fwrite(integer_to_list(NewBottom#block.height)),
     %io:fwrite("\n"),
-    block_db:load_page(Page),
+
+    %TODO instead of loading this as one page, we should check if our configured page size is smaller, and cut them up if needed.
+    %a page is a dictionary storing blocks by their hash.
+    {ok, BlockCacheSize} = application:get_env(
+                  amoveo_core, block_cache),
+    PageBytes = size(term_to_binary(Page)),
+    Pages = cut_page(BottomBlock#block.prev_hash, BlockCacheSize, Page, dict:new(), []),
+    lists:map(fun(Page) ->
+                      block_db:load_page(Page)
+              end, lists:reverse(Pages)),
     StartHeight = NewBottom#block.height,
     if 
         StartHeight < 2 -> 
@@ -479,6 +489,31 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
                        load_pages(NextCompressed, NewBottom, NextRoots, Peer)
                   end)
     end.
+cut_page(HeaderHash, BlockCacheSize, Page, Acc, Pages) 
+->
+    %cut Page into Pages that are each smaller than BlockCacheSize. 
+    AS = size(term_to_binary(Acc)),
+    if
+        (AS > BlockCacheSize) ->
+            %add the page we just made to the list of pages.
+            cut_page(HeaderHash, BlockCacheSize, Page,
+                     dict:new(), [Acc|Pages]);
+        true ->
+            case dict:find(HeaderHash, Page) of
+                error -> 
+                    %return the pages
+                    [Acc|Pages];
+                {ok, Block} ->
+                    %add a block to the page we are making
+                    Acc2 = dict:store(
+                             HeaderHash, Block, Acc),
+                    cut_page(Block#block.prev_hash, 
+                             BlockCacheSize, Page, 
+                             Acc2, Pages)
+            end
+    end.
+
+
 tree_types(trees5) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts, stablecoins];
 tree_types(trees4) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets];
 tree_types(trees3) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades];
@@ -505,7 +540,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     {ok, TestMode} = application:get_env(
                        amoveo_core, test_mode),
     if
-        ((Height rem 1000) == 0) ->
+        ((Height rem 200) == 0) ->
         %((Height rem 1) == 0) ->
             {_, T1, T2} = erlang:timestamp(),
             io:fwrite("absorb in reverse " ++

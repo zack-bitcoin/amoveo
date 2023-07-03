@@ -1,3 +1,25 @@
+* the light node is failing to sync headers.
+
+* some full nodes are stuck at an old block height. update to the verkle branch to fix. maybe we need to find out why this happened.
+
+
+
+* when we try to sync the explorer, it gets stuck at 135251.
+
+
+
+
+* block_db stores pages of blocks. it is a dictionary of the blocks by hash. We should also store in this dictionary a number that is how many blocks are in it, and we should store a pointer to the lowest block. This will make operations on the pages much faster.
+
+* the new code is keeping blocks in the same size of pages when we are syncing in reverse. This isn't good, sometimes we need other sizes of pages. See checkpoint.erl, look for `block_db:load_page(Page),`
+
+the explorer is crashing at about 228000. the memory usage grows fast until it dies.
+it is using over half a gigabyte.
+* looks like when we scan blocks, we use cast instead of call. So we could be overfilling the mailboxes.
+* maybe call "erlang:memory()" at different parts of processing the blocks to see where it goes wrong.
+
+
+
 
 update the servers to use the verkle branch.
 * rent new servers

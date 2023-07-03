@@ -132,9 +132,23 @@ doit({headers, _H}) ->
 %	  end),
     {ok, 0};
 doit({headers, _Many, N}) -> 
+    
+    %todo. if we look up earlier than 260000, the output is 5000 blocks earlier than we had wanted.
+    %todo. doesn't include top header in output.
+    
+
     %X = many_headers(Many, N),
-    X = many_headers(5000, N + 5000 - (N rem 5000)),
-    {ok, X};
+    T = api:height(),
+    N2 = N - (N rem 5000),
+    %N2 = N rem 5000,
+    if
+        N2 < (T - 5000) ->
+            X = many_headers(5000, N2),
+            {ok, X};
+        true ->
+            X = many_headers(T-N, N),
+            {ok, X}
+    end;
 doit({header}) -> {ok, headers:top()};
 doit({peers}) ->
     P = peers:all(),
@@ -468,7 +482,7 @@ get_header_by_height(N, H) ->
 %            end
 %    end.
 	    
-many_headers(Many, X) ->
+many_headers_cached_broken(Many, X) ->
     %io:fwrite("many headers "), 
     %io:fwrite(packer:pack([Many, X])), 
     %io:fwrite("\n"),
@@ -488,7 +502,7 @@ many_headers(Many, X) ->
 			{APIHeight, Many - (Z - APIHeight)}
 		end,
 						%N = min(H#header.height, X + Many - 1),
-            N = min(Z, APIHeight),
+            N = min(Z, APIHeight),%end of range that we want.
             Many2 = Many - max(0, (Z - APIHeight)),
 	    %Nth = get_header_by_height(N, H),
 	    %Result = many_headers2(Many2, Nth, []),
@@ -514,6 +528,28 @@ many_headers(Many, X) ->
                     Nth = get_header_by_height(N, H),
                     many_headers2(Many2, Nth, [])
             end
+    end.
+many_headers(Many, X) ->
+    %io:fwrite("many headers "), 
+    %io:fwrite(packer:pack([Many, X])), 
+    %io:fwrite("\n"),
+    Z = max(0, X + Many - 1),
+    %H = headers:top(),
+    H = block:block_to_header(block:top()),
+    case (H#header.height) >= (X) of
+	false -> [];
+	true ->
+	    {N, Many2} = 
+		if 
+		    Z < H#header.height ->
+			{Z, Many};
+		    true ->
+			{H#header.height, Many - (Z - H#header.height)}
+		end,
+						%N = min(H#header.height, X + Many - 1),
+	    Nth = get_header_by_height(N, H),
+						%Many2 = max(0, N - X),
+	    many_headers2(Many2, Nth, [])
     end.
 many_headers2(0, _, Out) -> Out;
 many_headers2(Many, H, Out) ->
