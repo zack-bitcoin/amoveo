@@ -258,7 +258,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
 	    timer:sleep(600),
 	    new_get_blocks2(TheirBlockHeight,  N, Peer, Tries - 1);
 	{ok, Bs} -> 
-            io:fwrite("got compressed blocks, height many: "),
+            io:fwrite("got compressed blocks \n"),
             L = if
                     is_list(Bs) -> Bs;
                     true ->
@@ -268,6 +268,15 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                 end,
             io:fwrite("uncompressed the blocks\n"),
             S = length(L),
+            io:fwrite("many blocks: "),
+            io:fwrite(integer_to_list(S)),
+            io:fwrite("\n"),
+            io:fwrite("first height: "),
+            io:fwrite(integer_to_list(element(2, hd(L)))),
+            io:fwrite("\n"),
+            io:fwrite("last height: "),
+            io:fwrite(integer_to_list(element(2, hd(lists:reverse(L))))),
+            io:fwrite("\n"),
             if
                 S == 0 -> ok;
                 true ->
@@ -302,6 +311,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
             %io:fwrite(integer_to_list((hd(L))#block.height)),
             %io:fwrite("\n"),
             %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
+            io:fwrite("adding blocks to block organizer\n"),
             block_organizer:add(L)
                 %split_add(S2, Cores, L)
     end.
