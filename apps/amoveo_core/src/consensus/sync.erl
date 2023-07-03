@@ -258,7 +258,9 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
 	    timer:sleep(600),
 	    new_get_blocks2(TheirBlockHeight,  N, Peer, Tries - 1);
 	{ok, Bs} -> 
-            io:fwrite("got compressed blocks \n"),
+            io:fwrite("got compressed blocks, asked for height: "),
+            io:fwrite(integer_to_list(N2)),
+            io:fwrite("\n"),
             L = if
                     is_list(Bs) -> Bs;
                     true ->
