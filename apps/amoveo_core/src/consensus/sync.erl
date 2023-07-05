@@ -231,19 +231,15 @@ new_get_blocks(Peer, N, TheirBlockHeight, Tries) ->
 new_get_blocks2(_TheirBlockHeight, _N, _Peer, 0) ->
     ok;
 new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
-    io:fwrite("new get blocks 2 request blocks "),
-    io:fwrite(integer_to_list(N)),
-    io:fwrite("\n"),
+    %io:fwrite("new get blocks 2 request blocks "),
+    %io:fwrite(integer_to_list(N)),
+    %io:fwrite("\n"),
     BH0 = block:height(),
-    %true = BH0 < (N+1),
     true = N < TheirBlockHeight + 1,
     go = sync_kill:status(),
-    %BD = N+1 - BH0,
     N2 = min(BH0, N),
-    %Blocks = talker:talk({blocks, 50, N2}, Peer),
     Blocks = talker:talk({blocks, 50, N}, Peer),
     BH2 = block:height(),
-    %true = BH2 < (N+1),
     go = sync_kill:status(),
     case Blocks of
 	{error, _} -> 
@@ -259,9 +255,9 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
 	    timer:sleep(600),
 	    new_get_blocks2(TheirBlockHeight,  N, Peer, Tries - 1);
 	{ok, Bs} -> 
-            io:fwrite("got compressed blocks, asked for height: "),
-            io:fwrite(integer_to_list(N2)),
-            io:fwrite("\n"),
+            %io:fwrite("got compressed blocks, asked for height: "),
+            %io:fwrite(integer_to_list(N2)),
+            %io:fwrite("\n"),
             L = if
                     is_list(Bs) -> Bs;
                     true ->
@@ -269,17 +265,17 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                         L0 = low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)),
                         L0
                 end,
-            io:fwrite("uncompressed the blocks\n"),
+            %io:fwrite("uncompressed the blocks\n"),
             S = length(L),
-            io:fwrite("many blocks: "),
-            io:fwrite(integer_to_list(S)),
-            io:fwrite("\n"),
-            io:fwrite("first height: "),
-            io:fwrite(integer_to_list(element(2, hd(L)))),
-            io:fwrite("\n"),
-            io:fwrite("last height: "),
-            io:fwrite(integer_to_list(element(2, hd(lists:reverse(L))))),
-            io:fwrite("\n"),
+            %io:fwrite("many blocks: "),
+            %io:fwrite(integer_to_list(S)),
+            %io:fwrite("\n"),
+            %io:fwrite("first height: "),
+            %io:fwrite(integer_to_list(element(2, hd(L)))),
+            %io:fwrite("\n"),
+            %io:fwrite("last height: "),
+            %io:fwrite(integer_to_list(element(2, hd(lists:reverse(L))))),
+            %io:fwrite("\n"),
             if
                 S == 0 -> ok;
                 true ->
@@ -314,7 +310,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
             %io:fwrite(integer_to_list((hd(L))#block.height)),
             %io:fwrite("\n"),
             %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
-            io:fwrite("adding blocks to block organizer\n"),
+            %io:fwrite("adding blocks to block organizer\n"),
             block_organizer:add(L)
                 %split_add(S2, Cores, L)
     end.

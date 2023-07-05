@@ -1,5 +1,3 @@
-light node isnt' showing balance.
-
 update the servers to use the verkle branch.
 * clean up print statements while syncing.
 merge the verkle branch into master.
