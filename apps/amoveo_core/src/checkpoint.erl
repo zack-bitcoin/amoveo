@@ -169,7 +169,8 @@ sync_hardcoded() ->
     block_db:set_ram_height(0),
     %IP = {46,101,185,98},
     %IP = {159,89,87,58},
-    IP = {159,223,201,207},
+    %IP = {159,223,201,207},%the pool.
+    IP = {159,223,85,216},
     Port = 8080,
     spawn(fun() ->
                   sync(IP, Port)
@@ -474,6 +475,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
                   amoveo_core, block_cache),
     PageBytes = size(term_to_binary(Page)),
     Pages = cut_page(BottomBlock#block.prev_hash, BlockCacheSize, Page, dict:new(), []),
+    
     lists:map(fun(Page) ->
                       block_db:load_page(Page)
               end, lists:reverse(Pages)),

@@ -1,31 +1,10 @@
-
-* when we try to sync the explorer, it gets stuck at 135251.
-
-
-
-
-* block_db stores pages of blocks. it is a dictionary of the blocks by hash. We should also store in this dictionary a number that is how many blocks are in it, and we should store a pointer to the lowest block. This will make operations on the pages much faster.
-
-* the new code is keeping blocks in the same size of pages when we are syncing in reverse. This isn't good, sometimes we need other sizes of pages. See checkpoint.erl, look for `block_db:load_page(Page),`
-
-the explorer is crashing at about 228000. the memory usage grows fast until it dies.
-it is using over half a gigabyte.
-* looks like when we scan blocks, we use cast instead of call. So we could be overfilling the mailboxes.
-* maybe call "erlang:memory()" at different parts of processing the blocks to see where it goes wrong.
-
-
-
+light node isnt' showing balance.
 
 update the servers to use the verkle branch.
-* rent new servers
-* update the default ips for the new servers. in the make file, and docs and readme.
-* install both explorers on both nodes that aren't the mining pool.
-* set up the twitter clone.
-* keep at least one old server, to help people sync with the network if they are using old code.
-
-
-
-checkpoint:reverse_sync() usually fails. we should fix that.
+* clean up print statements while syncing.
+merge the verkle branch into master.
+update the servers to use the master branch.
+* maybe keep at least one old server, to help people sync with the network if they are using old code.
 
 
 
@@ -36,43 +15,16 @@ The problem now is probably that the proof isn't exactly in the format that the 
 
 
 
-got reverse syncing working.
-Need to make sure all the tests pass, and it is compatible with the light node, and we can schedule the hard update.
+schedule the hard update.
 
+merge the rest of this todo list with the one in amoveo-docs. start working on harberger
 
 
 checkpoint:verify_blocks/4 needs to be parallelized somehow. We are syncing in reverse so slow.
 
 
-ext_handler:many_headers might be inefficient. We should verify how long it takes to look up 5000 headers.
-Maybe it would make more sense to cache pages of headers for sharing.
-
-
-
-
-
-we updated one of the servers to use hd mode. now we are trying to sync a checkpoint from that server.
-we should probaby write a test in dump of saving to the hard drive and restoring.
-
-
-looks like the verkle tree has some problems with using hd mode. We can't sync the checkpoint.
-1) update the current network to use hd  mode. make sure we don't break checkpoints.
-2) make the 52 fork work with checkpoints too.
-
-
-we are having difficulty getting the checkpoint to copy over.
-It seems like the data is written to the hard drive correctly, but then when we try to read from it, it is all zero bytes.
-
-There should be a bunch of other files in the tarball checkpoint.
-
-
-
-When we try to load a checkpoint and then clean it, we end up trying to read stems from places in the memory that haven't been written to.
-checkpoint:sync/3
-there is a test `make tests`.
-
-
-in checkpoint:verify_blocks/4, for old blocks, we just check that the header is right. maybe we should also check that the header is in the longest chain.
+ext_handler:many_headers should be cached. our last attempt failed, so we should try again.
+maybe the better strategy is writing headers consecutively in a file, so we can read contiguous sections of the file to send.
 
 
 

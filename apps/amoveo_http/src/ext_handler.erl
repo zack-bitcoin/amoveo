@@ -146,7 +146,7 @@ doit({headers, _Many, N}) ->
             X = many_headers(5000, N2),
             {ok, X};
         true ->
-            X = many_headers(T-N, N),
+            X = many_headers(T-N+1, N),
             {ok, X}
     end;
 doit({header}) -> {ok, headers:top()};
