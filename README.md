@@ -91,12 +91,13 @@ Commands such as:
 
 ## Mining
 
-<!-----
 [This is an open-source miner for AMD and Nvidia GPU. Currently only works with Linux](https://github.com/zack-bitcoin/VeoCL)
 
 [This is a miner. it is for Nvidia or AMD GPUs. It is closed-source.](https://github.com/PhamHuong92/VeoMiner)
 
 [here is another closed source miner](https://github.com/krypdkat/AmoveoMinerMan)
+
+<!-----
 
 [Comino appears to be selling some fpga software to mine veo](https://comino.com/shop)
 

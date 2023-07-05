@@ -1,3 +1,6 @@
+peers_heights:peers_heights is failing if some of the peers get shut down.
+
+
 update the servers to use the verkle branch.
 * clean up print statements while syncing.
 merge the verkle branch into master.
