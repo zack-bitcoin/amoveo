@@ -18,6 +18,8 @@ This way Amoveo will always stay optimally tuned to produce the best results.
 
 Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
+[The current market cap in VEO](http://159.89.87.58:8080/ext/getmoneysupply)
+
 ## Community
 [Amoveo forum on reddit](https://www.reddit.com/r/Amoveo/)
 
@@ -114,6 +116,7 @@ Full node keys are stored in `_build/prod/rel/amoveo_core/keys/keys.db`
 
 [Run your own pool.](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting_started/mining.md)
 
+[Run your own pool.](https://github.com/zack-bitcoin/amoveo-docs/blob/master/getting_started/mining.md)
 
 ## Trading
 

@@ -106,7 +106,19 @@ test(1) ->
     0 = many_txs(),
     absorb(Stx),
     1 = many_txs(),
+
     timer:sleep(500),
+
+
+    %PB0 = potential_block:read(),
+    %#block{trees = Trees0} = PB0,
+    %Accs0 = trees:accounts(Trees0),
+   
+    %<<132,70,24,214,_:(8*28)>> = trees:root_hash(Trees0),
+    %<<142,15,146,252,_:(8*28)>> = trie:root_hash(accounts, Accs0),
+    %io:fwrite({trees:root_hash(Trees0), trie:root_hash(accounts, Accs0)}),
+
+
     Ctx2 = spend_tx:make_dict(NewPub, 10, Fee, constants:master_pub()),
     Stx2 = keys:sign(Ctx2),
     absorb(Stx2),
@@ -141,6 +153,7 @@ test(1) ->
             <<152,56,71,123,_:(28*8)>> = trees:root_hash(Trees0);
         true -> ok
     end,
+
     success;
 test(2) ->
     headers:dump(),
