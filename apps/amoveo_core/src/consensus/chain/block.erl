@@ -2,8 +2,9 @@
 -export([block_to_header/1, %get_by_height_in_chain/2,
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
-         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2, verify/1,
-         top/0, genesis_maker/0, height/0,
+         mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2, root_hash_check/4,
+         top/0, genesis_maker/0, height/0, bottom/0,verify/1,
+
 	 time_now/0, all_mined_by/1, time_mining/1,
 	 period_estimate/0, hashrate_estimate/0,
 	 period_estimate/1, hashrate_estimate/1,
@@ -46,6 +47,7 @@ merkelize2([A]) -> [merkelize_thing(A)];
 merkelize2([A|[B|T]]) ->
     [merkelize_pair(A, B)|
      merkelize2(T)].
+
     
 txs_proofs_hash(Txs, Proofs) ->
     TB = merkelize(Txs),
@@ -62,7 +64,18 @@ block_to_header(B) ->
 	  {4, B#block.many_accounts},
 	  {5, B#block.many_oracles},
 	  {6, B#block.live_oracles}],
-    StateRoot = merkelize(BV ++ B#block.txs ++ B#block.proofs),
+    %todo, it is important that the proofs part is cleanly merkelized, so that we can replace it with it's hash in a compressed version of history.
+    %proofs is currently appending a tuple to the list, so it breaks.
+    StateRoot = 
+        if
+            %is_binary(B#block.proofs) ->
+            is_tuple(B#block.proofs) -> 
+                merkelize([{0, B#block.proofs}] ++ 
+                              BV ++ B#block.txs);
+            true ->
+                merkelize(BV ++ B#block.txs ++ 
+                              B#block.proofs)
+        end,
     headers:make_header(
       B#block.prev_hash,
       B#block.height,
@@ -122,7 +135,29 @@ get_by_hash(H) ->
 %        [] -> empty;
 %        Block -> binary_to_term(zlib:uncompress(Block))
 %    end.
-top() -> top(headers:top_with_block()).%what we actually want is the highest header for which we have a stored block.
+bottom() ->
+    %the lowest block (besides 0) that we have synced.
+    %O((log(# blocks))^2)
+    %binary search over our chain of headers, looking up a block each time until we find the empty slot.
+    T = top(),
+    case get_by_height(1) of
+        error -> bottom(1, T#block.height);
+        _ -> 0
+    end.
+bottom(M, N) when (N == M+1) -> N;
+bottom(M, N) when (N > M) -> 
+    %M is a height we don't have a block for.
+    %N is a height we do have a block for.
+    L = (M + N) div 2,
+    case get_by_height(L) of
+        error -> bottom(L, N);
+        _ -> bottom(M, L)
+    end.
+            
+
+top() -> 
+    %O(log(# blocks))
+    top(headers:top_with_block()).%what we actually want is the highest header for which we have a stored block.
 top(Header) ->
     false = element(2, Header) == undefined,
     case get_by_hash(hash(Header)) of
@@ -253,7 +288,7 @@ market_cap(OldBlock, BlockReward, Txs0, Dict, Height) ->
 	    (MC1 * 6) div 5;%
 	FH < Height ->%
 	    DeveloperRewardVar = %
-		governance:dict_get_value(developer_reward, Dict),%
+		governance:dict_get_value(developer_reward, Dict, Height),%
 	    DeveloperReward = %
 		(BlockReward * %
 		 DeveloperRewardVar) div %
@@ -287,19 +322,59 @@ governance_packer(L, DB) ->
 
     
  
-trees_maker(HeightCheck, Trees, NewDict4) ->
-    NewTrees0 = 
-        tree_data:dict_update_trie(
-          Trees, NewDict4),%same
+trees_hash_maker(HeightCheck, Trees, NewDict4, 
+                 ProofTree, RootHash) ->
     F10 = forks:get(10),
     F32 = forks:get(32),
     F35 = forks:get(35),
     F44 = forks:get(44),
     F48 = forks:get(48),
+    F52 = forks:get(52),
+    case HeightCheck of
+        F10 -> true;
+        F32 -> true;
+        F35 -> true;
+        F44 -> true;
+        F48 -> true;
+        F52 -> true;
+        _ ->
+            tree_data:dict_update_root(
+              Trees, NewDict4, HeightCheck, 
+              ProofTree, RootHash)
+    end.
+
+
+trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
+    %io:fwrite("trees maker "),
+    %io:fwrite(integer_to_list(HeightCheck)),
+    %DEls = dict:fetch_keys(NewDict4),
+    %io:fwrite(" "),
+    %io:fwrite(integer_to_list(length(DEls))),
+    %io:fwrite("\n"),
+    if
+        true -> ok;
+        true -> 
+    ND4_Keys = dict:fetch_keys(NewDict4),
+            io:fwrite({lists:map(fun(X) -> {X, dict:fetch(X, NewDict4)} end, ND4_Keys)});
+        true -> ok
+    end,
+    %io:fwrite({lists:map(fun(X) -> dict:find(X, NewDict4) end, ND4_Keys)}),
+    %just governance 28, and a pubkey.
+    NewTrees0 = 
+        tree_data:dict_update_trie(
+          Trees, 
+          NewDict4, %maps 32 byte hash to #consensus_state objects
+          HeightCheck, ProofTree, RootHash),
+    F10 = forks:get(10),
+    F32 = forks:get(32),
+    F35 = forks:get(35),
+    F44 = forks:get(44),
+    F48 = forks:get(48),
+    F52 = forks:get(52),
     GN = fun(Name, A) ->
-                 governance:new(
+                 V = governance:new(
                    governance:name2number(Name),
-                   A)
+                       A)
          end,
     GD = fun(Name) ->
                  GN(Name, constants:encoded_fee())
@@ -373,24 +448,70 @@ trees_maker(HeightCheck, Trees, NewDict4) ->
                  };
             true -> Trees5
         end,
-    Trees6.
+    Trees7 =
+        if
+            (HeightCheck == F52) ->
+                %io:fwrite("trees maker, about to merkle2verkle\n"),
+                trees2:merkle2verkle(Trees6, 1);
+            true -> Trees6
+        end,
+    Trees7.
                 
 
     
     
 make(Header, Txs0, Trees, Pub) ->
-    {CB, _Proofs} = coinbase_tx:make(Pub, Trees),
+    %{CB, _Proofs} = coinbase_tx:make(Pub, Trees),
+    CB = coinbase_tx:make_dict(Pub),
     Txs = [CB|lists:reverse(Txs0)],
     Height = Header#header.height,
     Querys = proofs:txs_to_querys(Txs, Trees, Height+1),
+%    if 
+%        Height == 1 -> io:fwrite({Querys});
+%        true -> ok 
+%    end,
     Facts = proofs:prove(Querys, Trees),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
+    if
+        true -> ok;
+        ((Height == 11) and (length(Txs0) > 0)) ->
+            %io:fwrite({lists:map(fun(X) -> {X, dict:fetch(X, Dict)} end, dict:fetch_keys(Dict))});
+            Fact = hd(tl(tl(tl(tl(tl(tl(tl(tl(tl(tl(tl(tl(Facts))))))))))))),
+            Value = unmatched:deserialize(element(3, Fact)), %{unmatched, pub, <<0,...>>, 0, <<0,...>>}
+            Value2 = unmatched:deserialize_head(element(3, Fact)),
+            Pubkey = element(2, Value),
+            Dict2 = proofs:facts_to_dict([Fact], dict:new()),
+            Key = hd(dict:fetch_keys(Dict2)),
+            <<OracleNum:256>> = element(3, Value),
+            io:fwrite({OracleNum, Value2, Value, dict:fetch(Key, Dict2), base64:encode(Pubkey)});
+        true -> ok;
+        (Height == 10) and (1 == length(Txs0)) -> io:fwrite({Querys, facts, Facts});
+        true -> ok
+    end,
+%    if
+%        Height == 2 ->
+%            io:fwrite({Facts, dict, dict:fetch(hd(dict:fetch_keys(Dict)), Dict)});
+%        true -> ok
+%    end,
+    %Dict = proofs:facts_to_dict(Facts, dict:new()),%todo. this should work even if facts is a verkle proof.
     NewDict0 = txs:digest(Txs, Dict, Height + 1),
+    if
+        false ->
+        %Height == 13 -> 
+            %Keys0 = dict:fetch_keys(Dict),
+            %io:fwrite({lists:map(fun(Y) -> dict:fetch(Y, Dict) end, Keys0)}),
+            io:fwrite({Facts, 
+                       dict, hd(dict:fetch_keys(Dict)), dict:fetch(hd(dict:fetch_keys(Dict)), Dict), 
+                       new_dict0, hd(dict:fetch_keys(NewDict0)), element(1, dict:fetch(hd(dict:fetch_keys(NewDict0)), NewDict0))});
+            %io:fwrite(NewDict0);
+        true -> ok
+    end,
     B = ((Height+1) == forks:get(5)),
     NewDict = if
 		B -> %
 		      OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),%
-		      governance:dict_write(OQL, NewDict0);%
+		      %governance:dict_write(OQL, NewDict0);%
+		      governance:dict_write_new(OQL, NewDict0);%
 		true -> NewDict0
 	    end,
     MinerAddress = Pub,
@@ -405,21 +526,31 @@ make(Header, Txs0, Trees, Pub) ->
 		       accounts:dict_write(MinerAccount, NewDict);%
 		   true ->
 		       GovFees = gov_fees(Txs0, NewDict, Height),
+		       %MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
+                       %HMA = trees2:hash_key(accounts, MinerAddress),
 		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict, MinerReward - GovFees, none),
-		       accounts:dict_write(MinerAccount2, NewDict)
+		       %MinerAccount2 = accounts:dict_update(HMA, NewDict, MinerReward - GovFees, none),
+                       accounts:dict_write(MinerAccount2, NewDict)
 	       end,
     NewDict4 = remove_repeats(NewDict2, Dict, Height + 1),
     %NewDict4 = NewDict2,%remove_repeats(NewDict2, NewDict0, Height + 1),
 
     HeightCheck = Height + 1,
-    NewTrees = trees_maker(HeightCheck, Trees, NewDict4),
+    %io:fwrite("block make before tree maker\n"),
+    NewTrees = trees_maker(HeightCheck, Trees, NewDict4, unknown, unknown),
+    %io:fwrite("block make after tree maker\n"),
 
     %Governance = trees:governance(NewTrees),
-    Governance = trees:governance(Trees),
-    BlockPeriod = governance:get_value(block_period, Governance),
+    %Governance = trees:governance(Trees),
+    %BlockPeriod = governance:get_value(block_period, Governance),
+    BlockPeriod_gov = trees:get(governance, block_period, dict:new(), Trees),
+    BlockPeriod = governance:value(BlockPeriod_gov),
+    BlockReward_gov = trees:get(governance, block_reward, Dict, Trees),
+    BlockReward = governance:value(BlockReward_gov),
     PrevHash = hash(Header),
     OldBlock = get_by_hash(PrevHash),
-    BlockReward = governance:get_value(block_reward, Governance),
+    %BlockReward = governance:get_value(block_reward, Governance),
+
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height),
     TimeStamp = time_now(),
     NextHeader = #header{height = Height + 1, prev_hash = PrevHash, time = TimeStamp, period = BlockPeriod},
@@ -429,6 +560,7 @@ make(Header, Txs0, Trees, Pub) ->
     NTreesHash = trees:root_hash(NewTrees),
 
     %NTreesHash = trees:root_hash2(NewTrees, Roots),
+    %io:fwrite("block make finished\n"),
     Block = #block{height = Height + 1,
 		   prev_hash = hash(Header),
 		   txs = Txs,
@@ -450,7 +582,16 @@ make(Header, Txs0, Trees, Pub) ->
 		   many_oracles = OldBlock#block.many_oracles + many_new_oracles(Txs0),
 		   live_oracles = OldBlock#block.live_oracles + many_live_oracles(Txs0)
 		  },
+    if
+        true -> ok;
+        (Height == 10) -> io:fwrite(Facts);
+        true -> ok
+    end,
+    %io:fwrite("pack unpack check start 0\n"),
+    Facts = packer:unpack(packer:pack(Facts)),
+    %io:fwrite("pack unpack check start 1\n"),
     Block = packer:unpack(packer:pack(Block)),%maybe this is unnecessary?
+    %io:fwrite("pack unpack check done \n"),
     %_Dict = proofs:facts_to_dict(Proofs, dict:new()),
     Block.
 make_roots(Trees) when (element(1, Trees) == trees) ->%
@@ -491,7 +632,13 @@ make_roots(Trees) when (element(1, Trees) == trees4) ->
             trades = trie:root_hash(trades, trees:trades(Trees)),
             markets = trie:root_hash(markets, trees:markets(Trees))};
 make_roots(Trees) when (element(1, Trees) == trees5) ->
-    #roots5{accounts = trie:root_hash(accounts, trees:accounts(Trees)),
+    io:fwrite("block make roots 5\n"),
+    io:fwrite(integer_to_list(trees:accounts(Trees))),
+    io:fwrite("\n"),
+    A = trie:root_hash(accounts, trees:accounts(Trees)),
+    io:fwrite("block make roots 5 1\n"),
+ 
+    #roots5{accounts = A,
            channels = trie:root_hash(channels, trees:channels(Trees)),
            existence = trie:root_hash(existence, trees:existence(Trees)),
            oracles = trie:root_hash(oracles, trees:oracles(Trees)),
@@ -503,7 +650,11 @@ make_roots(Trees) when (element(1, Trees) == trees5) ->
             trades = trie:root_hash(trades, trees:trades(Trees)),
             markets = trie:root_hash(markets, trees:markets(Trees)),
             receipts = trie:root_hash(receipts, trees:receipts(Trees)),
-            stablecoins = trie:root_hash(stablecoins, trees:stablecoins(Trees))}.
+            stablecoins = trie:root_hash(stablecoins, trees:stablecoins(Trees))};
+make_roots(V) when is_integer(V) ->
+    %V is a pointer to a location in the verkle tree.
+    trees2:root_hash(V).
+
 
 
 roots_hash(X) when is_record(X, roots) ->%
@@ -566,7 +717,9 @@ roots_hash(X) when is_record(X, roots5) ->
     Receipts = X#roots5.receipts,
     Stablecoins = X#roots5.stablecoins,
     Y = <<A/binary, C/binary, E/binary, O/binary, G/binary, M/binary, U/binary, SA/binary, Con/binary, Tra/binary, Markets/binary, Receipts/binary, Stablecoins/binary>>,
-    hash:doit(Y).
+    hash:doit(Y);
+roots_hash(X = <<_:256>>) -> X.
+
 
     
 guess_number_of_cpu_cores() ->
@@ -638,6 +791,31 @@ mine2(Block, Times) ->
         Pow -> Block#block{nonce = pow:nonce(Pow)}
     end.
 proofs_roots_match([], _) -> true;
+proofs_roots_match({Proof, _Leaves}, R) 
+  when is_binary(R) ->
+    %proof is the serialized verlke proof.
+    %r is the 32 byte root.
+    %{true, _Leaves, _} = trees2:verify_proof(Proof),
+    %io:fwrite({Proof}),
+    %{ProofA, ProofB, ProofC} = Proof,
+    %io:fwrite({length(ProofA), size(ProofB), length(ProofC)}),%fast proof is a tuple. {2, 32, 256}
+    {Tree, _Commit, _Opening} = 
+        if
+            is_binary(Proof) ->
+                %small proofs are serialized
+                get_verkle:deserialize_proof(Proof);
+            true -> 
+                %fast proofs are not.
+                Proof
+        end,
+    T1 = ed:decompress_point(hd(Tree)),
+    R2 = stem_verkle:hash_point(T1),
+    R2 == R;
+%io:fwrite({Proof, R}),
+%    1=2,
+%    ok;
+    %it is a verkle proof, and a verkle root. we need to check that they work together.
+    
 proofs_roots_match([P|T], R) when is_record(R, roots)->%
     Tree = proofs:tree(P),%
     Root = proofs:root(P),%
@@ -716,7 +894,12 @@ proofs_roots_match([P|T], R) when is_record(R, roots5)->
                receipts -> R#roots5.receipts;
                stablecoins -> R#roots5.markets
 	   end,
-    proofs_roots_match(T, R).
+    proofs_roots_match(T, R);
+proofs_roots_match(A, B) -> 
+    io:fwrite({A, B}),
+    1=2.
+                            
+
 
 verify(Block) ->
    %entire process of verifying the block in one place. Does not update the hard drive, does not calculate new tree root pointers.
@@ -736,8 +919,10 @@ verify(Block) ->
     %TreesHash = trees:root_hash(NewTrees3),
     {true, Block2}.
 
-check0(Block) ->%This verifies the txs in ram. is parallelizable
-    %assume_valid {height, hash}
+check0(Block) ->
+    %This verifies the verkle proofs and the txs in ram. 
+    %checks that the consensus state before processing the block matches what the previous headers says it should be.
+    %is parallelizable
     Height = Block#block.height,
     Header = block_to_header(Block),
     BlockHash = hash(Header),
@@ -758,32 +943,94 @@ check0(Block) ->%This verifies the txs in ram. is parallelizable
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
     Txs = Block#block.txs,
-    true = proofs_roots_match(Facts, Roots),
-    Dict = proofs:facts_to_dict(Facts, dict:new()),
+    RootSame = proofs_roots_match(Facts, Roots),
+    if
+        RootSame -> ok;
+        true -> 
+            io:fwrite({Roots, Facts}),
+            1=2
+    end,
+    {Dict, ProofTree} = 
+        if
+            is_tuple(Facts) -> 
+                %verkle version.
+                {Proof, Leaves} = Facts,
+                case application:get_env(amoveo_core, kind) of
+                    {ok, "production"} ->
+                        true = is_binary(Proof);
+                    _ -> ok
+                end,
+ 
+                {true, ProofTree0} = 
+                    trees2:verify_proof(
+                      Proof, Leaves),
+                false = is_integer(ProofTree0),
+                Dict2 = proofs:facts_to_dict(
+                         Facts, dict:new()),
+                {Dict2, ProofTree0};
+            %dict:store(proof, ProofTree, Dict2);
+            is_list(Facts) -> 
+                %merkle version.
+                {proofs:facts_to_dict(
+                  Facts, dict:new()), 0}
+        end,
+    %Dict = proofs:facts_to_dict(
+    %{Facts, Leaves}, dict:new()),
     PrevHash = Block#block.prev_hash,
     _Pub = coinbase_tx:from(hd(Block#block.txs)),
     true = no_coinbase(tl(Block#block.txs)),
     NewDict = txs:digest(Txs, Dict, Height),
-    {Dict, NewDict, BlockHash}.
+    SameLength = (length(dict:fetch_keys(Dict)) ==
+                length(dict:fetch_keys(NewDict))),
+    if
+        SameLength -> ok;
+        false and (Height == 13) -> 
+            io:fwrite({lists:map(fun(X) -> dict:fetch(X, Dict) end, dict:fetch_keys(Dict)),
+                       lists:map(fun(X) -> dict:fetch(X, NewDict) end, dict:fetch_keys(NewDict))});
+        true ->
+            io:fwrite({dict:fetch_keys(Dict),
+                       dict:fetch_keys(NewDict)})
+    end,
+    {Dict, %consensus state proved by this block.
+     NewDict, %consensus state after processing this block.
+     ProofTree, %in verkle mode, this is the datastructure we can use to update the database. (maybe we use this to calculate the new root?)
+     BlockHash}.
 
 
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
     OldBlock = get_by_hash(Block#block.prev_hash),
     check2(OldBlock, Block).
 check3(OldBlock, Block) ->
-    %io:fwrite("block check 0\n"),
+    %old block is this block's parent.
+
+    %checks that checksums written on the block are correct. # of channels, # of accounts, marketcap, etc.
+    %checks that the total number of coins before and after processing this block hasn't changed.
+    %checks that the block isn't too big.
+    %pays the block reward (which is weird, because we pay that in the coinbase tx as well.)
+
+
+    %io:fwrite("block check3 0\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     Roots = Block#block.roots,
-    {Dict, NewDict, BlockHash} = Block#block.trees,
+    {Dict, NewDict, ProofTree, BlockHash} = 
+        Block#block.trees,
+    %false = is_integer(ProofTree), %before the merkle update, this was an integer.
     %{Dict, NewDict} = check0(Block),
     %BlockHash = hash(Block),
-    %io:fwrite("block check 1\n"),
+    %io:fwrite("block check3 1\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     {ok, Header} = headers:read(BlockHash),
     Height = Block#block.height,
-    %io:fwrite("block check 2\n"),
+    F52 = forks:get(52),
+    if
+        Height > F52 ->
+            false = is_integer(ProofTree);
+        true ->
+            true = is_integer(ProofTree)
+    end,
+    %io:fwrite("block check3 2\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     OldTrees = OldBlock#block.trees,
@@ -800,7 +1047,7 @@ check3(OldBlock, Block) ->
     
     MaxBlockSize = if
                        Height > (F33+1) -> 
-                           governance:dict_get_value(max_block_size, Dict);
+                           governance:dict_get_value(max_block_size, Dict, Height);
                        true -> none
                    end,
     %MaxBlockSize = governance:get_value(max_block_size, Governance),
@@ -813,11 +1060,17 @@ check3(OldBlock, Block) ->
 		 bad;
 	     false -> ok
     end,
-    BlockReward = governance:dict_get_value(block_reward, Dict),
+    %BlockReward = governance:dict_get_value(block_reward, Dict, Height),
+    BlockReward_gov = trees:get(governance, block_reward, Dict, OldTrees),
+    BlockReward = governance:value(BlockReward_gov),
+    
+    
+
     %BlockReward = governance:get_value(block_reward, Governance),
     %io:fwrite("block check 4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
+
     MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height-1),
     true = Block#block.market_cap == MarketCap,
     %io:fwrite("block check 5\n"),
@@ -827,7 +1080,7 @@ check3(OldBlock, Block) ->
     NewDict2 = if
 		B -> 
 		    OQL = governance:new(governance:name2number(oracle_question_liquidity), constants:oracle_question_liquidity()),
-		    governance:dict_write(OQL, NewDict);
+		    governance:dict_write_new(OQL, NewDict);
 		true -> NewDict
 	    end,
     MinerAddress = element(2, hd(Txs)),
@@ -837,23 +1090,31 @@ check3(OldBlock, Block) ->
     %io:fwrite("block check 5.0\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    NewDict3 = if
-		   Height < FG6 -> NewDict2;
-		   Height < FG9 ->
+    NewDict3 = 
+        if
+            Height < FG6 -> NewDict2;
+            Height < FG9 ->
 %    MinerAccount = accounts:dict_get(MinerAddress, Dict),
-		       MinerAccount = accounts:dict_update(MinerAddress, NewDict2, MinerReward, none),
-		       accounts:dict_write(MinerAccount, NewDict2);
-		   true ->
-		       GovFees = gov_fees(Txs0, NewDict2, Height),
-		       MinerAccount2 = accounts:dict_update(MinerAddress, NewDict2, MinerReward - GovFees, none),
-		       accounts:dict_write(MinerAccount2, NewDict2)
-	       end,
+                MinerAccount = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward, none),
+                accounts:dict_write(MinerAccount, NewDict2);
+            true ->
+                GovFees = gov_fees(Txs0, NewDict2, Height),
+                MinerAccount2 = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward - GovFees, none),
+                accounts:dict_write(MinerAccount2, NewDict2)
+        end,
     %io:fwrite("block check 5.1\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     F8 = forks:get(8),
     if
         Height > F8 ->
+            if
+                true -> ok;
+                Height == 4 -> 
+                    DKeys = dict:fetch_keys(NewDict3),
+                    io:fwrite(lists:map(fun(X) -> {X, dict:fetch(X, Dict)} end, DKeys));
+                true -> ok
+            end,
             Diff0 = no_counterfeit(Dict, NewDict3, Txs0, Height),
             true = (Diff0 =< 0);
         true -> ok
@@ -862,11 +1123,30 @@ check3(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
     NewDict4 = remove_repeats(NewDict3, Dict, Height),
-    {NewDict4, NewDict3, Dict}.
+    {NewDict4, NewDict3, Dict, ProofTree}.
 
+root_hash_check(OldBlock, Block, NewDict4, ProofTree) ->
+    TreesHash = Block#block.trees_hash,
+    Height = Block#block.height,
+    OldTrees = OldBlock#block.trees,
+    false = is_integer(ProofTree),
+    %NewTrees3 = 
+    true = %use tree_data:verkle_dict_update_root TODO.
+        trees_hash_maker(Height, OldTrees, NewDict4, 
+                    ProofTree, TreesHash).
+    %TreesHash2 = trees:root_hash(NewTrees3),
+%    {TreesHash == TreesHash2,
+%    Block#block{
+%      trees = 0, 
+%      meta = calculate_block_meta(
+%               Block, OldTrees, Dict, NewDict3)}}.
+    
 
 check2(OldBlock, Block) ->
-    {NewDict4, NewDict3, Dict} = 
+   %updates the merkle/verkle tree to store the new version of the consensus state. Checks that the resultant root hash matches what is written on the block. After the update it is using tree_data:verkle_dict_update_trie
+    %calculates the meta data we store with blocks. (as decided in the config file.)
+
+    {NewDict4, NewDict3, Dict, ProofTree} = 
         check3(OldBlock, Block), 
     Height = Block#block.height,
     OldTrees = OldBlock#block.trees,
@@ -875,8 +1155,12 @@ check2(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
 
+    TreesHash = Block#block.trees_hash,
+
     HeightCheck = Height,
-    NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4),
+    %NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, TreesHash),
+    %false = (Height == 39),
+    NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, ProofTree, TreesHash),
     
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
     %io:fwrite("block check 5.4\n"),
@@ -895,7 +1179,6 @@ check2(OldBlock, Block) ->
     %TreesHash = trees:root_hash(Block2#block.trees),
     %TreesHash = trees:root_hash2(Block2#block.trees, Roots),
     %TreesHash = Header#header.trees_hash,
-    TreesHash = Block2#block.trees_hash,
     %io:fwrite("block check 6\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
@@ -904,7 +1187,15 @@ check2(OldBlock, Block) ->
     %io:fwrite([NewTrees3, Roots]),
     %io:fwrite("\n"),
     %TreesHash = trees:root_hash2(NewTrees3, Roots),
-    TreesHash = trees:root_hash(NewTrees3),
+    TreesHash2 = trees:root_hash(NewTrees3),
+    if
+        (TreesHash2 == TreesHash) -> ok;
+        true -> io:fwrite(
+                  {broken_tree_hash,
+                   %Block2#block.meta,
+                   orders:all(trees:orders(NewTrees3))
+                   })
+    end,
     {true, Block2}.
 calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
     %json encoded with keys
@@ -916,8 +1207,10 @@ calculate_block_meta(Block, OldTrees, OldDict, NewDict) ->
             BlockPart = 
                 case application:get_env(amoveo_core, block_meta_block) of
                     {ok, true} -> 
-                        DR = trees:get(governance, developer_reward, dict:new(), OldTrees),
-                        BR = trees:get(governance, block_reward, dict:new(), OldTrees),
+                        DR_gov = trees:get(governance, developer_reward, dict:new(), OldTrees),
+                        DR = governance:value(DR_gov),
+                        BR_gov = trees:get(governance, block_reward, dict:new(), OldTrees),
+                        BR = governance:value(BR_gov),
                         DR1 = BR * DR div 10000,
                         [{block, {[
                                    {height, H}, 
@@ -961,9 +1254,13 @@ dict_data2([], _) -> [];
 dict_data2([H = {existence, Key}|T], D) ->
     dict_data2(T, D);
 dict_data2([H = {Type, Key}|T], D) ->
-    Y = case dict:fetch(H, D) of
-            {B, _} -> B;
-            B2 -> B2
+    %Y = case dict:fetch(H, D) of
+    %        {B, _} -> B;
+    %        B2 -> B2
+    %    end,
+    Y = case csc:read(H, D) of
+            {empty, _, _} -> 0;
+            {ok, _, Y3} -> Y3
         end,
     Z = case Y of
             0 -> 
@@ -976,22 +1273,41 @@ dict_data2([H = {Type, Key}|T], D) ->
                        end,
                 Key2 ++ [{type, Type},{empty, true}];
             _ ->
-                X = Type:deserialize(Y),
+                %X = Type:deserialize(Y),
+                X = Y,
                 unpack_tree_element(X)
         end,
     [{Z}|dict_data2(T, D)].
 unpack_tree_element(X) ->
-    case element(1, X) of
-        gov -> [{type, gov},{id, governance:number2name(X#gov.id)},{value, X#gov.value},{lock, X#gov.lock}];
-        acc -> [{type, account},{pubkey, base64:encode(X#acc.pubkey)},{balance, X#acc.balance},{nonce, X#acc.nonce}];
-        oracle -> [{type, oracle},{oid, base64:encode(X#oracle.id)},{result, X#oracle.result},{starts, X#oracle.starts},{type, X#oracle.type},{done_timer, X#oracle.done_timer},{governance, X#oracle.governance},{governance_amount, X#oracle.governance_amount}];
-        channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
-        matched -> [{type, matched},{account, base64:encode(X#matched.account)}, {oracle, base64:encode(X#matched.oracle)}, {true, X#matched.true}, {false, X#matched.false}, {bad, X#matched.bad}];
-        unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)},{pointer, base64:encode(unmatched:pointer(X))}];
-        oracle_bet -> [{type, oracle_bet},{id, base64:encode(oracle_bets:id(X))}, {true, oracle_bets:true(X)}, {false, oracle_bets:false(X)}, {bad, oracle_bets:bad(X)}];
-        orders -> [{type, order}, {id, base64:encode(orders:aid(X))}, {amount, orders:amount(X)}, {pointer, base64:encode(element(4, X))}];
-        receipt -> [{type, receipt}, {id, base64:encode(receipts:id(X))}, {pubkey, base64:encode(receipts:pubkey(X))}, {tid, base64:encode(receipts:tid(X))}];
-        _ -> []
+    case X of
+        {<<B:520>>, N} -> [{type, unmatched_head2}, {pointer, base64:encode(<<B:520>>)}, {many, N}];
+        _ ->
+            case element(1, X) of
+                gov -> [{type, gov},{id, governance:number2name(X#gov.id)},{value, X#gov.value},{lock, X#gov.lock}];
+                acc -> [{type, account},{pubkey, base64:encode(X#acc.pubkey)},{balance, X#acc.balance},{nonce, X#acc.nonce}];
+                oracle -> [{type, oracle},{oid, base64:encode(X#oracle.id)},{result, X#oracle.result},{starts, X#oracle.starts},{type, X#oracle.type},{done_timer, X#oracle.done_timer},{governance, X#oracle.governance},{governance_amount, X#oracle.governance_amount}];
+                channel -> [{type, channel},{cid, base64:encode(X#channel.id)},{acc1, base64:encode(X#channel.acc1)}, {acc2, base64:encode(X#channel.acc2)}, {bal1, X#channel.bal1}, {bal2, X#channel.bal2}, {amount, X#channel.amount}, {nonce, X#channel.nonce}, {last_modified, X#channel.last_modified}, {delay, X#channel.delay}, {closed, X#channel.closed}];
+                matched -> [{type, matched},{account, base64:encode(X#matched.account)}, {oracle, base64:encode(X#matched.oracle)}, {true, X#matched.true}, {false, X#matched.false}, {bad, X#matched.bad}];
+                unmatched -> [{type, unmatched},{account, base64:encode(unmatched:account(X))}, {oracle, base64:encode(unmatched:oracle(X))}, {amount, unmatched:amount(X)},{pointer, base64:encode(unmatched:pointer(X))}];
+                unmatched_head -> [{type, unmatched_head},{pointer, base64:encode(element(2, X))}, {many, element(3, X)}, {oid, base64:encode(element(4, X))}];
+                oracle_bet -> [{type, oracle_bet},{id, base64:encode(oracle_bets:id(X))}, {true, oracle_bets:true(X)}, {false, oracle_bets:false(X)}, {bad, oracle_bets:bad(X)}];
+                orders -> [{type, order}, {id, base64:encode(orders:aid(X))}, {amount, orders:amount(X)}, {pointer, base64:encode(element(4, X))}
+                  ];
+                orders_head -> [{type, orders_head},{pointer, base64:encode(element(2, X))}, {many, element(3, X)}, {oid, base64:encode(element(4, X))}];
+                contract -> [{type, contract}, 
+                             {code, base64:encode(X#contract.code)}, 
+                             {many_types, X#contract.many_types}, 
+                             {result, base64:encode(X#contract.result)}, 
+                             {source, base64:encode(X#contract.source)}, 
+                             {source_type, X#contract.source_type}];
+                sub_acc -> [{type, sub_acc}];
+                receipt -> [{type, receipt}, {id, base64:encode(receipts:id(X))}, {pubkey, base64:encode(receipts:pubkey(X))}, {tid, base64:encode(receipts:tid(X))}];
+                trade -> [{type, trade}];
+                Y -> 
+                    %io:fwrite({failed_to_make_following, X}),
+                    [];
+                _ -> []
+            end
     end.
 get_txs_main(L, T, O, N, H) ->
     P1 = get_txs(L, T, O, N, H),
@@ -1207,10 +1523,14 @@ mth_spend(H) ->
      ]}.
 get_govs(_, M, M, X) -> X;
 get_govs(T, M, N = 2, X) ->
-    H = {governance:number2name(N), trees:get(governance, N, dict:new(), T) / 10000},
+    G1= trees:get(governance, N, dict:new(), T),
+    G = governance:value(G1),
+    H = {governance:number2name(N), G / 10000},
     get_govs(T, M, N+1, [H|X]);
 get_govs(T, M, N, X) ->
-    H = {governance:number2name(N), trees:get(governance, N, dict:new(), T)},
+    G1= trees:get(governance, N, dict:new(), T),
+    G = governance:value(G1),
+    H = {governance:number2name(N), G},
     get_govs(T, M, N+1, [H|X]).
 %    <<>>.
 
@@ -1298,7 +1618,7 @@ gov_fees([Tx|T], Dict, Height) ->
 	    multi_tx -> gov_fees2(C#multi_tx.txs, Dict, Height);
             contract_timeout_tx2 -> 0;
 	    _ -> 
-                X = governance:dict_get_value(Type, Dict),
+                X = governance:dict_get_value(Type, Dict, Height),
                 F16 = forks:get(16),
                 if
                     ((Type == timeout) and (Height > F16)) -> -X;
@@ -1314,7 +1634,7 @@ gov_fees2([H|T], Dict, Height) ->
             (Type == contract_timeout_tx2) ->
                 0;
             (F47_activated and (Type == contract_evidence_tx)) -> 
-                CEF = governance:dict_get_value(Type, Dict),
+                CEF = governance:dict_get_value(Type, Dict, Height),
                 Contract = H#contract_evidence_tx.contract,
                 Evidence = H#contract_evidence_tx.evidence,
                 Prove = H#contract_evidence_tx.prove,
@@ -1322,11 +1642,11 @@ gov_fees2([H|T], Dict, Height) ->
                 CEF + (S * CEF div 5000);
             (F47_activated and (Type == oracle_new)) -> 
                 S = size(H#oracle_new.question),
-                ONF = governance:dict_get_value(Type, Dict),
+                ONF = governance:dict_get_value(Type, Dict, Height),
                 ONF + (S * ONF div 5000);
             true ->
         
-            governance:dict_get_value(Type, Dict)
+            governance:dict_get_value(Type, Dict, Height)
         end,
     A + gov_fees2(T, Dict, Height).
     
@@ -1522,13 +1842,24 @@ no_counterfeit(Old, New, Txs, Height) ->
     
     OK = dict:fetch_keys(Old),
     NK = dict:fetch_keys(New),
-    OA = sum_amounts(OK, Old, Old),
-    NA = sum_amounts(NK, New, Old),
-    BR = governance:dict_get_value(block_reward, Old),
+    lists:map(fun(Key) -> 
+                      {ok, V} = dict:find(Key, Old),
+                      case Key of
+                          {_, _} -> ok;
+                          _ -> io:fwrite({V, Key, OK})
+                      end,
+                      if
+                          not(is_record(V, consensus_state)) -> io:fwrite({Key, V, dict:fetch_keys(Old)});
+                          true -> ok
+                      end
+              end, OK),
+    OA = sum_amounts(OK, Old, Old, Height),
+    NA = sum_amounts(NK, New, Old, Height),
+    BR = governance:dict_get_value(block_reward, Old, Height),
     %io:fwrite("block reward "),
     %io:fwrite(integer_to_list(BR)),
     %io:fwrite("\n"),
-    DR = governance:dict_get_value(developer_reward, Old),
+    DR = governance:dict_get_value(developer_reward, Old, Height),
     DR1 = (BR * DR div 10000),
     F49 = forks:get(49),
     DR2 = case Height of
@@ -1545,12 +1876,12 @@ no_counterfeit(Old, New, Txs, Height) ->
     %io:fwrite("close oracles are "),
     %io:fwrite(integer_to_list(CloseOracles)),
     %io:fwrite("; "),
-    OIL = governance:dict_get_value(oracle_initial_liquidity, Old),% div 2;
+    OIL = governance:dict_get_value(oracle_initial_liquidity, Old, Height),% div 2;
     OCA = if
               ((CloseOracles > 0) and (is_integer(OIL)))->
                   OIL div 2;
               (CloseOracles > 0) ->
-                  OQL = governance:dict_get_value(oracle_question_liquidity, Old),
+                  OQL = governance:dict_get_value(oracle_question_liquidity, Old, Height),
                   OQL div 2;
               true -> 0
           end,
@@ -1563,24 +1894,53 @@ no_counterfeit(Old, New, Txs, Height) ->
             io:fwrite("; diff is "),
             io:fwrite(integer_to_list(Diff)),
             io:fwrite("\n"),
+            io:fwrite({OK, NK}),
             %io:fwrite(packer:pack([0, NK, OK])),
             io:fwrite("\n");
         true -> ok
     end,
     Diff.
+
 %    true = (Diff =< 0),
 %    ok.
-sum_amounts([], _, _) -> 
+sum_amounts([], _, _, _) -> 
     %io:fwrite("sum amount finish\n"),
     0;
-sum_amounts([{oracles, _}|T], Dict, OldDict) ->
-    sum_amounts(T, Dict, OldDict);
-sum_amounts([{existence, _}|T], Dict, Old) ->
-    sum_amounts(T, Dict, Old);
-sum_amounts([{governance, _}|T], Dict, Old) ->
-    sum_amounts(T, Dict, Old);
-sum_amounts([{Kind, A}|T], Dict, Old) ->
-    X = Kind:dict_get(A, Dict),
+%sum_amounts([R|T], Dict, OldDict, Height) 
+%  when is_binary(R) ->
+%    X = case csc:read2(R, Dict) of
+%            {ok, #consensus_state{empty = true}} ->
+%                0;
+%            %{empty, Type, UnhashedKey} -> 0;
+%            {ok, #consensus_state{
+%               type = Type, val = V, 
+%               unhashed_key = UnHashedKey}} ->
+%                %{ok, Type, V} -> 
+%                V2 = case V of
+%                         {A, _} -> A;
+%                         B -> B
+%                     end,
+%                sum_amounts_helper(
+%                  Type, V2, Dict, 
+%                  OldDict, UnHashedKey)
+%        end,
+%    X + sum_amounts(T, Dict, OldDict, Height);
+sum_amounts([{oracles, _}|T], Dict, OldDict, Height) ->
+    sum_amounts(T, Dict, OldDict, Height);
+sum_amounts([{existence, _}|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([{governance, _}|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([proof|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([{unmatched, {key, <<1:520>>}}|T], Dict, Old, Height) ->
+    io:fwrite("unmatched head possibly? \n"),
+    %io:fwrite({dict:fetch_keys(Dict)}),
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([{empty, A}|T], Dict, Old, Height) ->
+    sum_amounts(T, Dict, Old, Height);
+sum_amounts([{Kind, A}|T], Dict, Old, Height) ->
+    X = Kind:dict_get(A, Dict, Height),
     B = sum_amounts_helper(Kind, X, Dict, Old, A),
     if
         false ->
@@ -1593,9 +1953,11 @@ sum_amounts([{Kind, A}|T], Dict, Old) ->
             io:fwrite("\n");
         true -> ok
     end,
-    B + sum_amounts(T, Dict, Old).
+    B + sum_amounts(T, Dict, Old, Height).
 %sum_amounts_helper(_, error, _, _, _) -> 0;
 sum_amounts_helper(_, empty, _, _, _) -> 0;
+sum_amounts_helper(governance, _, _, _, _) ->
+    0;
 sum_amounts_helper(receipts, Acc, Dict, _, _) ->
     0;
 sum_amounts_helper(sub_accounts, Acc, Dict, _, _) ->
@@ -1625,6 +1987,12 @@ sum_amounts_helper(contracts, Acc, Dict, _, _) ->
         _ -> 0
     end;
 sum_amounts_helper(accounts, Acc, Dict, _, _) ->
+    %io:fwrite({Acc}),
+    if
+        not(is_record(Acc, acc)) ->
+            io:fwrite({size(Acc), Acc});
+        true -> ok
+    end,
     Acc#acc.balance;
 sum_amounts_helper(channels, Chan, Dict, _, _) ->
     case channels:closed(Chan) of
@@ -1656,7 +2024,8 @@ sum_amounts_helper(unmatched, UM, _Dict, _, Key) ->
     PS = constants:pubkey_size() * 8,
     case Key of
         {key, <<1:PS>>, _} -> 0;
-        _ -> unmatched:amount(UM)
+        _ -> 
+            unmatched:amount(UM)
     end;
 sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
     {key, Pub, OID} = Key,
@@ -1678,6 +2047,7 @@ sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
             3 -> B
         end.
 remove_repeats(New, Old, Height) ->
+    %todo. the old one has "proof" in it. we don't want to lose it in the new one.
     Keys = dict:fetch_keys(New),
     F10 = forks:get(10),
     Old2 = if

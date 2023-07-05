@@ -144,10 +144,15 @@ load_peers([{_,_}=Peer|T], Dict) ->
 
 my_ip() ->
     {ok, Addrs} = inet:getifaddrs(),
-    hd([
+    X = [
         Addr || {_, Opts} <- Addrs, {addr, Addr} <- Opts,
                 size(Addr) == 4, Addr =/= {127,0,0,1}
-       ]).
+        ],
+    case X of
+        [] -> empty;
+        _ -> hd(X)
+    end.
+            
 
 remove_all() ->
     lists:map(fun(P) -> remove(P) end, all()).

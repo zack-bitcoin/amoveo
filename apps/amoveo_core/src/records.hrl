@@ -273,3 +273,8 @@
      period,
      margin
 }).
+
+-record(exist, {hash, height}).
+% -record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle%
+-record(orders, {aid, amount, pointer}).%
+-record(consensus_state, {empty = true, val, key, unhashed_key, type}).

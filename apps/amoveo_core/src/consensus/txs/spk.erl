@@ -566,7 +566,8 @@ test() ->
     [[[<<6:32>>, <<GovID:32>>, Gov5], %6th tree is governance. 5th thing is "delete channel reward"
       [<<1:32>>, BPub, Acc1]]] = %1st tree is accounts. 1 is for account id 1.
 	chalang:vm(Code, 100000, 100000, 1000, 1000, State),
-    Govern5 = trees:get(governance, GovID),
+    Govern5_gov = trees:get(governance, GovID),
+    Govern5 = governance:value(Govern5_gov),
     Account1 = trees:get(accounts, constants:master_pub()),
     %io:fwrite(packer:pack([governance:deserialize(Gov5), Govern5])),
     %[-6,["gov",2,1100,0],889981]

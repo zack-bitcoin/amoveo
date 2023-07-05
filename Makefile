@@ -3,7 +3,7 @@ OTP_PLT=.otp_plt
 
 BIN = ./bin
 NOSE = $(BIN)/nosetests
-PYTHON = $(BIN)/python
+PYTHON = $(BIN)/python2
 PIP = $(BIN)/pip
 
 VER = 0.1.0
@@ -137,7 +137,19 @@ clean3: old-clean
 build: $$(KIND)
 	@./rebar3 as $(KIND) release
 
-go: $$(KIND)
+local-compile: KIND=local
+local-compile: compile
+
+#compiles the c code used for verkle trees.
+compile: $$(KIND)
+	@echo "is compiling"
+	@mkdir -p ./_build/$(KIND)/rel/amoveo_core/ebin
+	@mkdir -p ./_build/$(KIND)/rel/amoveo_core/precomputes
+	@gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/$(KIND)/rel/amoveo_core/ebin/fr.so ./_build/$(KIND)/lib/verkle/src/crypto/fr.c -I $ERL_ROOT/user/include/
+	@gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/$(KIND)/rel/amoveo_core/ebin/ed25519.so ./_build/$(KIND)/lib/verkle/src/crypto/ed25519.c -I $ERL_ROOT/user/include/
+
+go: $$(KIND) \
+	compile 
 	@./_build/$(KIND)/$(CORE) start
 
 stop: $$(KIND)
@@ -163,6 +175,8 @@ old-clean: $$(KIND)
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/data
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/blocks/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/checkpoints/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/checkpoints/
 	@touch ./config/$(KIND)/sys.config
 	@rm  ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/
@@ -222,7 +236,7 @@ config/prod/sys.config: config/sys.config.tmpl
     {internal_port, 8081},\
     {swagger_port_internal, 8042},\
     {swagger_port_external, 8043},\
-    {peers, [{{95,216,77,200},8080}, {{138,68,4,55},8080}, {{159,89,87,58},8080}, {{116,203,34,251},8080}, {{95,217,85,84},8080}, {{159,65,108,112},8080}, {{116,203,153,136},8080}, {{46,101,185,98},8080}, {{116,203,140,138},8080}, {{95,216,112,9},8080}, {{159,69,59,195},8080}, {{127,0,0,1},8080}, {{95,217,85,83},8080}, {{88,99,245,31},8080}, {{159,69,1,44},8080}]},\
+    {peers, [{{159,223,85,216},8080},{{159,65,126,146},8080},{{64,227,21,70},8080},{{95,216,77,200},8080}, {{138,68,4,55},8080}, {{116,203,34,251},8080}, {{95,217,85,84},8080}, {{159,65,108,112},8080}, {{116,203,153,136},8080}, {{46,101,185,98},8080}, {{116,203,140,138},8080}, {{95,216,112,9},8080}, {{159,69,59,195},8080}, {{127,0,0,1},8080}, {{95,217,85,83},8080}, {{88,99,245,31},8080}, {{159,69,1,44},8080}]},\
      {pools, [{{173,230,157,155}, 8080},{{51,15,87,84}, 8080},{{159,65,173,9},8080}, {{47,75,188,95}, 8080},{{47,105,59,4}, 8080},{{47,105,43,173}, 8080},{{114,215,136,52}, 8080},{{176,9,76,201}, 8080},{{47,75,91,194}, 8080}]},\
     {master_pub, <<\"BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=\">>},\
     {test_mode,false},\
@@ -289,18 +303,20 @@ tests: killall
 	make multi-clean
 	make multi-go
 	@sleep 6
-	@python tests/test_all.py
+	@python2 tests/checkpoint.py
 	make multi-stop
 
 multi-quick: kill
 	@bash scripts/config_setup.sh
 	make multi-stop multi-build multi-clean multi-go
 
+local-quick: KIND=local
 local-quick: kill
 	make multi-stop
 	make local-stop
 	@bash scripts/config_setup.sh
 	make local-build local-clean
+	make local-compile 
 	./_build/local/rel/amoveo_core/bin/amoveo_core console
 prod-restart: #prod-stop
 	- @curl -i -d '["off"]' http://127.0.0.1:8081

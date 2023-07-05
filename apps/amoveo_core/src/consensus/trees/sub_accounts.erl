@@ -1,8 +1,8 @@
 -module(sub_accounts).
 -export([new/4,%custom for this tree
          write/2, get/2, delete/2,%update tree stuff
-         dict_update/4, dict_get/2, dict_write/2, dict_delete/2,%update dict stuff
-         make_key/1, make_key/3,
+         dict_update/4, dict_get/2, dict_get/3, dict_write/2, dict_write_new/2, dict_delete/2,%update dict stuff
+         make_key/1, make_key/3, make_v_key/1, make_v_key/3,
 	 verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0, deserialize/1, all_accounts/0]).%common tree stuff
 -define(id, sub_accounts).
 -include("../../records.hrl").
@@ -10,6 +10,11 @@ new(Pub, Balance, CID, T) ->
     #sub_acc{pubkey = Pub, balance = Balance, nonce = 0, type = T, contract_id = CID}.
 dict_update(Key, Dict, Amount, NewNonce) ->
     Account = dict_get(Key, Dict),
+    if
+        not(is_record(Account, sub_acc)) ->
+            io:fwrite({Account, Key});
+        true -> ok
+    end,
     OldNonce = Account#sub_acc.nonce,
     FinalNonce = case NewNonce of
                      none ->
@@ -42,8 +47,30 @@ make_key(#sub_acc{pubkey = Pub, type = T, contract_id = CID}) ->
     make_key(Pub, CID, T).
 make_key(Pub, CID, T) ->
     T2 = <<T:256>>,
+    <<_:520>> = Pub,
+    if
+        is_binary(CID) -> ok;
+        true -> io:fwrite({Pub, CID, T}),
+                1=2
+    end,
     hash:doit(<<Pub/binary, CID/binary, T2/binary>>).
+
+make_v_key(#sub_acc{pubkey = Pub, type = T, contract_id = CID}) ->
+    %{key, Pub, CID, T}.
+    make_key(Pub, CID, T).
+
+make_v_key(Pub, CID, T) -> %{key, Pub, CID, T}.
+    make_key(Pub, CID, T).
+
+dict_get(Key, Dict, _) ->
+    dict_get(Key, Dict).
 dict_get(Key, Dict) ->
+    case csc:read({?id, Key}, Dict) of
+        error -> error;
+        {empty, _, _} -> empty;
+        {ok, ?id, Val} -> Val
+    end.
+dict_get_old(Key, Dict) ->
     %X = dict:fetch({accounts, Key}, Dict),
     X = dict:find({?id, Key}, Dict),
     case X of
@@ -51,11 +78,12 @@ dict_get(Key, Dict) ->
         error -> error;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
-        {ok, {Y, Meta}} -> 
-            deserialize(Y);
-        {ok, Y} ->
-            deserialize(Y)
+        {ok, {?id, Key}} -> empty;
+        {ok, {Y, Meta}} -> Y;
+        {ok, Y} -> Y
     end.
+            
+%deserialize 6
 get(Key, Accounts) ->
     PubId = key_to_int(Key),
     {RH, Leaf, Proof} = trie:get(PubId, Accounts, ?id),
@@ -66,9 +94,19 @@ get(Key, Accounts) ->
               end,
     {RH, Account, Proof}.
 dict_write(Account, Dict) ->
-    Key = make_key(Account),
+    Key = make_v_key(Account),
+    csc:update({?id, Key}, Account, Dict).
+dict_write_new(Account, Dict) ->
+    Key = make_v_key(Account),
+    HashKey = trees2:hash_key(?id, Key),
+    csc:add(?id, HashKey, {?id, Key}, Account, Dict).
+    
+dict_write_old(Account, Dict) ->
+    %Key = make_key(Account),
+    Key = make_v_key(Account),
     Out = dict:store({?id, Key}, 
-                     {serialize(Account), 0},
+                     %{serialize(Account), 0},
+                     {Account, 0},
                      Dict),
     Out.
 write(Account, Root) ->
@@ -79,6 +117,12 @@ write(Account, Root) ->
     PubId = key_to_int(Key),
     trie:put(PubId, SerializedAccount, 0, Root, ?id). % returns a pointer to the new root
 dict_delete(Key, Dict) ->
+    Acc = dict_get(Key, Dict),
+    Acc2 = Acc#sub_acc{balance = 0},
+    Dict2 = csc:update({?id, Key}, Acc2, Dict),
+    csc:remove({?id, Key}, Dict2).
+             
+dict_delete_old(Key, Dict) ->
     dict:store({?id, Key}, 0, Dict).
 delete(Pub0, Accounts) ->
     PubId = key_to_int(Pub0),
@@ -122,6 +166,8 @@ deserialize(SerializedAccount) ->
              type = Type,
              contract_id = <<CID:HashSizeBits>>}.
 
+ensure_decoded_hashed({sub_accounts, Pub}) ->
+    ensure_decoded_hashed(Pub);
 ensure_decoded_hashed(Pub) ->
     HashSize = constants:hash_size(),
     PubkeySize = constants:pubkey_size(),

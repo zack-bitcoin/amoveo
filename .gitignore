@@ -24,4 +24,7 @@ deps/*
 rebar.lock
 .DS_Store
 sys.config.tmpl
+*.so
 *.chunk
+backup.tar.gz
+backup_temp/*

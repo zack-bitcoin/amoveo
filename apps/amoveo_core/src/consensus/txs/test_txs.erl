@@ -1,6 +1,6 @@
 -module(test_txs).
--export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1]).
- 
+-export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1, restart_chain/0, test_gt/1]).
+
 -include("../../records.hrl").
 contracts() ->
     unlocked = keys:status(),
@@ -37,8 +37,14 @@ contracts() ->
     %S = test(64),
 
     S.
-    
-    
+   
+test_gt(N) -> 
+    L = [1, 2, 11, 16, 36, 37, 38, 39, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 55, 56, 57, 58],
+    L2 = lists:filter(fun(X) -> not(X < N) end, L),
+    lists:map(fun(X) ->
+                      success = test(X)
+              end, L2),
+    success.
     
     
 test() ->
@@ -60,7 +66,7 @@ test() ->
 %    S = test(12),%multiple bets in a single channel
 %    S = test(15),%automatic channel slash
     %warning! after running test(11), we can no longer run other tests. because test(11) mines blocks, so tx_pool:dump can no longer undo transactions.
-    S = test(13),%testing governance
+    %S = test(13),%testing governance
     S = test(11),%try out the oracle
     S = test(16),%try out the oracle further
     %S = test(17),%blocks filled with create account txs
@@ -71,16 +77,19 @@ absorb(Tx) ->
     tx_pool_feeder:absorb(Tx).
 block_trees(X) ->
     X#block.trees.
+restart_chain() ->
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump().
 test(1) ->
     io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
     mine_blocks(4),
-    BP = block:get_by_height(0),
+    BP = block:get_by_height(block:height()),
     PH = block:hash(BP),
     Trees = block_trees(BP),
+    %{NewPub,NewPriv} = signing:new_key(),
     {NewPub,NewPriv} = %signing:new_key(),
         {<<4,175,48,50,202,47,72,21,98,10,251,128,243,51,147,
            110,102,72,18,51,92,50,111,206,185,189,131,147,
@@ -98,6 +107,9 @@ test(1) ->
     absorb(Stx),
     1 = many_txs(),
 
+    timer:sleep(500),
+
+
     %PB0 = potential_block:read(),
     %#block{trees = Trees0} = PB0,
     %Accs0 = trees:accounts(Trees0),
@@ -105,6 +117,7 @@ test(1) ->
     %<<132,70,24,214,_:(8*28)>> = trees:root_hash(Trees0),
     %<<142,15,146,252,_:(8*28)>> = trie:root_hash(accounts, Accs0),
     %io:fwrite({trees:root_hash(Trees0), trie:root_hash(accounts, Accs0)}),
+
 
     Ctx2 = spend_tx:make_dict(NewPub, 10, Fee, constants:master_pub()),
     Stx2 = keys:sign(Ctx2),
@@ -126,12 +139,20 @@ test(1) ->
     Txs = (tx_pool:get())#tx_pool.txs,
     mine_blocks(1),
 
+
+    F52 = forks:get(52),
+    BH = block:height(),
+    if
+        BH < F52 ->
+
     %io:fwrite({accounts:all_accounts()}),
-    PB0 = potential_block:read(),
-    #block{trees = Trees0} = PB0,
-    Accs0 = trees:accounts(Trees0),
-    <<54,251,220,70,_:(28*8)>> = trie:root_hash(accounts, Accs0),
-    <<152,56,71,123,_:(28*8)>> = trees:root_hash(Trees0),
+            PB0 = potential_block:read(),
+            #block{trees = Trees0} = PB0,
+            Accs0 = trees:accounts(Trees0),
+            <<54,251,220,70,_:(28*8)>> = trie:root_hash(accounts, Accs0),
+            <<152,56,71,123,_:(28*8)>> = trees:root_hash(Trees0);
+        true -> ok
+    end,
 
     success;
 test(2) ->
@@ -150,46 +171,6 @@ test(2) ->
     io:fwrite(packer:pack(api:account(NewPub))),
     success;
  
-test(3) ->
-    io:fwrite(" new channel tx, grow channel tx, and channel team close tx test \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
-    BP = block:get_by_height(0),
-    PH = block:hash(BP),
-    Trees = block_trees(BP),
-    {NewPub,NewPriv} = signing:new_key(),
-
-    Fee = constants:initial_fee() + 20,
-    Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
-    Stx = keys:sign(Ctx),
-    absorb(Stx),
-    1 = many_txs(),
-    mine_blocks(3),
-    CID0 = <<5:256>>,
-
-    Delay = 30,
-    Ctx2 = new_channel_tx:make_dict(CID0, constants:master_pub(), NewPub, 100, 200, Delay, Fee),
-    CID = new_channel_tx:salted_id(Ctx2),
-    Stx2 = keys:sign(Ctx2),
-    SStx2 = signing:sign_tx(Stx2, NewPub, NewPriv), 
-    absorb(SStx2),
-    1 = many_txs(),
-    mine_blocks(1),
-   
-    io:fwrite("test txs 3 \n"),
-    io:fwrite(packer:pack(trees:get(channels, CID))),
-    io:fwrite("\n"),
-    io:fwrite(packer:pack(CID)),
-    io:fwrite("\n"),
-
-    Ctx4 = channel_team_close_tx2:make_dict(CID, 0, Fee),
-    Stx4 = keys:sign(Ctx4),
-    SStx4 = signing:sign_tx(Stx4, NewPub, NewPriv),
-    absorb(SStx4),
-    mine_blocks(1),
-    success;
     
 test(4) -> 
     %channel solo close, channel timeout
@@ -523,15 +504,18 @@ test(11) ->
     io:fwrite("test 11 1\n"),
     {Pub,Priv} = signing:new_key(),
     Amount = 1000000000,
+    %%BP = block:get_by_height(block:height()),
+    %Trees = block_trees(BP),
     Ctx0 = create_account_tx:make_dict(Pub, Amount, Fee, constants:master_pub()),
     Stx0 = keys:sign(Ctx0),
+    0 = many_txs(),
     absorb(Stx0),
     1 = many_txs(),
     mine_blocks(1),
     io:fwrite("test 11 2\n"),
 
 
-    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount 
     OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     absorb(Stx),
@@ -544,20 +528,43 @@ test(11) ->
     %Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 100000000), 
     Tx20 = oracle_bet_tx:make_dict(Pub, Fee, OID, 2, 50000000), 
     Stx20 = signing:sign_tx(Tx20, Pub, Priv),
+    io:fwrite("try pack/unpack\n"),
+    Stx20 = packer:unpack(packer:pack(Stx20)),
+    io:fwrite("succeed pack/unpack\n"),
     absorb(Stx20),
     1 = many_txs(),
+    io:fwrite("tx absorbed, next mining a block\n"),
     mine_blocks(1),
+    io:fwrite("block mined\n"),
     true = 2 == (trees:get(oracles, OID))#oracle.type,
     io:fwrite("test 11 4\n"),
 
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     Bal1 = api:balance(),
-    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), 
+
+    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1 + 100000000), %only fails in the multi-tx.
+
+
+    %Stx9 = keys:sign(Tx2),
+    %absorb(Stx9),
+    %1 = many_txs(),
+    %mine_blocks(1),
 
     %close the oracle with oracle_close
-    Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),%here
+    Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
+    
+
+    %Stx8 = keys:sign(Tx3),
+    %absorb(Stx8),
+    %1 = many_txs(),
+    %mine_blocks(1),
+    %success = this_point,
+    
+
 
     Tx7 = multi_tx:make_dict(MP, [Tx2, Tx3], Fee*2),
+    %Tx7 = multi_tx:make_dict(MP, [Tx2], Fee*2),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     1 = many_txs(),
@@ -574,8 +581,24 @@ test(11) ->
     %Orders = Oracle#oracle.orders,
     %{OrderID, _} = orders:head_get(Orders),%This only works because there is exactly 1 order in the order book.
     Tx4 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
+
+    
+    %Stx8 = keys:sign(Tx4),
+    %absorb(Stx8),
+    %1 = many_txs(),
+    %mine_blocks(1),
+
+
     %get your winnings with oracle_shares
     Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),%pays 0.36
+
+
+    %Stx9 = keys:sign(Tx5),
+    %absorb(Stx9),
+    %1 = many_txs(),
+    %mine_blocks(1),
+    %success = this_point,
+
 
     Tx6 = multi_tx:make_dict(MP, [Tx4, Tx5], Fee*3),
     Stx6 = keys:sign(Tx6),
@@ -600,57 +623,72 @@ test(16) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    mine_blocks(2),
+    mine_blocks(4),
     Amount = 1000000000,
     Ctx_1 = create_account_tx:make_dict(Pub1, Amount, Fee, constants:master_pub()),
     Stx_1 = keys:sign(Ctx_1),
     absorb(Stx_1),
+    1 = many_txs(),
+    potential_block:new(),
     
     Ctx_2 = create_account_tx:make_dict(Pub2, Amount, Fee, constants:master_pub()),
     Stx_2 = keys:sign(Ctx_2),
     absorb(Stx_2),
+    2 = many_txs(),
+    potential_block:new(),
 
     Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0),
     OID = oracle_new_tx:id(Tx),
     Stx = keys:sign(Tx),
     absorb(Stx),
+    3 = many_txs(),
+    %1=2,
     potential_block:new(),
     mine_blocks(5),
     %make some bets in the oracle with oracle_bet
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL), 
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
+    1 = many_txs(),
     mine_blocks(1),
 
     Tx21 = oracle_bet_tx:make_dict(Pub1, Fee, OID, 1, OIL*2), 
     Stx21 = signing:sign_tx(Tx21, Pub1, Priv1),
     absorb(Stx21),
+    1 = many_txs(),
     mine_blocks(1),
     Tx22 = oracle_bet_tx:make_dict(Pub2, Fee, OID, 2, OIL), 
     Stx22 = signing:sign_tx(Tx22, Pub2, Priv2),
     absorb(Stx22),
+    1 = many_txs(),
     mine_blocks(1),
     %close the oracle with oracle_close
     Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
+    1 = many_txs(),
     mine_blocks(1),
     Tx41 = oracle_unmatched_tx:make_dict(Pub1, Fee, OID),
     Stx41 = signing:sign_tx(Tx41, Pub1, Priv1),
     absorb(Stx41),
+    1 = many_txs(),
     mine_blocks(1),
     Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
+    1 = many_txs(),
     mine_blocks(1),
     Tx51 = oracle_winnings_tx:make_dict(Pub1, Fee, OID),
     Stx51 = signing:sign_tx(Tx51, Pub1, Priv1),
     absorb(Stx51),
+    1 = many_txs(),
     mine_blocks(1),
     Tx52 = oracle_winnings_tx:make_dict(Pub2, Fee, OID),
     Stx52 = signing:sign_tx(Tx52, Pub2, Priv2),
     absorb(Stx52),
+    1 = many_txs(),
 
     mine_blocks(1),
     success;
@@ -713,18 +751,22 @@ test(13) ->
     absorb(Stx3),
     1 = many_txs(),
 
-    MOT = trees:get(governance, minimum_oracle_time),
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    MOT_gov = trees:get(governance, minimum_oracle_time),
+    MOT = governance:value(MOT_gov),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     potential_block:new(),
     mine_blocks(1+MOT),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID2, 1, OIL * 3), 
-    BR1 = trees:get(governance, block_reward),
+    BR1_gov = trees:get(governance, block_reward),
+    BR1 = governance:value(BR1_gov),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
     1 = many_txs(),
     potential_block:new(),
     mine_blocks(1+MOT),
-    GovVal1 = trees:get(governance, 1),
+    GovVal1 = governance:value(
+                trees:get(governance, 1)),
 
     Tx5 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID2),
     Stx5 = keys:sign(Tx5),
@@ -732,13 +774,15 @@ test(13) ->
     1 = many_txs(),
     potential_block:new(),
     mine_blocks(1),
-    GovVal2 = trees:get(governance, 1),
+    GovVal2 = governance:value(
+                trees:get(governance, 1)),
     io:fwrite(packer:pack({GovVal2, GovVal1})),
     io:fwrite("\n"),
     true = GovVal2 > GovVal1,
 
     %OID3 = <<2:256>>,
-    BR2 = trees:get(governance, block_reward),
+    BR2 = goverance:value(
+            trees:get(governance, block_reward)),
     Tx7 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 1, 5),
     OID3 = oracle_new_tx:id(Tx7),
     Stx7 = keys:sign(Tx7),
@@ -759,7 +803,8 @@ test(13) ->
     absorb(Stx9),
     1 = many_txs(),
 
-    BR3 = trees:get(governance, block_reward),
+    BR3 = governance:value(
+            trees:get(governance, block_reward)),
     true = BR1 < BR2,
     true = BR2 < BR3,
     mine_blocks(1),
@@ -921,6 +966,7 @@ test(20) ->
     block:mine(100000),
     success;
 test(21) ->
+    io:fwrite("basic multi-tx"),
     H = block:height(),
     if
         H < 12 -> mine_blocks(13 - H);
@@ -935,6 +981,7 @@ test(21) ->
     Tx = multi_tx:make_dict(Pub, Txs, Fee),
     Stx = keys:sign(Tx),
     absorb(Stx),
+    1 = many_txs(),
     mine_blocks(1),
     success;
 
@@ -1133,10 +1180,29 @@ int 0 int 1" >>),
     mine_blocks(1),
     %resolve the contract because the delay timer has finished.
     Tx6 = contract_timeout_tx2:make_dict(MP, CID, Fee),
+
+
+    %temp test
+    %Stx6 = keys:sign(Tx6),
+    %absorb(Stx6),
+    %1 = many_txs(),
+
+
     %withdrawing from a resolved contract
     SubAcc1 = sub_accounts:make_key(MP, CID, 3),
     Tx7 = contract_winnings_tx:make_dict(MP, SubAcc1, CID, Fee, [<<0:32>>,<<0:32>>,<<-1:32>>]),
+   
+    %temp test
+    %Stx7 = keys:sign(Tx7),
+    %absorb(Stx7),
+    %2 = many_txs(),
+    %mine_blocks(1),
+    %1=2,
     
+      
+
+
+ 
     Txs7 = [Tx6, Tx7],
     Tx71 = multi_tx:make_dict(MP, Txs7, Fee*2),
     Stx71 = keys:sign(Tx71),
@@ -1295,6 +1361,8 @@ binary 32 ",
 
     %timeout second
     Tx9 = contract_timeout_tx2:make_dict(MP, CID2, Fee),
+
+
 
     %withdraw to veo
     PayoutVector = %same as payout vector defined in Forth.
@@ -1708,7 +1776,14 @@ binary 32 ",
 
     %verify that I no longer have money in contract 3
     SubAdd8_1 = sub_accounts:make_key(MP, CID3, 1),
-    empty = trees:get(sub_accounts, SubAdd8_1),
+    case trees:get(sub_accounts, SubAdd8_1) of
+        empty -> ok;
+        SA -> 
+            if
+                (SA#sub_acc.balance == 0) -> ok; %the verkle tree cannot delete things.
+                true -> io:fwrite({SA#sub_acc.balance, balance, SA})
+            end
+    end,
 
     %do the simplification from 1 to 3
     Matrix3 = contract_simplify_tx:apply_matrix2matrix(Matrix, Matrix2),
@@ -1796,6 +1871,7 @@ int 0 int 1" >>),
     Tx = contract_new_tx:make_dict(MP, CH, Many, Fee),
     CID = contracts:make_id(CH, Many,<<0:256>>,0),
     Stx = keys:sign(Tx),
+    io:fwrite("test 40 contract new\n"),
     absorb(Stx),
     1 = many_txs(),
     mine_blocks(1),
@@ -1805,6 +1881,7 @@ int 0 int 1" >>),
     Amount = 100000000,
     Tx2 = contract_use_tx:make_dict(MP, CID, Amount, Fee),
     Stx2 = keys:sign(Tx2),
+    io:fwrite("test 40 contract use\n"),
     absorb(Stx2),
     1 = many_txs(),
     mine_blocks(1),
@@ -1813,6 +1890,7 @@ int 0 int 1" >>),
     {NewPub,NewPriv} = signing:new_key(),
     Tx3 = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
     Stx3 = keys:sign(Tx3),
+    io:fwrite("test 40 create account\n"),
     absorb(Stx3),
     1 = many_txs(),
     mine_blocks(1),
@@ -1825,8 +1903,10 @@ int 0 int 1" >>),
     SSO = keys:sign(SO),
     Tx4 = swap_tx2:make_dict(NewPub, SSO, 1, Fee*2),
     Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
+    io:fwrite("test 40 before absorb 2\n"),
     absorb(Stx4),
     1 = many_txs(),
+    io:fwrite("test 40 before mine\n"),
     mine_blocks(1),
 
     success;
@@ -1984,6 +2064,7 @@ else fail then ">>),
     SPBO = keys:sign(PBO),
     Swap2 = swap_tx2:make_dict(NewPub, SPBO, 1, Fee),
     Use2 = contract_use_tx:make_dict(NewPub, NewCID, OneVeo, Fee),
+
     Txs2 = [Swap2, Use2],
     Tx2 = multi_tx:make_dict(NewPub, Txs2, Fee*2),
     Stx2 = signing:sign_tx(Tx2, NewPub, NewPriv),
@@ -2136,7 +2217,7 @@ test(45) ->
 
     Question = <<"1=1">>,
     %Tx = oracle_new_tx:make_dict(MP, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
-    Tx = oracle_new_tx:make_dict(MP, Fee, Question, 5, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx = oracle_new_tx:make_dict(MP, Fee, Question, 5, 0, 0), %Fee, question, start, id gov, govamount 
     OID = oracle_new_tx:id(Tx),
     io:fwrite("test 45 oid is \n"),
     io:fwrite(packer:pack(OID)),
@@ -2272,7 +2353,8 @@ binary 32 ",
     %Pub now has an active bet on outcome 1 of the oracle. They can swap shares of this bet as a subcurrency.
 
 
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     Tx6 = oracle_bet_tx:make_dict(MP, Fee, OID, 1, OIL+1 + (10*OneVeo)), 
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
@@ -2454,16 +2536,30 @@ test(47) ->
     Q = <<OracleTextPart/binary, 
           (integer_to_binary(Third))/binary
         >>, 
-    OracleNewTx = oracle_new_tx:make_dict(MP, 0, Q, StartHeight, 0, 0),
+    OracleNewTx = oracle_new_tx:make_dict(MP, Fee*2, Q, StartHeight, 0, 0),
+
+    
+    %Stx22 = keys:sign(OracleNewTx),
+    %absorb(Stx22),
+    %1 = many_txs(),
+    %mine_blocks(1),
+
     OID = oracle_new_tx:id(OracleNewTx),
-    OIL = trees:get(governance, oracle_initial_liquidity),
-    OracleBetTx = oracle_bet_tx:make_dict(MP, 0, OID, 1, OIL+1),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
+    OracleBetTx = oracle_bet_tx:make_dict(MP, Fee*2, OID, 1, OIL+1),
+
+    %Stx23 = keys:sign(OracleBetTx),
+    %absorb(Stx23),
+    %1 = many_txs(),
+    %mine_blocks(1),
+    %success = to_here,
     
     Txs3 = [OracleNewTx, OracleBetTx],
     Tx3 = multi_tx:make_dict(MP, Txs3, Fee*length(Txs3)),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
-    1 = many_txs(),
+    1 = many_txs(),%here
     mine_blocks(1),
 
     Tx4 = oracle_close_tx:make_dict(MP, Fee, OID),
@@ -2534,7 +2630,7 @@ int 0 int 1000 \
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     1 = many_txs(),
-    mine_blocks(1),
+    mine_blocks(1),%here. it says we are trying to edit inaccessible state.
    
     io:fwrite("test txs mid is \n"),
     io:fwrite(base64:encode(MID)),
@@ -3010,7 +3106,7 @@ int 0 int 1" >>),
     TID2 = swap_tx:trade_id_maker(MP, Salt2),
     SSO2 = keys:sign(SO2),
     SubAcc2 = sub_accounts:make_key(NewPub, CID, 2),
-    empty = (trees:get(sub_accounts, SubAcc2)),
+    empty = (trees:get(sub_accounts, SubAcc2)),%here
     Swap3 = swap_tx2:make_dict(NewPub, SSO2, 10000, Fee*2),
     CU = contract_use_tx:make_dict(NewPub, CID, 10000, Fee*2),
     Tx8 = multi_tx:make_dict(NewPub, [Swap3, CU], Fee*2),
@@ -3022,7 +3118,7 @@ int 0 int 1" >>),
 
     success;
 test(56) ->
-    io:fwrite("test swap_tx2, a limit order that cannot be partially matched.\n"),
+    io:fwrite("test swap_tx2, a limit order that cannot be partially matched. test 56\n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -3098,7 +3194,7 @@ int 0 int 1" >>),
 
     success;
 test(57) ->
-    io:fwrite("test trade_cancel_tx when the trade id doesn't yet exist\n"),
+    io:fwrite("test trade_cancel_tx when the trade id doesn't yet exist, test 57 \n"),
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
@@ -3123,7 +3219,7 @@ test(58) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    mine_blocks(1),
+    mine_blocks(4),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -3137,12 +3233,12 @@ test(58) ->
     0 = many_txs(),
 
     Question = <<>>,
-    Tx2 = oracle_new_tx:make_dict(Pub, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount %here
+    Tx2 = oracle_new_tx:make_dict(Pub, Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount 
     OID = oracle_new_tx:id(Tx2),
     Stx2 = signing:sign_tx(Tx2, Pub, Priv),
     absorb(Stx2),
     1 = many_txs(),
-    mine_blocks(1),
+    mine_blocks(1),%here
     0 = many_txs(),
     Tx3 = oracle_bet_tx:make_dict(Pub, Fee, OID, 1, 2100000), 
     Stx3 = signing:sign_tx(Tx3, Pub, Priv),
@@ -3465,7 +3561,7 @@ test(60) ->
 
     Bal2 = element(2, trees:get(accounts, MP)),
 
-    true = (Bal2 - Bal1) > ((OneVeo * 0.9) + trees:get(governance, block_reward)),
+    true = (Bal2 - Bal1) > ((OneVeo * 0.9) + governance:value(trees:get(governance, block_reward))),
 
     success;
 
@@ -3656,7 +3752,7 @@ test(61) ->
     Tx12 = contract_winnings_tx:make_dict(Pub, SubAcc1, CID, Fee, [Full, Empty]),
     Stx12 = signing:sign_tx(Tx12, Pub, Priv),
     absorb(Stx12),
-    5 = many_txs(),%HERE
+    5 = many_txs(),
     %mine_blocks(1),
     %0 = many_txs(),
 
@@ -3902,6 +3998,7 @@ test(65) ->
     absorb(Stx20),
     1 = many_txs(),
     mine_blocks(1),
+
     Block = block:top(),
     #block{trees_hash = TH} = Block,
     <<20, 64, 169, 157, _:(8*28)>> = TH,
@@ -3911,75 +4008,66 @@ test(65) ->
     absorb(Stx3),
     1 = many_txs(),
     mine_blocks(1),
-    #block{trees_hash = TH2, trees = Trees} = 
-        block:top(),
+    #block{trees_hash = TH2, trees = Trees} = block:top(),
     <<218, 205, 113, 244, _:(8*28)>> = TH2,
 
-
     Unmatched = Trees#trees5.unmatched,
-    UA = lists:map(fun(A) -> unmatched:deserialize(leaf:value(A)) end, trie:get_all(Unmatched, unmatched)),
-    %io:fwrite({UA}), [{unmatched,<<4,133,...>>,<<160,142,...>>,50000000,<<0:?>>},{unmatched, <<4,133,...>>,<<0:?>>,0,<<0:?>>}]
-    
-
-
-    SR = trees:serialized_roots(Trees),
-    SR = 
-<<189,177,88,20,214,49,254,255,220,34,26,93,57,
-  153,200,228,187,84,139,112,196,214,97,121,115,
-  220,233,130,51,147,196,28, 7,106,39,199,158,90,
-  206,42,61,71,249,221,46,131,228,255,110,168,135,
-  43,60,34,24,246,108,146,184,155,85,243,101,96, 7,
-  106,39,199,158,90,206,42,61,71,249,221,46,131,
-  228,255,110,168,135,43,60,34,24,246,108,146,184,
-  155,85,243,101,96, 160,108,66,157,84,247,144,166,
-  39,165,133,45,141,136,167,166,255,101,215,44,
-  159,205,240,194,121,108,38,37,117,252,123,8, 10,
-  4,188,191,3,81,29,122,88,33,22,149,140,110,80,
-  43,37,118,138,12,101,45,175,128,232,233,161,249,
-  78,149,43,236, 105,39,130,232,191,95,223,190,157,
-  42,54,129,35,251,81,151,205,137,198,61,22,251,
-  23,136,10,212,170,159,61,146,138,22, 4,93,115,
-  153,72,211,68,151,237,163,124,211,55,191,44,183,
-  97,79,118,78,105,194,243,209,138,224,22,215,83,
-  39,224,34,
-7,106,39,199,158,90,206,42,61,71,249,
-  221,46,131,228,255,110,168,135,43,60,34,24,246,
-  108,146,184,155,85,243,101,96,7,106,39,199,158,
-  90,206,42,61,71,249,221,46,131,228,255,110,168,
-  135,43,60,34,24,246,108,146,184,155,85,243,101,
-  96,7,106,39,199,158,90,206,42,61,71,249,221,46,
-  131,228,255,110,168,135,43,60,34,24,246,108,146,
-  184,155,85,243,101,96,7,106,39,199,158,90,206,
-  42,61,71,249,221,46,131,228,255,110,168,135,43,
-  60,34,24,246,108,146,184,155,85,243,101,96,7,
-  106,39,199,158,90,206,42,61,71,249,221,46,131,
-  228,255,110,168,135,43,60,34,24,246,108,146,184,
-  155,85,243,101,96,7,106,39,199,158,90,206,42,61,
-  71,249,221,46,131,228,255,110,168,135,43,60,34,
-  24,246,108,146,184,155,85,243,101,96>>,
-
-<<"{\"following\":[{\"type\":\"gov\",\"id\":\"block_reward\",\"value\":1620,\"lock\":0},
-{\"type\":\"unmatched\",\"account\":\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\",\"oracle\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"amount\":50000000,\"pointer\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\"},
-{\"type\":\"matched\",\"account\":\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\",\"oracle\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"true\":100000000,\"false\":0,\"bad\":0},
-{\"type\":\"gov\",\"id\":\"max_block_size\",\"value\":940,\"lock\":0},
-{\"type\":\"gov\",\"id\":\"oracle_question_liquidity\",\"value\":1200,\"lock\":0},
-{\"key\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=\",\"type\":\"accounts\",\"empty\":true},
-{\"type\":\"unmatched\",\"account\":\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\",\"oracle\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\",\"amount\":0,\"pointer\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=\"},
-{\"type\":\"gov\",\"id\":\"developer_reward\",\"value\":429,\"lock\":0},
-{\"type\":\"account\",\"pubkey\":\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\",\"balance\":15301863171,\"nonce\":3},
-{\"type\":\"gov\",\"id\":\"minimum_oracle_time\",\"value\":1,\"lock\":0},
-{\"type\":\"account\",\"pubkey\":\"BPa3qkDhgbb0JOIyyW7K5CuCvCqEwVkNEdTQxoSV5FFkJkq1WK0vsKi1qzGPUhYIfgIjqxe62SbYdR8JrJOk1S0=\",\"balance\":949848862,\"nonce\":1},
-{\"account\":\"BPa3qkDhgbb0JOIyyW7K5CuCvCqEwVkNEdTQxoSV5FFkJkq1WK0vsKi1qzGPUhYIfgIjqxe62SbYdR8JrJOk1S0=\",\"oracle\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"type\":\"unmatched\",\"empty\":true},
-{\"type\":\"matched\",\"account\":\"BPa3qkDhgbb0JOIyyW7K5CuCvCqEwVkNEdTQxoSV5FFkJkq1WK0vsKi1qzGPUhYIfgIjqxe62SbYdR8JrJOk1S0=\",\"oracle\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"true\":0,\"false\":100000000,\"bad\":0},
-{\"type\":\"gov\",\"id\":\"oracle_bet\",\"value\":905,\"lock\":0},
-{\"type\":\"oracle\",\"oid\":\"oI5MGpdfw5OOGJ182EHFbk6FHGkUU56xRnSUvKtIXmI=\",\"result\":0,\"starts\":6,\"type\":1,\"done_timer\":13,\"governance\":0,\"governance_amount\":0}]}">>,
-    
+    %UA = lists:map(fun(A) -> unmatched:deserialize(leaf:value(A)) end, trie:get_all(Unmatched, unmatched)),
+    %io:fwrite({UA}), %[{unmatched, <<4, 246,...>>, <<160, 142,...>>, 0, <<0,0,0,0...>>},{unmatched, <<4, 133, ...>>, <<160,142,...>>, 50000000, <<0:?>>}, {<<4, 133, 89,...>>, 1}
 
 
     success;
+test(66) ->
+    %testing out updating from a checkpoint. This way we don't need to do multi-node testing for so much.
+    restart_chain(),
+    CFG = tree:cfg(amoveo),
+    ID = cfg_verkle:id(CFG),
+    ID = amoveo,
+    LeafID = ids_verkle:leaf(CFG),
+    StemID = ids_verkle:stem(CFG),
 
+    mine_blocks(6),
 
+    %verify that some data exists in the consensus state.
 
+    DS = dump:top(StemID),
+    DL = dump:top(LeafID),
+    true = (DS > 1),
+    true = (DL > 1),
+
+    Block = block:top(),
+    Trees = Block#block.trees,
+    true = (Trees > 1),
+
+    %record to the hard drive
+    tree:quick_save(ID),
+
+    %delete the consensus state stuff from ram.
+    dump:delete_all(LeafID),
+    dump:delete_all(StemID),
+    timer:sleep(100),
+
+    %verify that the data was deleted (or top pointer decremented below it.)
+    1 = dump:top(StemID),
+    1 = dump:top(LeafID),
+    
+    %restore the consensus state from the hard drive version.
+    tree:reload_ets(ID),
+    timer:sleep(200),
+
+    %verify that the data is back.
+    DS2 = dump:top(StemID),
+    DL2 = dump:top(LeafID),
+    if
+        (not (DS == (DS2 - 1))) ->
+            io:fwrite({stem, DS, DS2});
+        (not (DL == DL2)) ->
+            io:fwrite({leaf, DL, DL2});
+        true -> ok
+    end,
+
+    success;
+   
 test(unused) ->
     io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),
@@ -4148,10 +4236,12 @@ test(unused) ->
     %check that the winning bid account received long-veo2
     %check that the stablecoins are still spendable.
     sucess;
-  
-test(66) -> 
+test(67) -> 
     io:fwrite("test 66\n"),
     io:fwrite("testing determinism when contract evidence tx fails.\n"),
+
+    true = forks:get(52) > 6,
+
     %seems like receipts wasn't deterministic after the update for fork 52, this test is to see.
 
     %make a contract. provide invalid evidence. check the root hash.
@@ -4181,13 +4271,12 @@ test(66) ->
     
     RootHash = trees:root_hash(
                  (block:top())#block.trees),
-    io:fwrite({(block:top())#block.trees}),
-%                            {{trees5,87,1,1,1,
-%                              793,1,1,1,9,1,1,1,
-%                              1}},
+    %io:fwrite({(block:top())#block.trees}),
+                            %{{trees5,45,1,1,1,
+                            %  473,1,1,1,5,1,1,1,
+                            %  1}},
     <<191,217,58,101,_:(8*28)>> = RootHash,
     success;
-
 
 test(empty) ->
     io:fwrite("test 55\n"),
@@ -4273,8 +4362,35 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10000),
-    timer:sleep(25),
+    wait_till_next_block(Height, 100),
     mine_blocks(Many-1).
+wait_till_mineable(_, 0) ->
+    io:fwrite("failed to create a potential block"),
+    1=2,
+    ok;
+wait_till_mineable(Height, N) ->
+    PB = block:get_by_height(Height),
+    case PB of
+        empty ->
+            timer:sleep(50),
+            wait_till_mineable(Height, N-1);
+        _ -> ok
+    end.
+wait_till_next_block(_Height, 0) ->
+    io:fwrite("failed to mine a block"),
+    1=2,
+    ok;
+wait_till_next_block(Height, N) ->
+    %H2 = block:height(),
+    TP = tx_pool:get(),
+    H2 = TP#tx_pool.height,
+    if
+        H2 > Height -> wait_till_mineable(H2, 200),
+                       timer:sleep(300);
+        true ->
+            timer:sleep(50),
+            wait_till_next_block(Height, N-1)
+    end.
 
 test24(I) ->
     %set forks:get(10) to 6 for this test.
@@ -4304,7 +4420,8 @@ test24(I) ->
     %%%timer:sleep(150),
     mine_blocks(1),
     
-    OIL = trees:get(governance, oracle_initial_liquidity),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
     Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1), 
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),

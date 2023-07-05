@@ -4,7 +4,6 @@
          dict_get/2, dict_get/3, dict_write/2,%update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,test/0]).%common tree stuff
 %for accessing the proof of existence tree
--record(exist, {hash, height}).
 -define(name, existence).
 -include("../../records.hrl").
 hash(X) -> X#exist.hash.
@@ -38,7 +37,9 @@ dict_get(Hash, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, {existence, Hash}} -> empty;
+        %{ok, Y} -> deserialize(Y)
+        {ok, Y} -> Y
     end.
 key_to_int(X) ->
     <<Y:256>> = hash:doit(X),
@@ -57,7 +58,8 @@ get(Hash, Tree) ->
 dict_write(C, Dict) ->
     Hash = C#exist.hash,
     dict:store({existence, Hash},
-               serialize(C),
+               %serialize(C),
+               C,
                Dict).
 write(E, Tree) ->
     Hash = E#exist.hash,

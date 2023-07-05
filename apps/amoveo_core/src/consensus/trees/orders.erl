@@ -17,8 +17,10 @@
 -define(name, orders).%
 -define(Null, 0).%
 -define(Header, 1).%
--record(orders, {aid, amount, pointer}).%
+%-record(orders, {aid, amount, pointer}).%
+-include("../../records.hrl").
 dict_significant_volume(Dict, OID, OIL, _) ->%
+    io:fwrite("orders, dict_significant_volume\n"),
     ManyOrders = dict_many(Dict, OID),%
         if %
             ManyOrders == 0 ->%
@@ -65,6 +67,8 @@ deserialize_head(X) ->%
     <<Head:Y, Many:AB>> = X,%
     {<<Head:Y>>, Many}.%
     %
+serialize({orders_head, Pointer, Many, _OID}) ->
+    serialize_head(Pointer, Many);
 serialize(A) ->%
     BAL = constants:balance_bits(),%
     true = size(A#orders.aid) == constants:pubkey_size(),%
@@ -80,11 +84,22 @@ deserialize(B) ->%
      AID:PS>> = B,%
     #orders{aid = <<AID:PS>>, amount = Amount,%
               pointer = <<P:PS>>}.%
-dict_write(Order, OID, Dict) ->%
+dict_write(Order = #orders{}, OID, Dict) ->
+    Pub = aid(Order), %
+    Key = {key, Pub, OID},%
+    csc:update({orders, Key}, Order, Dict).
+dict_write_new(Order, OID, Dict) ->
+    Pub = aid(Order), %
+    Key = {key, Pub, OID},
+    HashKey = trees2:hash_key(orders, Key),
+    csc:add(orders, HashKey, {orders, Key}, 
+            Order, Dict).
+dict_write_old(Order, OID, Dict) ->%
     Pub = aid(Order), %
     Key = {key, Pub, OID},%
     dict:store({orders, Key},%
-               serialize(Order),%
+               %serialize(Order),%
+               Order,%
                Dict).%
 write(X, Root) -> %
     V = serialize(X),%
@@ -93,11 +108,20 @@ write(X, Root) -> %
     trie:put(HPID, V, 0, Root, ?name).%
 dict_get(Key, Dict, _) ->%
     dict_get(Key, Dict).
-dict_get(Key, Dict) ->%
+dict_get(Key, Dict) ->
+    case csc:read({orders, Key}, Dict) of
+        error -> empty;
+        {empty, _, _} -> empty;
+        {ok, orders, X}  -> X
+    end.
+
+dict_get_old(Key, Dict) ->%
     X = dict:fetch({orders, Key}, Dict),%
     case X of%
         0 -> empty;%
-        _ -> deserialize(X)%
+        {orders, Key} -> empty;
+        %_ -> deserialize(X)%
+        _ -> X%
     end.%
 key_to_int(Pubkey) ->%
     accounts:key_to_int(Pubkey).%
@@ -116,6 +140,28 @@ empty_book() ->%
     R = trees:empty_tree(orders),
     trie:put(ID, X, 0, R, ?name).%
 dict_head_get(Dict, OID) ->%
+    PS = constants:pubkey_size() * 8,%
+    Key = {key, <<?Header:PS>>, OID},%
+    case csc:read({orders, Key}, Dict) of
+        error -> error;
+        {empty, _, _} -> {<<?Null:PS>>, 0};
+        {ok, orders, {Head, Many}} ->
+            {Head, Many};
+        {ok, orders, {orders_head, Head, Many, _OID}} ->
+            {Head, Many};
+        {ok, orders, X} ->
+            if
+                not(element(1, X) == orders) ->
+                    io:fwrite({X});
+                not(size(X) == 4) ->
+                    io:fwrite({X});
+                true -> ok
+            end,
+            S = serialize(X),
+            deserialize_head(S)
+    end.
+            
+dict_head_get_old(Dict, OID) ->%
     PS = constants:pubkey_size() * 8,%
     Key = {key, <<?Header:PS>>, OID},%
     X = dict:fetch({orders, Key}, Dict),%
@@ -140,11 +186,14 @@ dict_many_update(Many, OID, Dict) ->%
     {Head, _} = dict_head_get(Dict, OID),%
     dict_head_put(Head, Many, OID, Dict).%
 dict_head_put(Head, Many, OID, Dict) ->%
-    Y = serialize_head(Head, Many),%
+    %Y = serialize_head(Head, Many),%
     PS = constants:pubkey_size() * 8,%
     Key = {key, <<?Header:PS>>, OID},%
-    dict:store({orders, Key},%
-               Y,%
+    csc:update({orders, Key},
+    %dict:store({orders, Key},%
+               %Y,%
+               %{Head, Many},
+               {orders_head, Head, Many, OID},
                Dict).%
 head_put(Head, Many, Root) ->%
     PS = constants:pubkey_size() * 8,%
@@ -220,6 +269,10 @@ dict_remove2(ID, OID, Dict, P) ->%
             dict_remove2(ID, OID, Dict, X)%
     end.%
 dict_delete(Pub, OID, Dict) ->%
+    Key = {key, Pub, OID},%
+    csc:remove({orders, Key}, Dict).
+            
+dict_delete_old(Pub, OID, Dict) ->%
     Key = {key, Pub, OID},%
     dict:store({orders, Key}, 0, Dict).%
 delete(Pub, Root) ->%
@@ -306,6 +359,6 @@ test2()->%
     CFG = trie:cfg(orders),%
     Dict0 = dict:new(),%
     Key = {key, Pub, OID},%
-    Dict1 = dict_write(Order1, OID, Dict0),%
+    Dict1 = dict_write_new(Order1, OID, Dict0),%
     Order1 = dict_get(Key, Dict1),%
     success.%

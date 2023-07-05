@@ -1,0 +1,183 @@
+update the servers to use the verkle branch.
+* clean up print statements while syncing.
+merge the verkle branch into master.
+update the servers to use the master branch.
+* maybe keep at least one old server, to help people sync with the network if they are using old code.
+
+
+
+we have an api for making verkle proofs.
+We are able to send those proofs to javascript, and javascript knows that it is looking at a verkle proof.
+The javascript libraries seem to be loading.
+The problem now is probably that the proof isn't exactly in the format that the javascript expects.
+
+
+
+schedule the hard update.
+
+merge the rest of this todo list with the one in amoveo-docs. start working on harberger
+
+
+checkpoint:verify_blocks/4 needs to be parallelized somehow. We are syncing in reverse so slow.
+
+
+ext_handler:many_headers should be cached. our last attempt failed, so we should try again.
+maybe the better strategy is writing headers consecutively in a file, so we can read contiguous sections of the file to send.
+
+
+
+
+After update 52 activates
+* for blocks earlier than 52, just don't bother calculating the merkle root of the new consensus state. (so don't do check2. just check0 and check3)
+* update block:trees_hash_maker/5 for this.
+
+
+
+Needed for Fork 52
+==============
+
+in the verkle code, it looks like tree:clean_ets isn't working. I made a test in test_verkle:clean_ets_test/0, but that test isn't passing yet either.
+
+Write the new checkpoint code for calculating the Roots in checkpoint:sync/3
+
+make checkpoints work even if the checkpoint was built after fork 52.
+we have a test in tests/checkpoint.py
+
+checkpoint:verify_blocks/4 should be tested for the verkle case.
+
+new version of ubuntu.
+
+===================
+
+
+
+
+in tx explorer, it doesn't say who sent the tx.
+
+in explorer.html you cant look up info about an account.
+maybe just link to the working page instead: http://159.89.87.58:8080/explorers/account_explorer.html?pubkey=BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=
+
+we need to get the tests to pass.
+when we write to the ram version of the consensus state, it needs to be explicit if we are making a new slot, or editing an existing slot. a lot of places in the code will be changed for this.
+* the contract_use_tx isn't working. We can't create the unhashed key from the tx, so proofs.erl can't process the tx.
+
+
+looks like we need to store things in the csc by the unhashed version of the ids, because that is the only way we can look up things from both the merkle and verkle trees.
+
+
+we can't  mine blocks, because the same account is being stored in 2 different locations in the merkle tree.
+
+
+
+in the process of updating the dictionary to store the new format.
+governance values are still in the old format.
+
+
+
+When the full node is processing a block, it verifies a proof of some consensus state. It stores that slice of the consensus state in a dictionary structure while processing the txs. 
+
+Previously, the keys for this dictionary were the same as the keys used to store in the m/verkle tree. A unique identifier for each thing being stored. When we store an empty value, it looks like {(256-bit identifier):0}
+
+But with the new kind of verkle trees, the way proofs get compressed, if we prove that a sub-branch of the tree is empty, that can be proving that multiple values in the dictionary should be empty.
+
+This started being corrected by storing more info in the key. Like, info that we could need about the value, so that we could generate a value that is compatible with that key. like {({key, info1, info2}):0}.
+This was a mistake because in some transactions wer are looking up things by ID, and we don't know thos hidden values.
+instead, we should store the default values for a newly created element in the tree. {(256-bit identifier):{account, pub="", balance=0}}, and we need to also store a flag for if it is empty.
+
+the new data structure is in csc.erl
+
+
+
+
+working on test_txs:test(36).
+* a tx is blocked during the no-counterfeit check. the problem is that the dictionary is storing the info twice, because there are different formats that the key can take. it is doing the contract twice.
+
+
+for the testnet we should use fast proofs instead of short ones. to make it faster.
+
+
+make sure that governance oracles are disabled.
+
+
+we need to implement the rest of trees2:hash_key/2
+
+
+in accounts dict_empty, we need to support 2 different formats for the empty slots.
+we should make similar code for other trees in all the cases where we need to prove that it is empty. update the txs to support the new format.
+
+in test_txs:test(1), we can create a create_account_tx, but then we fail to make a spend tx in the same block because it thinks our nonce hasn't been updated. I guess the create_account_tx part isn't updating the correct slot in the dictionary.
+
+
+tester:test() is failing on the test for oracles. it fails to create an account, even though the other test did make an account.
+
+we probably need to rethink how the tx_pool works, because now we generate all the proofs at the end.
+
+
+we need to rethink how syncing works to be compatible with verkle
+
+really weird how in tx_pool_feeder:absorb_internal2 we are calculating both X and X2. Seems like it must be an error somehow.
+
+
+batches of blocks might need to work differently. We should test this to make sure it is working.
+
+
+try copying the current consensus state over to the verkle tree.
+
+
+
+remove code that falsely implies the verkle tree has the ability to delete elements.
+
+
+for every tree, we need to update dict_get to understand the new serialization.
+oracle, matched, unmatched, sub_acc, contract, trade, market, receipt.
+
+
+
+not calculating the market cap right with this new database format.
+
+
+in block.erl, line 824.
+problem with loading the dict from the verkle proof.
+
+
+
+* use the new db when processing blocks.
+  - tree_data:internal_dict_update_trie/2 should work if Trees is a pointer to the verkle root. Just load everything from the Dict as a batch. So it needs to know the height.
+    Done, should be tested by mining and syncing some blocks, and confirming that the trees data is replaced with a single pointer, and roots with a single hash.
+  - in block:make, we use trees:root_hash. this should be updated to work with a pointer to the verkle tree.
+    Done. verify by mining and syncing some blocks.
+    
+  - proofs:prove(Querys, Trees) should work if the Trees is a pointer to the verkle tree. it should make a verkle proof.
+    Done. we need to test that it works somehow.
+
+  - proofs:facts_to_dict needs to work with the verkle proof.
+    Write when the test reaches this point. print statement is ready.
+
+
+
+
+
+* use the new db when making proofs for the api.
+  - make a new api that accepts batches of things that we want proved.
+
+* make sure the state root in the header is being calculated reasonably. Look at what block:merkelize is doing to the proofs in the block.
+
+
+  
+* use the new db when generating bocks.
+  - block:hash should work with the new format of trees and roots.
+
+* in block_db, instead of storing proofs for every block on a page, store a single proof for all the consensus state you need to verify that entire page.
+  - replace the proofs in the blocks with the merkle root of that proof.
+  - block hash should work, even if you don't re-create the verkle proof for that block.
+  - teach the syncing node how to handle this.
+
+
+* make sure serializing to json for http works, and that the light node can verify the proofs.
+
+* update the light node to use the new api after the change is activated.
+
+* block access to the old tree after the update.
+
+* set the correct update height.
+

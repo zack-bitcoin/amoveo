@@ -1,14 +1,74 @@
 -module(governance).
 -export([tree_number_to_value/1, max/1, is_locked/1, genesis_state/0, name2number/1, number2name/1,%custom for this tree
 	 get_value/2, get/2, write/2,%update tree stuff
-         dict_get/2,dict_get/3,dict_write/2, dict_get_value/2, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
+         dict_get/2,dict_get/3,dict_write/2, dict_write_new/2, dict_get_value/3, dict_lock/2, dict_unlock/2, dict_change/3, %update dict stuff
          verify_proof/4,make_leaf/3,key_to_int/1,
 	 serialize/1,deserialize/1,
-	 new/2,
+	 new/2, hard_coded/2, value/1,
 	 test/0]).%common tree stuff
 -define(name, governance).
 -define(fee, constants:encoded_fee()).
 -include("../../records.hrl").
+
+hard_coded(_, 1) -> 1370;%block reward
+hard_coded(_, 2) -> 429;%developer reward
+hard_coded(_, 3) -> 890;%max block size
+hard_coded(_, 4) -> %block period
+    case application:get_env(amoveo_core, test_mode, false) of
+        true -> 5;
+        false -> 550
+    end;
+hard_coded(_, 5) -> 1113;%time gas
+hard_coded(_, 6) -> 1113;%space gas
+hard_coded(_, 7) -> 350;%fun limit
+hard_coded(_, 8) -> 600;%var limit
+hard_coded(_, 9) -> 51;%gov change limit
+hard_coded(_, 10) -> 1500;%oracle initial liquidity
+hard_coded(_, 11) -> %minimum oracle time
+    case application:get_env(amoveo_core, test_mode, false) of
+        true -> 1;
+        false -> 352
+    end;
+hard_coded(_, 12) -> %maximum oracle time
+    case application:get_env(amoveo_core, test_mode, false) of
+        true -> 1;
+        false -> 505
+    end;
+hard_coded(_, 13) -> 352;%maximum question size
+hard_coded(_, 14) -> 905;%create account tx
+hard_coded(_, 15) -> 805;%spend tx
+hard_coded(_, 16) -> 0;%delete tx
+hard_coded(_, 17) -> 905;%nc
+hard_coded(_, 18) -> 905;%ctc
+hard_coded(_, 19) -> 905;%channel solo close
+hard_coded(_, 20) -> 905;%channel timeout
+hard_coded(_, 21) -> 905;%channel slash
+hard_coded(_, 22) -> 905;%existence
+hard_coded(_, 23) -> 905;%oracle new
+hard_coded(_, 24) -> 905;%oracle bet
+hard_coded(_, 25) -> 905;%oracle close
+hard_coded(_, 26) -> 905;%unmatched
+hard_coded(_, 27) -> 905;%oracle winnings
+hard_coded(_, 28) -> 1100;%oracle question liquidity
+hard_coded(_, 29) -> 905;%conctract_new_tx
+hard_coded(_, 30) -> 905;%contract_use_tx
+hard_coded(_, 31) -> 905;%sub_spend_tx
+hard_coded(_, 32) -> 905;%contract_evidence_tx
+hard_coded(_, 33) -> 905;%contract_timeout_tx
+hard_coded(_, 34) -> 905;%contract_winnings_tx
+hard_coded(_, 35) -> 905;%contract_simplify_tx
+hard_coded(_, 36) -> 32;%max_contract_flavors
+hard_coded(_, 37) -> 905;%swap_tx
+hard_coded(_, 38) -> 905;%market_new_tx
+hard_coded(_, 39) -> 905;%market_liquidity_tx
+hard_coded(_, 40) -> 905;%market_swap_tx
+hard_coded(_, 41) -> 936;%market_trading_fee
+hard_coded(_, 42) -> 905;%swap_tx2
+hard_coded(_, 43) -> 905;%trade_cancel_tx
+hard_coded(_, 44) -> 905.%stablecoin_new_tx
+
+
+
 genesis_state() ->
     {MinimumOracleTime, MaximumOracleTime, BlockPeriod} =
         case application:get_env(amoveo_core, test_mode, false) of
@@ -255,33 +315,67 @@ new(Id, Value, Lock) ->
     #gov{id = Id, value = Value, lock = Lock}.
 dict_write(Gov, Dict) ->
     Key = Gov#gov.id,
-    dict:store({governance, Key},
-               serialize(Gov),
-               Dict).
+    HashKey = trees2:hash_key(governance, Key),
+    csc:update({governance, Key}, Gov, Dict).
+
+dict_write_new(Gov, Dict) ->
+    Key = Gov#gov.id,
+    HashKey = trees2:hash_key(governance, Key),
+    csc:add(governance, HashKey, {governance, Key}, 
+            Gov, Dict).
+
+
+
+%    dict:store({governance, Key},
+%               %serialize(Gov),
+%               Gov,
+%               Dict).
 write(Gov, Tree) ->
     Key = Gov#gov.id,
     Serialized = serialize(Gov),
     trie:put(Key, Serialized, 0, Tree, ?name).
 
+%deserialize(G = #gov{}) -> G;
 deserialize(SerializedGov) ->
     <<Id:8, Value:16, Lock:8>> = SerializedGov,
     #gov{id = Id, value = Value, lock = Lock}.
 
-dict_get_value(Key, Dict) when ((Key == timeout) or (Key == delete_acc_tx)) ->
-    case dict_get(Key, Dict) of
-	error -> error;
-	empty -> empty;
-	Gov ->
-	    V = Gov#gov.value,
-	    -tree_number_to_value(V)
+
+dict_get_value(Key, Dict, Height) 
+  when is_integer(Height) ->
+    F52 = forks:get(52),
+    if
+        Height < F52 -> dict_get_value(Key, Dict);
+        true ->
+            N = name2number(Key), 
+            HC = hard_coded(-1, N),
+            HC2 = tree_number_to_value(HC),
+            case Key of
+                timeout -> -HC2;
+                delete_acc_tx -> -HC2;
+                _ -> HC2
+            end
     end;
+dict_get_value(Key, Dict, _Trees) ->
+    dict_get_value(Key, Dict).
+
+%value({_, G, _}) ->
+%    value(G);
+value(G = #gov{value = V, id = K}) ->
+    K2 = number2name(K),
+    X = case K2 of
+            timeout -> -1;
+            delete_acc_tx -> -1;
+            _ -> 1
+        end,
+    X * tree_number_to_value(V).
+            
 dict_get_value(Key, Dict) ->
     case dict_get(Key, Dict) of
 	error -> error;
 	empty -> empty;
 	Gov ->
-	    V = Gov#gov.value,
-	    tree_number_to_value(V)
+            value(Gov)
     end.
 dict_get(Key0, Dict) ->
     dict_get(Key0, Dict, 0).
@@ -290,9 +384,13 @@ dict_get(Key0, Dict, Height) ->
               is_integer(Key0) -> Key0;
               true -> name2number(Key0)
           end,
-    case dict:find({governance, Key}, Dict) of
-	error -> empty;
-	{ok, X} -> deserialize(X)
+    HashKey = trees2:hash_key(governance, Key),
+    %case dict:find({governance, Key}, Dict) of
+    case csc:read({governance, Key}, Dict) of
+    %case csc:read(Key, Dict) of
+	error -> empty;%this works because governance has a finite list of things. 
+	%{ok, X} -> deserialize(X)
+	{ok, governance, X} -> X
     end.
 
 

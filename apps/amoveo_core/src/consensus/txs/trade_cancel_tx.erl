@@ -16,7 +16,12 @@ go(Tx, Dict, NewHeight, _) ->
    } = Tx,
     true = NewHeight > forks:get(44),
     TID = swap_tx:trade_id_maker(From, Salt),
-    Trade0 = trades:dict_get(TID, Dict),
+    Trade0 = trades:dict_get({key, TID}, Dict),
+    if
+        (Trade0 == error) ->
+            io:fwrite({TID, dict:fetch_keys(Dict), dict:find({trades, {key, TID}}, Dict)});
+        true -> ok
+    end,
     F45 = NewHeight > forks:get(45),
     Trade = case {F45, Trade0} of
                 {true, empty} -> 

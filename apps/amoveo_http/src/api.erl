@@ -115,7 +115,9 @@ create_account(NewAddr, Amount) ->
     case keys:status() of
         locked -> {error, "need to decrypt private key"};
         unlocked ->
-            Cost = trees:get(governance, create_acc_tx),
+            Cost = governance:value(
+                     trees:get(governance, 
+                               create_acc_tx)),
             create_account(NewAddr, Amount, ?Fee + Cost)
     end.
 create_account(NewAddr, Amount, Fee) when size(NewAddr) == 65 ->
@@ -152,7 +154,8 @@ multi_spend([{Amount, Pubkey}|T]) ->
 multi_fee([]) -> 0;
 multi_fee([H|T]) ->
     Type = element(1, H),
-    Cost = trees:get(governance, Type),
+    Cost = governance:value(
+             trees:get(governance, Type)),
     Cost + multi_fee(T) + ?Fee.
 
 
@@ -167,7 +170,7 @@ spend(ID0, Amount) ->
                (B == empty) ->
                     create_account(ID, Amount);
                 true ->
-		    Cost = trees:get(governance, spend),
+		    Cost = governance:value(trees:get(governance, spend)),
                     spend(ID, Amount, ?Fee+Cost)
             end
     end.
@@ -180,13 +183,15 @@ spend(ID0, Amount, Fee) ->
     end.
 delete_account(ID0) ->
     ID = decode_pubkey(ID0),
-    Cost = trees:get(governance, delete_acc_tx),
+    Cost = governance:value(
+             trees:get(governance, delete_acc_tx)),
     delete_account(ID, ?Fee + Cost).
 delete_account(ID0, Fee) ->
     ID = decode_pubkey(ID0),
     tx_maker0(delete_account_tx:make_dict(ID, keys:pubkey(), Fee)).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
-    Cost = trees:get(governance, nc),
+    Cost = governance:value(
+             trees:get(governance, nc)),
     new_channel_tx(CID, Acc2, Bal1, Bal2, ?Fee+Cost, Delay).
 new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
     %the delay is how many blocks you have to wait to close the channel if your partner disappears.
@@ -197,7 +202,8 @@ new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
     new_channel_with_server(Bal1, Bal2, Delay, Expires, ?IP, ?Port).
 new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
     CID = find_id2(),
-    Cost = trees:get(governance, nc),
+    Cost = governance:value(
+             trees:get(governance, nc)),
     new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires),
     CID.
 find_id2() -> find_id2(1, 1).
@@ -359,7 +365,8 @@ pretty_display(I) ->
     [Formatted] = io_lib:format("~.8f", [F]),
     Formatted.
 channel_team_close(CID, Amount) ->
-    Cost = trees:get(governance, ctc),
+    Cost = governance:value(
+             trees:get(governance, ctc)),
     channel_team_close(CID, Amount, ?Fee+Cost).
 channel_team_close(CID, Amount, Fee) ->
     Tx = channel_team_close_tx:make_dict(CID, Amount, Fee),
@@ -443,7 +450,8 @@ new_question_oracle(Start, Question)->
 	     is_list(Question) -> list_to_binary(Question);
 	     true -> Question
 	 end,
-    Cost = trees:get(governance, oracle_new),
+    Cost = governance:value(
+             trees:get(governance, oracle_new)),
     Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee+Cost, Q2, Start, 0, 0),
     ID = oracle_new_tx:id(Tx),
     tx_maker0(Tx),
@@ -471,12 +479,14 @@ new_governance_oracle(GovName, GovAmount) ->
     GovNumber = governance:name2number(GovName),
     %ID = find_id2(),
     %Recent = trees:get(oracles, DiffOracleID),
-    Cost = trees:get(governance, oracle_new),
+    Cost = governance:value(
+             trees:get(governance, oracle_new)),
     Tx = oracle_new_tx:make_dict(keys:pubkey(), ?Fee + Cost, <<>>, 0, GovNumber, GovAmount),
     tx_maker0(Tx).
 %    ID.
 oracle_bet(OID, Type, Amount) ->
-    Cost = trees:get(governance, oracle_bet),
+    Cost = governance:value(
+             trees:get(governance, oracle_bet)),
     oracle_bet(?Fee+Cost, OID, Type, Amount).
 oracle_bet(Fee, OID, Type, Amount) ->
     tx_maker0(oracle_bet_tx:make_dict(keys:pubkey(), Fee, OID, Type, Amount)).
@@ -484,7 +494,8 @@ minimum_scalar_oracle_bet(OID, N) ->
     true = is_integer(N),
     true = (N > -1),
     true = (N < 1024),
-    Amount = trees:get(governance, oracle_question_liquidity) + 1,
+    Amount = governance:value(
+               trees:get(governance, oracle_question_liquidity)) + 1,
     Bits = lists:reverse(to_bits(N, 10)),
     %Bits starts with least significant.
     %<<OIDN:256>> = OID,
@@ -518,17 +529,23 @@ to_bits(X, N) ->
 oracle_close(OID) ->
     Trees = (tx_pool:get())#tx_pool.block_trees,
     Dict = (tx_pool:get())#tx_pool.dict,
-    Cost = trees:get(governance, oracle_close, Dict, Trees),
+    Cost = governance:value(
+             trees:get(governance, oracle_close, 
+                       Dict, Trees)),
     oracle_close(?Fee+Cost, OID).
 oracle_close(Fee, OID) ->
     tx_maker0(oracle_close_tx:make_dict(keys:pubkey(), Fee, OID)).
 oracle_winnings(OID) ->
-    Cost = trees:get(governance, oracle_winnings),
+    Cost = governance:value(
+             trees:get(governance, 
+                       oracle_winnings)),
     oracle_winnings(?Fee+Cost, OID).
 oracle_winnings(Fee, OID) ->
     tx_maker0(oracle_winnings_tx:make_dict(keys:pubkey(), Fee, OID)).
 scalar_oracle_winnings(OID) -> 
-    Cost = trees:get(governance, oracle_winnings),
+    Cost = governance:value(
+             trees:get(governance, 
+                       oracle_winnings)),
     scalar_oracle_winnings(?Fee+Cost, OID).
 scalar_oracle_winnings(Fee, OID) when is_binary(OID)-> %for scalar oracles
     Keys = oracle_new_tx:scalar_keys(OID),
@@ -538,12 +555,14 @@ scalar_oracle_winnings(Fee, [{oracles, OID}|T]) ->
     oracle_winnings(Fee, OID),
     scalar_oracle_winnings(Fee, T).
 oracle_unmatched(OracleID) ->
-    Cost = trees:get(governance, unmatched),
+    Cost = governance:value(
+             trees:get(governance, unmatched)),
     oracle_unmatched(?Fee+Cost, OracleID).
 oracle_unmatched(Fee, OracleID) ->
     tx_maker0(oracle_unmatched_tx:make_dict(keys:pubkey(), Fee, OracleID)).
 scalar_oracle_unmatched(OID) -> 
-    Cost = trees:get(governance, unmatched),
+    Cost = governance:value(
+             trees:get(governance, unmatched)),
     scalar_oracle_unmatched(?Fee+Cost, OID).
 scalar_oracle_unmatched(Fee, OID) when is_binary(OID)-> %for scalar oracles
     Keys = oracle_new_tx:scalar_keys(OID),
@@ -676,7 +695,8 @@ mine_block(_, _, _) -> %only creates a headers, no blocks.
 channel_close() ->
     channel_close(?IP, ?Port).
 channel_close(IP, Port) ->
-    Cost = trees:get(governance, ctc),
+    Cost = governance:value(
+             trees:get(governance, ctc)),
     channel_close(IP, Port, ?Fee+Cost).
 channel_close(IP, Port, Fee) ->
     {ok, PeerId} = talker:talk({pubkey}, IP, Port),
@@ -728,7 +748,10 @@ sync(IP, Port) ->
     spawn(fun() -> sync:start([{IP, Port}]) end),
     0.
 sync(2, IP, Port) ->
-    sync:get_headers({IP, Port}).
+    sync:get_headers({IP, Port});
+sync(3, IP, Port) ->
+    checkpoint:sync(IP, Port).
+
 keypair() -> keys:keypair().
 pubkey() -> base64:encode(keys:pubkey()).
 new_pubkey(Password) -> keys:new(Password).
@@ -865,17 +888,13 @@ txs(IP, Port) ->
     
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
+    %io:fwrite("api work\n"),
     Block = potential_block:check(),
     Height = Block#block.height,
-    F2 = forks:get(2),
-    N = if
-	       F2 > Height -> 
-		<<X:256>> = Nonce,
-		X;
-	       true -> 
-		<<X:184>> = Nonce,
-		X
-	end,
+    N = case Nonce of
+            <<X:256>> -> X;
+            <<X:184>> -> X
+        end,
     Block2 = Block#block{nonce = N},
     %io:fwrite("work block hash is "),
     %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),

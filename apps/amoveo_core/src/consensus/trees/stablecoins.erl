@@ -152,7 +152,8 @@ verify_proof(RootHash, Key, Value, Proof) ->
 make_leaf(Key, V, CFG) ->
     leaf:new(key_to_int(Key), V, 0, CFG).
 dict_delete(Key, Dict) ->      
-    dict:store({stablecoins, Key}, 0, Dict).
+    csc:remove({stablecoins, Key}, Dict).
+    %dict:store({stablecoins, Key}, 0, Dict).
 dict_get(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({stablecoins, Key}, Dict),
@@ -160,11 +161,11 @@ dict_get(Key, Dict) ->
         error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, Y} -> Y
     end.
 dict_write(M, Dict) ->
    dict:store({stablecoins, M#stablecoin.id},
-              serialize(M),
+              M,
               Dict).
     
     

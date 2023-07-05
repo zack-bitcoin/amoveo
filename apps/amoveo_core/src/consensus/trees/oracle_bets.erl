@@ -7,8 +7,8 @@
          serialize/1, make_leaf/3, key_to_int/1,%
          deserialize/1]).%
 -include("../../records.hrl").%
+ -record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle%
 %Each account has a tree of oracle bets. Oracle bets are not transferable. Once an oracle is settled, the bets in it can be converted to shares.%
--record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle%
 -define(name, oracle_bets).%
 reward(Bet, Correct, NewHeight) ->%
     %returns {Shares, Tokens}%
@@ -65,9 +65,17 @@ deserialize(B) ->%
     BAL = constants:balance_bits(),%
     <<ID:HS, True:BAL, False:BAL, Bad:BAL>> = B,%
     #oracle_bet{true = True, false = False, bad = Bad, id = <<ID:HS>>}.%
-dict_write(X, Pub, Dict) ->%
+dict_write(X, Pub, Dict) ->
+    csc:update({oracle_bets, {key, Pub, X#oracle_bet.id}},
+               X, Dict).
+dict_write_new(X, Pub, Dict) ->
+    Key = {key, Pub, X#oracle_bet.id},
+    HashKey = trees2:hash_key(oracle_bets, Key),
+    csc:add(oracle_bets, HashKey, {oracle_bets, Key}, X, Dict).
+dict_write_old(X, Pub, Dict) ->%
     dict:store({oracle_bets, {key, Pub, X#oracle_bet.id}},%
-               serialize(X),%
+               %serialize(X),%
+               X,%
                Dict).%
 write(X, Tree) ->%
     Key = X#oracle_bet.id,%
@@ -75,11 +83,19 @@ write(X, Tree) ->%
     trie:put(key_to_int(Key), Z, 0, Tree, ?name).%
 dict_get(Key, Dict, _) ->
     dict_get(Key, Dict).
-dict_get(Key, Dict) ->%
+dict_get(Key, Dict) ->
+    case csc:read({oracle_bets, Key}, Dict) of
+        %error -> empty;
+        {empty, _, _} -> empty;
+        {ok, oracle_bets, Val} -> Val
+    end.
+            
+dict_get_old(Key, Dict) ->%
     X = dict:fetch({oracle_bets, Key}, Dict),%
     case X of%
         0 -> empty;%
-        _ -> deserialize(X)%
+        %_ -> deserialize(X)%
+        _ -> X%
     end.%
 key_to_int(X) -> %
     <<Y:256>> = hash:doit(X),%
@@ -91,7 +107,10 @@ get(ID, Tree) ->%
 	    L -> deserialize(leaf:value(L))%
 	end,%
     {X, V, Proof}.%
-dict_delete(Key, Dict) ->%
+dict_delete(Key, Dict) ->
+    csc:remove({oracle_bets, Key}, Dict).
+             
+dict_delete_old(Key, Dict) ->%
     dict:store({oracle_bets, Key}, 0, Dict).%
 delete(ID, Tree) ->%
     trie:delete(ID, Tree, ?name).%
@@ -140,9 +159,9 @@ test2() ->%
     Dict0 = dict:new(),%
     Pub = keys:pubkey(),%
     Key = {key, Pub, ID},%
-    Dict1 = dict_write(C, Pub, Dict0),%
+    Dict1 = dict_write_new(C, Pub, Dict0),%
     Account = #acc{balance = 100000, nonce = 0, pubkey = Pub},%
-    Dict2 = accounts:dict_write(Account, Dict1),%
+    Dict2 = accounts:dict_write_new(Account, 0, Dict1),%
     C = dict_get(Key, Dict2),%
     Dict3 = dict_add_bet(Pub, OID, 1, 100, Dict2),%
     Bet2 = dict_get(Key, Dict3),%

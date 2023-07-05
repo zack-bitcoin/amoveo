@@ -39,11 +39,13 @@ is_in(Tx, [STx2 | T]) ->
 absorb_internal(SignedTx) ->
     %io:fwrite("tx pool feeder absorb internal\n"),
     Wait = case application:get_env(amoveo_core, kind) of
-	       {ok, "production"} -> 200;
-	       _ -> 200
+	       {ok, "production"} -> 2000;
+	       %_ -> 400
+	       _ -> 2000
 	   end,
     absorb_timeout(SignedTx, Wait).
 absorb_timeout(SignedTx, Wait) ->
+    %io:fwrite("tx pool feeder absorb timeout\n"),
     S = self(),
     H = block:height(),
     Tx = signing:data(SignedTx),
@@ -52,6 +54,7 @@ absorb_timeout(SignedTx, Wait) ->
     Txid = hash:doit(Tx),
     PrevHash = block:hash(headers:top_with_block()),
     spawn(fun() ->
+                  %io:fwrite("tx pool feeder absorb timeout b\n"),
                   absorb_internal2(SignedTx, S)
           end),
     receive
@@ -72,6 +75,7 @@ absorb_internal2(SignedTx, PID) ->
     %io:fwrite("absorb internal 2\n"),
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
+    %io:fwrite("tx pool feeder absorb timeout 2\n"),
     Tx = signing:data(SignedTx),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
@@ -100,7 +104,7 @@ absorb_internal2(SignedTx, PID) ->
                     contract_timeout_tx2 ->
                         Fee > MinimumTxFee;
                     _ ->
-                        Cost = trees:get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees),
+                        Cost = governance:value(trees:get(governance, Type, F#tx_pool.dict, F#tx_pool.block_trees)),
                                                 %io:fwrite("now 4 "),%500
                                                 %io:fwrite(packer:pack(now())),
                     %io:fwrite("\n"),
@@ -117,22 +121,75 @@ absorb_internal2(SignedTx, PID) ->
                     %io:fwrite(packer:pack(now())),
                     %io:fwrite("\n"),
             %OldDict = proofs:facts_to_dict(F#tx_pool.facts, dict:new()),
+                    %io:fwrite("tx pool feeder absorb timeout 2 2\n"),
                     Height = block:height(),
                     {CBTX, _} = coinbase_tx:make(constants:master_pub(), F#tx_pool.block_trees),
                     Txs2 = [SignedTx|Txs],
+                    %io:fwrite("tx pool feeder absorb timeout 2 3\n"),
                     Querys = proofs:txs_to_querys([CBTX|Txs2], F#tx_pool.block_trees, Height+1),
-                    OldDict = lookup_merkel_proofs(F#tx_pool.dict, Querys, F#tx_pool.block_trees),
+                    %io:fwrite("tx pool feeder absorb timeout 2 4\n"),
+                    OldDict = lookup_merkel_proofs(F#tx_pool.dict, Querys, F#tx_pool.block_trees, Height+1),
+                    %io:fwrite("tx pool feeder absorb timeout 2 5\n"),
+                    if
+                        true -> ok;
+                        (Height == 10) ->
+                            io:fwrite({Querys, lists:map(fun(X) -> {X, dict:fetch(X, OldDict)} end, dict:fetch_keys(OldDict))});
+                        true -> ok
+                    end,
                     MinerReward = block:miner_fees(Txs2),
+                    %io:fwrite("tx pool feeder absorb timeout 2 6\n"),
                     GovFees = block:gov_fees(Txs2, OldDict, Height),
                     X = txs:digest([SignedTx], OldDict, Height+1),
                     X2 = txs:digest([CBTX, SignedTx], OldDict, Height+1),
-                    
+                    %io:fwrite("tx_pool_feeder digested tx.\n"),
                     
                     MinerAccount2 = accounts:dict_update(constants:master_pub(), X2, MinerReward - GovFees, none),
                     NewDict2 = accounts:dict_write(MinerAccount2, X2),
-                    Facts = proofs:prove(Querys, F#tx_pool.block_trees),
-                    Dict = proofs:facts_to_dict(Facts, dict:new()),
+                    Dict = 
+                        if
+                            is_integer(F#tx_pool.block_trees) ->
+                              
+                    %io:fwrite("tx_pool_feeder paid miner.\n"),
+                    %Facts = proofs:prove(Querys, F#tx_pool.block_trees),
+                    %Facts = trees2:get_proof(Querys, F#tx_pool.block_trees, fast),
+                                Facts20 = trees2:get(Querys, F#tx_pool.block_trees),
+                    %io:fwrite("tx_pool_feeder got proofs.\n"),
+                    %io:fwrite(Facts20),
+                    %Dict = proofs:facts_to_dict(Facts20, dict:new()),
+                    lists:foldl(
+                             fun({{TreeID, Key}, empty}, D) ->
+                                     HK = trees2:hash_key(TreeID, Key),
+                                     csc:add_empty(TreeID, HK, {TreeID, Key}, D);
+                                ({{TreeID, Key}, Value}, D) -> %dict:store(Key, Value, D) 
+                                     HK = trees2:hash_key(TreeID, Key),
+                                     csc:add(TreeID, HK, {TreeID, Key}, Value, D)
+                             end, dict:new(), Facts20);
+                            true ->
+                                Facts = proofs:prove(Querys, F#tx_pool.block_trees),
+                                proofs:facts_to_dict(Facts, dict:new())
+                        end,
+%                    if
+%                        (Height == 10) ->
+%                            io:fwrite({dict:fetch_keys(Dict)});
+%                        true -> ok
+%                    end,
+                    %io:fwrite({Dict, Dict2}),
+                    %io:fwrite({lists:map(fun(X) -> {X, dict:find(X, Dict)} end, dict:fetch_keys(Dict))}),
+                    %io:fwrite("tx_pool_feeder facts in a dict.\n"),
+                    SameLength = (length(dict:fetch_keys(Dict)) ==
+                                      length(dict:fetch_keys(NewDict2))),
+                    if
+                        SameLength -> ok;
+                        true -> io:fwrite({length(dict:fetch_keys(Dict)), 
+                                           length(dict:fetch_keys(NewDict2)),
+                                           length(dict:fetch_keys(X2)),
+                                           length(dict:fetch_keys(OldDict)),
+                                           dict:fetch_keys(Dict),
+                                           dict:fetch_keys(NewDict2)
+                                          })
+                    end,
                     NC = block:no_counterfeit(Dict, NewDict2, Txs2, Height+1),
+                    %io:fwrite("no counterfeit.\n"),
                     if
                         NC > 0 -> 
                             io:fwrite("counterfeit error \n"),
@@ -140,6 +197,7 @@ absorb_internal2(SignedTx, PID) ->
                         true ->
                             %TODO, only absorb this tx if it was processed in a small enough amount of time.
                             %tx_pool:absorb_tx(X, SignedTx),
+                            %io:fwrite("absorb this tx.\n"),
                             PID ! X
                     end
             end
@@ -149,12 +207,15 @@ sum_cost([H|T], Dict, Trees) ->
     Type = element(1, H),
     Cost = case Type of
                contract_timeout_tx2 -> 0;
-               _ -> trees:get(governance, Type, Dict, Trees)
+               _ -> governance:value(
+                      trees:get(governance, Type, 
+                                Dict, Trees))
            end,
     Cost + sum_cost(T, Dict, Trees).
-    
-lookup_merkel_proofs(Dict, [], _) -> Dict;
-lookup_merkel_proofs(Dict, [{orders, Key}|T], Trees) ->
+   
+%if the thing is already in the dict, then don't do anything. If it isn't in the dict, then get a copy out of the tree for it. 
+lookup_merkel_proofs(Dict, [], _, _) -> Dict;
+lookup_merkel_proofs(Dict, [{orders, Key}|T], Trees, Height) ->
     Dict2 = 
 	case dict:find({orders, Key}, Dict) of
 	    error ->
@@ -174,8 +235,8 @@ lookup_merkel_proofs(Dict, [{orders, Key}|T], Trees) ->
 		dict:store({orders, Key}, Val2, Dict);
 	    {ok, _} -> Dict
 	end,
-    lookup_merkel_proofs(Dict2, T, Trees);
-lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees) ->
+    lookup_merkel_proofs(Dict2, T, Trees, Height);
+lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees, Height) ->
     Dict2 = 
 	case dict:find({oracle_bets, Key}, Dict) of
 	    error ->
@@ -190,29 +251,47 @@ lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees) ->
 		dict:store({oracle_bets, Key}, Val2, Dict);
 	    {ok, _} -> Dict
 	end,
-    lookup_merkel_proofs(Dict2, T, Trees);
-lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees) ->
+    lookup_merkel_proofs(Dict2, T, Trees, Height);
+lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
+    %HashedKey = trees2:hash_key(TreeID, Key),
     Dict2 = 
-	case dict:find({TreeID, Key}, Dict) of
+	%case dict:find({TreeID, Key}, Dict) of
+	case csc:read({TreeID, Key}, Dict) of
 	    error ->
-		Tree = trees:TreeID(Trees),
-		{_, Val, _} = TreeID:get(Key, Tree),
+		%Tree = trees:TreeID(Trees),
+		%{_, Val, _} = TreeID:get(Key, Tree),
+                %Val = trees:get(TreeID, HashedKey),
+                Val = trees:get(TreeID, Key),
+
                 PS = constants:pubkey_size() * 8,
 		Val2 = case Val of
 			   empty -> 0;
-                           {<<Head:PS>>, Many} ->
-                               unmatched:serialize_head(<<Head:PS>>, Many);
-			   X -> TreeID:serialize(X)
+                           {empty, _} -> 0;
+                           {<<Head2:PS>>, Many} ->
+                               {<<Head2:PS>>, Many};
+			   X -> X
 		       end,
-		Foo = case TreeID of
-			  accounts -> {Val2, 0};
-			  oracles -> {Val2, 0};
-			  _ -> Val2
-		      end,
-		dict:store({TreeID, Key}, Foo, Dict);
-	    {ok, _} -> Dict
+                HashedKey = trees2:hash_key(TreeID, Key),
+                case Val2 of
+                    0 -> 
+                        %io:fwrite("tx_pool_feeder, looked up an empty\n"),
+                        csc:add_empty(TreeID,
+                           HashedKey,
+                           {TreeID, Key}, Dict);
+                    {<<Head:PS>>, Many2} -> 
+                        io:fwrite("tx_pool_feeder, looked up an unmatched head\n"),
+                        csc:add(TreeID, HashedKey, {TreeID, Key}, {unmatched_head, <<Head:PS>>, Many2, <<0:256>>}, Dict);
+                    %    dict:store({unmatched, HashedKey}, Val2, Dict);
+                    _ ->
+                        %io:fwrite("tx_pool_feeder, looked up an unmatched link\n"),
+                        csc:add(
+                          TreeID, HashedKey, {TreeID, Key}, Val2,
+                          Dict)
+                end;
+	    {empty, _, _} -> Dict;
+	    {ok, _, _} -> Dict
 	end,
-    lookup_merkel_proofs(Dict2, T, Trees).
+    lookup_merkel_proofs(Dict2, T, Trees, Height).
 
 ai2([]) -> ok;
 ai2([H|T]) ->

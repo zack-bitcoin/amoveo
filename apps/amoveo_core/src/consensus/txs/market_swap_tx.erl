@@ -122,7 +122,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 %true = Get > Take,
                 {Get, -Give}
         end,
-    Gov = governance:dict_get_value(market_trading_fee, Dict2),
+    Gov = governance:dict_get_value(market_trading_fee, Dict2, NewHeight),
     N = 100000000,
     {G1, G2} = 
         if

@@ -1,7 +1,8 @@
 -module(tree_data).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	dict_update_trie/2, garbage/2, remove_before/2]).
+         dict_update_trie/5, dict_update_root/5, 
+         garbage/2, remove_before/2]).
 -include("../../records.hrl").
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -18,15 +19,24 @@ handle_call({garbage, Trash, Keep}, _, _) ->
 %handle_call({prune, Trash, Keep}, _, _) -> 
 %    internal(Trash, Keep, fun(A, B, C) -> trie:prune(A, B, C) end),
 %    {reply, ok, []};
-handle_call({update, Trees, Dict}, _From, _) -> 
-    Y = internal_dict_update_trie(Trees, Dict),
+handle_call({update_root, Trees, Dict, Height, ProofTree, RootHash}, _, _) ->
+    false = is_integer(ProofTree),
+    Y = internal_dict_update_root(
+          Trees, Dict, Height, ProofTree, RootHash),
+    {reply, Y, []};
+handle_call({update, Trees, Dict, Height, ProofTree, RootHash}, 
+            _From, _) -> 
+    Y = internal_dict_update_trie(
+          Trees, Dict, Height, ProofTree, RootHash),
     {reply, Y, []};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 remove_before(Blocks, Work) ->
     gen_server:call(?MODULE, {remove_before, Blocks, Work}).
-dict_update_trie(Trees, Dict) ->
-    gen_server:call(?MODULE, {update, Trees, Dict}).
+dict_update_root(Trees, Dict, Height, ProofTree, RootHash) ->
+    gen_server:call(?MODULE, {update_root, Trees, Dict, Height, ProofTree, RootHash}).
+dict_update_trie(Trees, Dict, Height, ProofTree, RootHash) ->
+    gen_server:call(?MODULE, {update, Trees, Dict, Height, ProofTree, RootHash}).
 garbage(Trash, Keep) ->
     gen_server:call(?MODULE, {garbage, Trash, Keep}).
 internal(PruneBlock, KeepBlock, F) ->
@@ -58,16 +68,20 @@ order_sorter({orders, Keya}, {orders, Keyb}) ->%
     <<A:PS>> = Keya#key.pub,%
     <<B:PS>> = Keyb#key.pub,%
     B < A.%
-internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees) ->%
+internal_dict_update_trie(Trees, Dict, _, _, _) when (element(1, Trees) == trees) ->%
     %do the orders and oracle_bets last, then insert their state roots into the accounts and oracles.
     %pointers are integers, root hashes are binary.
+
+    %we updated dict. it used to be liked Pubkey -> account_object.
+    %now it is like hash_of_pubkey -> #consensus_state object.
+
     Keys = dict:fetch_keys(Dict),%
-    {Orders0, Keys2} = get_things(orders, Keys),%
+    {Orders0, Keys2} = get_things(orders, Keys, Dict),%
     Orders = lists:sort(fun(A, B) -> order_sorter(A, B) end,%
 			Orders0),%
-    {OracleBets, Keys3} = get_things(oracle_bets, Keys2),%
-    {Accounts, Keys4} = get_things(accounts, Keys3),%
-    {Oracles, Keys5} = get_things(oracles, Keys4),%
+    {OracleBets, Keys3} = get_things(oracle_bets, Keys2, Dict),%
+    {Accounts, Keys4} = get_things(accounts, Keys3, Dict),%
+    {Oracles, Keys5} = get_things(oracles, Keys4, Dict),%
     OrdersLeaves = dict_update_trie_orders(Trees, Orders, Dict, []),%
     %{leaf, key, val, meta}
     Dict2 = orders_batch_update(OrdersLeaves, Dict, trees:oracles(Trees)),%Dict20 should be the same as Dict2, but we don't use orders:head_put or orders:write to calculate it.
@@ -83,37 +97,127 @@ internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees) ->%
     OT2 = trie:put_batch(OracleLeaves, OT, oracles),%
     Trees5 = trees:update_oracles(Trees4, OT2),%
     %We need to sort the keys to update each trie one at a time.
-    {Channels, Keys6} = get_things(channels, Keys5),%
+    {Channels, Keys6} = get_things(channels, Keys5, Dict),%
     CT = trees:channels(Trees5),%
     ChannelsLeaves = keys2leaves(Channels, channels, Dict3),%
     CT2 = trie:put_batch(ChannelsLeaves, CT, channels),%
     Trees6 = trees:update_channels(Trees5, CT2),%
 
-    {Ex, Keys7} = get_things(existence, Keys6),%
+    {Ex, Keys7} = get_things(existence, Keys6, Dict),%
     ET = trees:existence(Trees6),%
     ExistenceLeaves = keys2leaves(Ex, existence, Dict3),%
     ET2 = trie:put_batch(ExistenceLeaves, ET, existence),%
     Trees7 = trees:update_existence(Trees6, ET2),%
 
-    {Gov, _Keys8} = get_things(governance, Keys7),%
+    {Gov, _Keys8} = get_things(governance, Keys7, Dict),%
     GT = trees:governance(Trees7),%
     GovernanceLeaves = keys2leaves(Gov, governance, Dict3),%
     GT2 = trie:put_batch(GovernanceLeaves, GT, governance),%
     trees:update_governance(Trees7, GT2);%
-internal_dict_update_trie(Trees, Dict) ->
-    Types2 = [accounts, oracles, channels, existence, governance, matched, unmatched],
-    Types3 = Types2 ++ [sub_accounts, contracts, trades],
-    Types4 = Types3 ++ [markets],
-    Types5 = Types4 ++ [receipts, stablecoins],
-    Types = 
-        case element(1, Trees) of
-            trees2 -> Types2;
-            trees3 -> Types3;
-            trees4 -> Types4;
-            trees5 -> Types5
-        end,
+internal_dict_update_trie(Trees, Dict, H, ProofTree, RootHash) ->
+    F52 = forks:get(52), 
+    if
+        H > F52 -> verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, H);
+        true ->
+            Types2 = [accounts, oracles, channels, existence, governance, matched, unmatched],
+            Types3 = Types2 ++ [sub_accounts, contracts, trades],
+            Types4 = Types3 ++ [markets],
+            Types5 = Types4 ++ [receipts, stablecoins],
+            Types = 
+                case element(1, Trees) of
+                    trees2 -> Types2;
+                    trees3 -> Types3;
+                    trees4 -> Types4;
+                    trees5 -> Types5
+                end,
+            Keys = dict:fetch_keys(Dict),
+            idut2(Types, Trees, Dict, Keys)
+    end.
+internal_dict_update_root(Trees, Dict, Height, ProofTree, RootHash) ->
+    F52 = forks:get(52), 
+    if
+        Height > F52 -> 
+            false = is_integer(ProofTree),
+            verkle_dict_update_root(Dict, ProofTree, RootHash, Height);
+        true ->
+            Trees2 = internal_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height),
+            RootHash2 = trees:root_hash(Trees2),
+            RootHash == RootHash2
+    end.
+    
+verkle_dict_update_root(Dict, ProofTree, RootHash, Height) ->
+    false = is_integer(ProofTree),
+    io:fwrite("verkle dict update root 0\n"),
     Keys = dict:fetch_keys(Dict),
-    idut2(Types, Trees, Dict, Keys).
+    Leaves = 
+        lists:map(
+          fun(Key) -> 
+                  V = case dict:fetch(Key, Dict) of
+                          {V2, _Meta}  -> V2;
+                          V3 -> V3
+                      end,
+                  V
+          end, Keys),
+    Leaves2 = lists:filter(
+                fun(X) -> not(X == 0) end, Leaves),
+    Leaves2b = lists:map(
+                 fun(#consensus_state{val = X}) -> X;
+                    (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
+    io:fwrite("verkle dict update root 1\n"),
+    %io:fwrite({Leaves2b, Leaves2, ProofTree}),%prooftree is a integer here.
+    %same proof tree as verify_verkle:update/3, first variable.
+    %but it should be [OldRoot|ProofTree], a decompressed tree, like gets returned from verify_verkle:proof/2, the 3rd result in the tuple.
+    ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
+    io:fwrite("verkle dict update root\n"),
+    RootHash == stem_verkle:hash_point(hd(ProofTreeB)).
+verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
+    true = is_integer(Trees),
+    Keys = dict:fetch_keys(Dict),
+    Leaves = 
+        lists:map(
+          fun(Key) -> 
+                  V = case dict:fetch(Key, Dict) of
+                          {V2, _Meta}  -> V2;
+                          V3 -> V3
+                      end,
+                  V
+          end, Keys),
+    Leaves2 = lists:filter(
+                fun(X) -> not(X == 0) end, Leaves),
+    %we never delete from the verkle tree, so we can remove anything that seems empty.
+    Leaves2b = lists:map(
+                 fun(#consensus_state{val = X}) -> X;
+                    (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
+    if
+        true -> ok;
+        ((Height == 161186)) ->
+            io:fwrite({Leaves2b});
+        true -> ok;
+        ((Height == 8) and (not(ProofTree == unknown))) ->
+            io:fwrite({Keys});
+        true -> ok;
+        ((Height == 13) and (not(ProofTree == unknown))) ->
+            io:fwrite({Leaves2b});
+        true -> ok
+    end,
+    Trees3 = case ProofTree of
+                 unknown -> 
+                     %io:fwrite({Leaves2}),
+                     Trees4 = trees2:store_things(Leaves2b, Trees),
+                     Trees4;
+                 _ ->
+                     %ProofTree = dict:fetch(proof, Dict),
+                     ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
+                     %io:fwrite("updated the proof in tree_data\n"),
+                     RootHash = stem_verkle:hash_point(hd(ProofTreeB)),%verify that the new state root matches what was written on the block.
+                     Trees5 = trees2:store_verified(Trees, ProofTreeB),
+                     Trees5
+             end,
+    %todo. before we can write the data to the tree, we need to somehow verify that the new verkle root match. or if the roothash is unknown, skip the check.
+    %todo. we should calculate the hash first, then store the batch. Writing to the hard drive like this is falsely assuming that we are
+
+    Trees3.
+
     
 %internal_dict_update_trie(Trees, Dict) when (element(1, Trees) == trees2) ->
 %    Types = [accounts, oracles, channels, existence, governance, matched, unmatched],
@@ -131,12 +235,14 @@ internal_dict_update_trie(Trees, Dict) ->
 idut2([], Trees, _, _) -> Trees;
 idut2([H|Types], Trees, Dict, Keys) ->
     %{sharding, full_node},
-    {A, Keys2} = get_things(H, Keys),
+    {A, Keys2} = get_things(H, Keys, Dict),
     T = trees:H(Trees),
     Leaves = keys2leaves(A, H, Dict),
     {ok, ShardMode} = application:get_env(amoveo_core, sharding),
     case ShardMode of
         full_node ->
+            %io:fwrite("tree_data idut2 "),
+            %io:fwrite("\n"),
             T2 = trie:put_batch(Leaves, T, H),%returns a pointer to the root of the trie for the new block.
             U = list_to_atom("update_" ++ atom_to_list(H)),
             Trees2 = trees:U(Trees, T2),
@@ -153,17 +259,34 @@ idut2([H|Types], Trees, Dict, Keys) ->
 
 keys2leaves([], _, _) -> [];
 keys2leaves([H|T], Type, Dict) ->
-    {Type, Key} = H,
-    New = Type:dict_get(Key, Dict),
-    I = Type:key_to_int(Key),
-    L = case New of
-	    error -> leaf:new(I, empty, 0, trie:cfg(Type));
-	    empty -> leaf:new(I, empty, 0, trie:cfg(Type));
-	    _ ->
-		Value = Type:serialize(New),
-		leaf:new(I, Value, 0, trie:cfg(Type))
-	end,
+    %only used for the merkle tree, not verkle
+    %{Type, Key} = H,
+    Key = H,
+    L = case csc:read(Key, Dict) of
+            {empty, Type, UnhashedKey} ->
+                I0 = Type:key_to_int(UnhashedKey),
+                leaf:new(I0, empty, 0, trie:cfg(Type));
+            {ok, Type, Val} ->
+                Val2 = case Val of
+                           {X, _} -> X;
+                           Y -> Y
+                       end,
+                I1 = trees2:val2int(Val2),
+                SV = Type:serialize(Val2),
+                leaf:new(I1, SV, 0, trie:cfg(Type))
+             end,
     [L|keys2leaves(T, Type, Dict)].
+
+%    New = Type:dict_get(Key, Dict),
+%    I = Type:key_to_int(Key),
+%    L = case New of
+%	    error -> leaf:new(I, empty, 0, trie:cfg(Type));
+%	    empty -> leaf:new(I, empty, 0, trie:cfg(Type));
+%	    _ ->
+%		Value = Type:serialize(New),
+%		leaf:new(I, Value, 0, trie:cfg(Type))
+%	end,
+%    [L|keys2leaves(T, Type, Dict)].
 dict_update_trie_oracles(_, [], _, X) -> X;%
 dict_update_trie_oracles(Trees, [H|T], Dict, X) ->%
     X2 = dict_update_account_oracle_helper(oracles, H, orders, Trees, orders:empty_book(), set_orders, Dict, X),%
@@ -171,24 +294,34 @@ dict_update_trie_oracles(Trees, [H|T], Dict, X) ->%
 dict_update_trie_account(_, [], _, X) -> X;%
 dict_update_trie_account(Trees, [H|T], Dict, X) ->%
     R = trees:empty_tree(oracle_bets),
+    %H is hash_of_pubkey, not pubkey.
     X2 = dict_update_account_oracle_helper(accounts, H, bets, Trees, R, update_bets, Dict, X),%
     dict_update_trie_account(Trees, T, Dict, X2).%
 
 dict_update_account_oracle_helper(Type, H, Type2, Trees, EmptyType2, UpdateType2, Dict, Leaves) ->%
-    {_, Key} = H,%
-    New0 = Type:dict_get(Key, Dict),%
+    %Key = H,
+    {ok, #consensus_state{
+       empty = false, val = New00, 
+       unhashed_key = Key
+      }} = csc:read2(H, Dict),
+    New0 = case New00 of
+               error -> error;
+               empty -> error;
+               {Val, Meta2} -> Val#acc{bets = Meta2};
+               _ -> New00
+           end,
+    %New0 = Type:dict_get(H, Dict),%
     Tree = trees:Type(Trees),%
     Leaves2 = %
         case New0 of%
             error -> %
 		L = leaf:new(Type:key_to_int(Key), empty, 0, trie:cfg(Type)),%
                 [L|Leaves];%
-            empty -> %
-		L = leaf:new(Type:key_to_int(Key), empty, 0, trie:cfg(Type)),%
-                [L|Leaves];%
             _ -> %
                 ABN = Type:Type2(New0),%
-                {_, Old, _} = Type:get(Key, trees:Type(Trees)),%
+                %{_, Old, _} = Type:get(Key, trees:Type(Trees)),%
+                %Old = trees:get(Type, Key, dict:new(), Trees),%
+                Old = trees:get(Type, H, dict:new(), Trees),%
                 New = if%
                           Old == empty -> %
                               Type:UpdateType2(New0, EmptyType2);%
@@ -221,10 +354,19 @@ dict_update_trie_orders(Trees, [H|T], Dict, L) ->%
         case Pub of%
             <<1:PS>> ->%
                 %update the header.%
-                S = dict:fetch(H, Dict),%
-		PS = constants:pubkey_size() * 8,%
-		ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl%
-		leaf:new(ID, S, 0, trie:cfg(orders));%
+                PS = constants:pubkey_size() * 8,%
+                ID = orders:key_to_int(<<1:PS>>),%1 is Header constant from orders.erl%
+                case csc:read(H, Dict) of
+                    error -> 1=2;
+                    {empty, _, _} -> 1=2;
+                    {ok, orders, {orders_head, Head, Many, _OID}} ->
+                        S = orders:serialize_head(Head, Many),
+                        leaf:new(ID, S, 0, trie:cfg(orders));
+                    {ok, orders, {Head, Many}} ->
+                        %S = dict:fetch(H, Dict),
+                        S = orders:serialize_head(Head, Many),
+                        leaf:new(ID, S, 0, trie:cfg(orders))
+                end;
             _ ->%
                 New2 = %
                     case orders:dict_get(Key, Dict) of%
@@ -250,9 +392,32 @@ dict_update_trie_oracle_bets(Trees, [H|T], Dict, L) ->%
     Leaf = leaf:new(ID, New2, 0, trie:cfg(oracle_bets)),%
     dict_update_trie_oracle_bets(Trees, T, Dict, [{Pub, Leaf}|L]).%
 
-get_things(Key, L) ->
-    get_things(Key, L, [], []).
-get_things(Key, [], A, B) -> {A, B};
+-record(r, {empty = true, val, key, unhashed_key, type}).
+
+get_things(Type0, L, Dict) ->
+    get_things(Type0, L, [], [], Dict).
+get_things(_, [], Found, Rest, _) -> 
+    {Found, Rest};
+get_things(Type0, [H|T], A, LeftoverKeys, Dict) ->
+    Type = case csc:read(H, Dict) of
+               {ok, X, _} -> X;
+               {empty, X, _} -> X
+           end,
+    %{_, Type, _}  = csc:read(H, Dict),
+    {A2, LeftoverKeys2} = 
+        case Type of
+            Type0 -> {[H|A], 
+                      LeftoverKeys};
+            _ -> {A, [H|LeftoverKeys]}
+        end,
+    get_things(Type0, T, A2, 
+               LeftoverKeys2, Dict).
+                
+
+        
+
+
+get_things(Key, [], Found, Rest) -> {Found, Rest};
 get_things(Key, [{Key, X}|L], A, B) ->
     get_things(Key, L, [{Key, X}|A], B);
 get_things(Key, [{Key2, X}|L], A, B) ->

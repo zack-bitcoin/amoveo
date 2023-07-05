@@ -2,7 +2,8 @@
 -include("../../amoveo_core/src/records.hrl").
 
 -export([init/3, handle/2, terminate/3, doit/1,
-	send_txs/4, init/2]).
+	send_txs/4, init/2, many_headers/2,
+        get_header_by_height/2, many_headers2/3]).
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3010/", [], "application/octet-stream", "echo"}, [], []).
 %curl -i -d '["test"]' http://localhost:3011
@@ -130,9 +131,24 @@ doit({headers, _H}) ->
 %		  end
 %	  end),
     {ok, 0};
-doit({headers, Many, N}) -> 
-    X = many_headers(Many, N),
-    {ok, X};
+doit({headers, _Many, N}) -> 
+    
+    %todo. if we look up earlier than 260000, the output is 5000 blocks earlier than we had wanted.
+    %todo. doesn't include top header in output.
+    
+
+    %X = many_headers(Many, N),
+    T = api:height(),
+    N2 = N - (N rem 5000),
+    %N2 = N rem 5000,
+    if
+        N2 < (T - 5000) ->
+            X = many_headers(5000, N2),
+            {ok, X};
+        true ->
+            X = many_headers(T-N+1, N),
+            {ok, X}
+    end;
 doit({header}) -> {ok, headers:top()};
 doit({peers}) ->
     P = peers:all(),
@@ -299,18 +315,38 @@ doit({channel_sync, From, SSPK}) ->
     {ok, Return};
 doit({bets}) ->
     free_variables:bets();
+doit({proof, IDs, Hash}) ->
+    %batch verkle proofs.
+    Loc = (block:get_by_hash(Hash))#block.trees,
+    true = is_integer(Loc),
+    
+    %io:fwrite({IDs, Loc}),%{<<_:520>>, 13}
+%    IDs2 = lists:map(fun([TreeName, ID]) ->
+                             %trees2:key({TreeName, ID}) end,
+%                             {TreeName, ID} end,
+%                     IDs),
+    {Proof, IDs3} = trees2:get_proof(IDs, Loc, fast),
+    %todo. put this proof in a format that javascript will understand.
+    {Proof, IDs3};
+    
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
 %curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5, Hash]' http://localhost:8080 
     %io:fwrite(base64:encode(Hash)),
     %io:fwrite("\n"),
-    Trees = (block:get_by_hash(Hash))#block.trees,%this line failed.b
-    TN = trees:name(TreeName),
-    Root = trees:TN(Trees),
-    %io:fwrite(packer:pack([ext_handler_proof2, TreeName, ID, Root])),
-    {RootHash, Value, Proof} = TN:get(ID, Root),
-    Proof2 = proof_packer(Proof),
-    {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}};
+    Trees = (block:get_by_hash(Hash))#block.trees,
+    TN = trees:name(TreeName), 
+    if
+        is_integer(Trees) ->
+            io:fwrite("we needed a verkle proof, not a merkle proof\n"),
+            doit({proof, [{TN, ID}], Hash});
+        true ->
+            %merkle case
+            Root = trees:TN(Trees),
+            {RootHash, Value, Proof} = TN:get(ID, Root),
+            Proof2 = proof_packer(Proof),
+            {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}}
+    end;
 doit({list_oracles}) ->
     {ok, order_book:keys()};
 doit({oracle, 2, QuestionHash}) ->
@@ -421,13 +457,78 @@ proof_packer(X) -> X.
 %            end
 %    end.
 get_header_by_height(N, H) ->
-    case H#header.height of
-	N -> H;
-	_ -> 
-	    {ok, Child} = headers:read(H#header.prev_hash),
-	    get_header_by_height(N, Child)
+    HH = H#header.height,
+    if
+        (HH == N) -> H;
+        (HH < N) -> H;
+        true ->
+            case headers:read(H#header.prev_hash) of
+                {ok, Child} ->
+                    get_header_by_height(N, Child);
+                error -> io:fwrite({N, H})
+            end
     end.
+        
+                         
+%    case H#header.height of
+        %0 -> H;
+%	N -> H;
+%	_ -> 
+%            case headers:read(H#header.prev_hash) of
+%                {ok, Child} ->
+%                    get_header_by_height(N, Child);
+%                error -> io:fwrite({N, H}),
+%                         1=2
+%            end
+%    end.
 	    
+many_headers_cached_broken(Many, X) ->
+    %io:fwrite("many headers "), 
+    %io:fwrite(packer:pack([Many, X])), 
+    %io:fwrite("\n"),
+    Z = max(0, X + Many - 1),%number of highest header that we want.
+    %H = headers:top(),
+    APIHeight = api:height(),
+    case APIHeight >= (X) of
+	false -> [];
+	true ->
+	    {N, Many2} = 
+		if 
+		    Z < APIHeight ->
+                        %we have all the headers we need to create this batch.
+			{Z, Many};
+		    true ->
+                        %we don't have enough headers.
+			{APIHeight, Many - (Z - APIHeight)}
+		end,
+						%N = min(H#header.height, X + Many - 1),
+            N = min(Z, APIHeight),%end of range that we want.
+            Many2 = Many - max(0, (Z - APIHeight)),
+	    %Nth = get_header_by_height(N, H),
+	    %Result = many_headers2(Many2, Nth, []),
+            N2 = (N - (N rem 5000)),
+            case Many2 of
+                5000 ->
+                    case header_cache:read(N2) of
+                        error ->
+                            %io:fwrite("slow\n"),
+                            io:fwrite(integer_to_list(N2)),
+                            %H = block:block_to_header(block:top()),
+                            H = headers:top(),
+                            Nth = get_header_by_height(N2, H),
+                            Result = many_headers2(Many2, Nth, []),
+                            header_cache:store(N2, Result),
+                            Result;
+                        {ok, Result2} ->
+                            %io:fwrite("fast\n"),
+                            Result2
+                    end;
+                _ ->
+                    H = block:block_to_header(block:top()),
+                    Nth = get_header_by_height(N, H),
+                    many_headers2(Many2, Nth, [])
+            end
+    end.
 many_headers(Many, X) ->
     %io:fwrite("many headers "), 
     %io:fwrite(packer:pack([Many, X])), 

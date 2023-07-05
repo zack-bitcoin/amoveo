@@ -14,6 +14,7 @@
 	 hash2blocks/1, get/4, get/2,
          all_veo/0, trees1to2/1, trees2to3/1, trees3to4/1, trees4to5/1,
          all/1,
+         vget/4,
          restore/3]).
 -include("../../records.hrl").
 
@@ -366,6 +367,8 @@ serialized_roots(Trees) ->
               Trades/binary, Markets/binary,
               Receipts/binary, Stablecoins/binary>>
     end.
+root_hash(Trees) when is_integer(Trees) ->
+    trees2:root_hash(Trees);
 root_hash(Trees) ->
     Y = serialized_roots(Trees),
     hash:doit(Y).
@@ -415,21 +418,67 @@ restore(Root, Fact, Meta) ->
         _ -> Leaf = Leaf2
     end,
     Out.
+vget(governance, Key) ->
+    {gov, Key, governance:hard_coded(0, Key), 1};
+vget(TreeID, Key) ->
+    TP = tx_pool:get(),
+    Loc = TP#tx_pool.block_trees,
+    vget(TreeID, Key, dict:new(), Loc).
+vget(TreeID, Key, _Dict, Loc) ->
+    Key2 = trees2:hash_key(TreeID, Key),
+    32 = size(Key2),
+    Leaves = 
+        %trees2:get_proof([Key2], Loc, fast),
+        %trees2:get_proof([{TreeID, Key}], Loc, fast),
+        trees2:get([{TreeID, Key}], Loc),
+    {_, V} = hd(Leaves),
+    V.
 get(TreeID, Key) ->
+    H = block:height(),
+    F52 = forks:get(52),
     TP = tx_pool:get(),
     Trees = TP#tx_pool.block_trees,
     Dict = TP#tx_pool.dict,
     get(TreeID, Key, Dict, Trees).
+            
+get(governance, Key, Dict, Trees) 
+  when is_integer(Trees) ->
+    Key2 = if
+               is_integer(Key) -> Key;
+               true -> governance:name2number(Key)
+           end,
+    {gov, Key2, governance:hard_coded(0, Key2),1};
+   % governance:tree_number_to_value(
+   %   governance:hard_coded(0, Key));
+%    [{gov, Key, governance:hard_coded(0, Key), 1}];
+    %governance:dict_get_value(Key, Dict, Trees);
 get(governance, Key, Dict, Trees) ->
     %first check if the thing we want is stored in the RAM Dict for quick access. If not, load it from the hard drive.
-    case governance:dict_get_value(Key, Dict) of
+   
+
+    %notice that this version of get returns a number instead of a governance value. A programming error.
+ 
+    %case governance:dict_get_value(Key, Dict, Trees) of
+    case governance:dict_get(Key, Dict, Trees) of
 	error -> 
 	    Governance = trees:governance(Trees),
-	    governance:get_value(Key, Governance);
+	    %governance:get_value(Key, Governance);
+	    {_, A, _} = governance:get(Key, Governance),
+            A;
 	empty -> 
 	    Governance = trees:governance(Trees),
-	    governance:get_value(Key, Governance);
+	    %governance:get_value(Key, Governance);
+	    {_, A, _} = governance:get(Key, Governance), 
+            A;
 	Y -> Y
+    end;
+get(TreeID, Key, Dict, VP) when is_integer(VP) ->
+    case TreeID:dict_get(Key, Dict) of
+	error -> 
+            vget(TreeID, Key);
+        empty ->
+            vget(TreeID, Key);
+        X -> X
     end;
 get(TreeID, Key, Dict, Trees) ->
     case TreeID:dict_get(Key, Dict) of

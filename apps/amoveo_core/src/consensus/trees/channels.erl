@@ -175,7 +175,8 @@ get(ID, Channels) ->
 	end,
     {RH, V, Proof}.
 dict_delete(Key, Dict) ->      
-    dict:store({channels, Key}, 0, Dict).
+    csc:remove({channels, Key}, Dict).
+    %dict:store({channels, Key}, 0, Dict).
 delete(ID,Channels) ->
     trie:delete(ID, Channels, channels).
 make_leaf(Key, V, CFG) ->

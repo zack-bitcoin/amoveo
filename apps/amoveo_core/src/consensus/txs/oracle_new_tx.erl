@@ -90,7 +90,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     empty = oracles:dict_get(ID, Dict, NewHeight),
     Gov = Tx#oracle_new.governance,
     GovAmount = Tx#oracle_new.governance_amount,
-    GCL = governance:dict_get_value(governance_change_limit, Dict),
+    GCL = governance:dict_get_value(governance_change_limit, Dict, NewHeight),
     true = GovAmount > -1,
     true = GovAmount < GCL,
     Question = Tx#oracle_new.question,
@@ -104,9 +104,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		%FG5 = false,
 		L1 = if
 			 FG5 ->
-			     governance:dict_get_value(oracle_question_liquidity, Dict);
+			     governance:dict_get_value(oracle_question_liquidity, Dict, NewHeight);
 			 true ->
-			     governance:dict_get_value(oracle_initial_liquidity, Dict)%
+			     governance:dict_get_value(oracle_initial_liquidity, Dict, NewHeight)%
 		     end,
 		{Dict, Tx#oracle_new.start, L1};
 	    _ ->
@@ -116,7 +116,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                 GVar = governance:dict_get(Gov, Dict),
                 false = governance:is_locked(GVar),
 		FG1 = forks:get(1),%
-		L2 = governance:dict_get_value(oracle_initial_liquidity, Dict),
+		L2 = governance:dict_get_value(oracle_initial_liquidity, Dict, NewHeight),
 		if%
 		    FG1 < NewHeight -> %
 			{governance:dict_lock(Gov, Dict), NewHeight, L2};%
@@ -133,7 +133,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     ok = case Question of
              <<"">> -> ok;
              _ ->
-                 MQS = governance:dict_get_value(maximum_question_size, Dict2),
+                 MQS = governance:dict_get_value(maximum_question_size, Dict2, NewHeight),
                  F47_activated = forks:get(47) < NewHeight,
                  SizeLimit = if
                                  F47_activated ->
@@ -167,6 +167,6 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 		    unmatched:dict_empty_book(ID, Dict3);
 		true -> Dict3%
 	    end,
-    oracles:dict_write(ON, Dict4).
+    oracles:dict_write(ON, 0, Dict4).
     
     

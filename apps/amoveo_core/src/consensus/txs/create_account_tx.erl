@@ -18,14 +18,18 @@ new(Pub, Amount, Fee, From, Trees) -> %To is a new ID. set it to any unused ID.
     PS = size(Pub),
     PS = size(From),
     PS = constants:pubkey_size(),
-    Accounts = trees:accounts(Trees),
-    {_, Account, Proof} = accounts:get(From, Accounts),
+   
+    Account = trees:get(accounts, From, dict:new(), Trees),
+ 
+%    Accounts = trees:accounts(Trees),
+%    {_, Account, Proof} = accounts:get(From, Accounts),
     Tx = #create_acc_tx{from = From,
                         nonce = Account#acc.nonce + 1,
                         pubkey = Pub,
                         amount = Amount,
                         fee = Fee},
-    {Tx, [Proof]}.
+    %{Tx, [Proof]}.
+    {Tx, []}.
 go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#create_acc_tx.from,
     %txs:developer_lock(From, NewHeight, Dict),

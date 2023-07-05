@@ -1,7 +1,7 @@
 -module(oracles).
 -export([new/9, set_orders/2, orders/1, %custom stuff
          write/2, get/2,%update tree stuff
-         dict_get/2, dict_get/3, dict_write/2, dict_write/3, %update dict stuff
+         dict_get/2, dict_get/3, dict_write/2, dict_write/3, dict_write_new/3,%update dict stuff
 	 meta_get/1, deserialize/1, all/0, 
 	 ready_for_bets/0, ready_to_close/0,
          close_closable/2,
@@ -20,7 +20,9 @@ new(ID, Question, Starts, Creator, GovernanceVar, GovAmount, Dict, F10, Height) 
 		 F10 -> 0;
 		 true -> orders:empty_book()%
 	     end,
-    MOT = governance:dict_get_value(minimum_oracle_time, Dict),
+    F52 = Height > forks:get(52),
+    MOT = governance:dict_get_value(
+            minimum_oracle_time, Dict, Height),
     #oracle{id = ID,
 	    result = 0,
 	    question = Question,
@@ -151,10 +153,20 @@ deserialize(X) ->
       }.
 dict_write(Oracle, Dict) ->
     dict_write(Oracle, 0, Dict).
+
 dict_write(Oracle, Meta, Dict) ->
+    csc:update({oracles, Oracle#oracle.id},
+               Oracle, Dict).
+dict_write_new(Oracle, Meta, Dict) ->
+    Id = Oracle#oracle.id,
+    Key = {oracles, Id},
+    HashKey = trees2:hash_key(oracles, Id),
+    csc:add(oracles, HashKey, Key, Oracle, Dict).
+dict_write_old(Oracle, Meta, Dict) ->
     Key = Oracle#oracle.id,
     dict:store({oracles, Key},
-               {serialize(Oracle), Meta},
+               %{serialize(Oracle), Meta},
+               {Oracle, Meta},
                Dict).
 meta_get(X) ->
     X#oracle.orders.
@@ -167,6 +179,19 @@ write(Oracle, Root) ->
 dict_get(ID, Dict) ->
     dict_get(ID, Dict, 0).
 dict_get(ID, Dict, Height) ->
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
+    case csc:read({oracles, ID}, Dict) of
+        error -> C;
+        {empty, _, _} -> empty;
+        {ok, oracles, Val} -> Val
+    end.
+
+
+dict_get_old(ID, Dict, Height) ->
     <<_:256>> = ID,
     X = dict:find({oracles, ID}, Dict),
     B = Height > forks:get(39),
@@ -178,17 +203,23 @@ dict_get(ID, Dict, Height) ->
 	error -> C;
         {ok, 0} -> empty;
         {ok, {0, _}} -> empty;
+        {ok, {oracles, _}} -> empty;
         {ok, {Y, Meta}} ->
-            Y2 = deserialize(Y),
-            Y2#oracle{orders = Meta}
+            %Y2 = deserialize(Y),
+            Y2 = Y,
+            Y2#oracle{orders = Meta};
+        {ok, Y3} -> Y3
+           %trees2:deserialize(3, Y3)
     end.
+key_to_int({oracles, X}) -> 
+    key_to_int(X);
 key_to_int(X) -> 
     %<<Y:256>> = hash:doit(<<X:256>>),
     <<_:256>> = X,
     <<Y:256>> = hash:doit(X),
     Y.
 get(ID, Root) ->
-    <<_:256>> = ID,
+    %<<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Root, ?name),
     V = case Leaf of 
 	    empty -> empty;

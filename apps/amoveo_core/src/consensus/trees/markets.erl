@@ -2,9 +2,9 @@
 -export([new/6, 
 	 write/2, get/2, delete/2,%update tree stuff
          %dict_update/9, 
-         dict_delete/2, dict_write/3, dict_get/2,%update dict stuff
+         dict_delete/2, dict_write/3, dict_get/2,dict_get/3,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
-	 deserialize/1, serialize/1, 
+	 deserialize/1, serialize/1,  dict_empty/2,
          make_id/1,make_id/4,
          det_sqrt/1,
 	 all/0,
@@ -106,23 +106,52 @@ dict_write(M, Dict, Height) ->
             true = M#market.amount2 > 0;
         true -> ok
     end,
-   dict:store({markets, M#market.id},
-              serialize(M),
-              Dict).
+    csc:update({markets, M#market.id}, M, Dict).
+
+%   dict:store({markets, M#market.id},
+              %serialize(M),
+%              M,
+%              Dict).
 write(X, Root) ->
     ID = X#market.id,
     M = serialize(X),
     trie:put(key_to_int(ID), M, 0, Root, markets).
 key_to_int(<<X:256>>) -> X.
 
+dict_empty(Key, Dict) ->
+    case csc:read(Key, Dict) of
+        {empty, markets, _} -> ok;
+        _ -> 1=2
+    end,
+    empty.
+
+%    {ok, {markets, Key}} =
+%        dict:find({markets, Key}, Dict),
+%    empty.
+dict_get(Key, Dict, _Height) ->
+    dict_get(Key, Dict).
 dict_get(Key, Dict) ->
+    case csc:read({markets, Key}, Dict) of
+        error -> error;
+        {empty, _, _} -> empty;
+        {ok, markets, Val} -> Val
+    end.
+            
+dict_get_old(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({markets, Key}, Dict),
     case X of
         error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, {markets, Key}} -> empty;
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                124 -> trees2:deserialize(9, Y);
+%                _ ->
+%                    deserialize(Y)
+%            end
     end.
 get(ID, Markets) ->
     <<_:256>> = ID,
@@ -133,7 +162,8 @@ get(ID, Markets) ->
 	end,
     {RH, V, Proof}.
 dict_delete(Key, Dict) ->      
-    dict:store({markets, Key}, 0, Dict).
+    csc:remove({markets, Key}, Dict).
+    %dict:store({markets, Key}, 0, Dict).
 delete(ID,Channels) ->
     trie:delete(ID, Channels, markets).
 make_leaf(Key, V, CFG) ->

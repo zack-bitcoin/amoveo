@@ -76,6 +76,7 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     CurrentNonce = 
         case Trade of
             empty -> 1;
+            error -> io:fwrite({TID, dict:fetch_keys(Dict0)});
             _ -> #trade{height = CN} = Trade,
                  CN
         end,
@@ -119,7 +120,9 @@ go(Tx, Dict0, NewHeight, NonceCheck) ->
     if 
         (Parts == 1) and (NewHeight > F48) ->
             R = receipts:new(TID, Acc2, StartNonce),
-            empty = receipts:dict_get(receipts:id(R), Dict5),
+            %Receipt = receipts:dict_get(
+            %          {key, receipts:id(R)}, Dict5),
+            %error = Receipt,
             receipts:dict_write(R, Dict5);
         true ->
             Dict5

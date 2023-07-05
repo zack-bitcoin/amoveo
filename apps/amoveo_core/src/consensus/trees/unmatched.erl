@@ -2,6 +2,7 @@
 -export([new/3,
          get/2,write/2,%update tree stuff
          dict_get/2, dict_get/3, dict_write/2,%update dict stuff
+         dict_write_new/2,
          verify_proof/4,make_leaf/3,key_to_int/1,serialize/1,
          dict_significant_volume/4, dict_match/4,
          dict_head_get/2,
@@ -10,13 +11,16 @@
          deserialize_head/1, head_put/4,
          deserialize/1,
 	 serialize_head/2,
-	 all/2,
+	 all/2, all_verkle/2,
 	 amount/1,
 	 account/1,
          oracle/1,
          pointer/1,
 	 aid/1,
 	 dict_empty_book/2,
+
+         dict_many/2,
+
 	 test/0]).%common tree stuff
 %for accessing the proof of existence tree
 -record(unmatched, {account, %pubkey of the account
@@ -47,6 +51,7 @@ dict_significant_volume(Dict, OID, OIL, NewHeight) ->
             amount(Order0) > OIL
     end.
 dict_many(Dict, OID) -> 
+    %{unmatched_head, <<0:520>>, 0, CID}
     {_, Many} = dict_head_get(Dict, OID),
     Many.
 %many(Root, OID) ->
@@ -71,6 +76,8 @@ new(Account, Oracle, Amount) ->
     PS = AS * 8,
     #unmatched{account = Account, oracle = Oracle,
 	       amount = Amount, pointer = <<?Null:PS>>}.
+serialize({unmatched_head, Pointer, Many, OID}) -> 
+    serialize_head(Pointer, Many);
 serialize(X) -> 
     PS = constants:pubkey_size(),
     PS = size(X#unmatched.account),
@@ -87,7 +94,11 @@ deserialize(B) ->
     BAL = constants:balance_bits(),
     PS = constants:pubkey_size()*8,
     <<Acc:PS, Oracle:HS, Amount:BAL, Pointer:PS>> = B,
-    #unmatched{amount = Amount, pointer = <<Pointer:PS>>, oracle = <<Oracle:HS>>, account = <<Acc:PS>>}.
+    case {Oracle, Amount} of
+        {0, 0} -> deserialize_head(B);
+        _ ->
+            #unmatched{amount = Amount, pointer = <<Pointer:PS>>, oracle = <<Oracle:HS>>, account = <<Acc:PS>>}
+    end.
 serialize_head(Head, Many) ->
     HS = constants:hash_size()*8,
     PS = constants:pubkey_size() * 8,
@@ -106,14 +117,30 @@ deserialize_head(X) ->
 
 dict_get({key, Account, Oracle}, Dict) ->
     dict_get({key, Account, Oracle}, Dict, 0).
-dict_get({key, Account, Oracle}, Dict, Height) ->
+dict_get(Key = {key, _Account, _Oracle}, Dict, Height) ->
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
+    case csc:read({unmatched, Key}, Dict) of
+        error -> C;
+        {empty, _, _} -> empty;
+        {ok, unmatched, Val} -> Val
+    end.
+             
+dict_get_old(Key = {key, Account, Oracle}, Dict, Height) ->
+    case is_binary(Account) of
+        true -> ok;
+        false -> io:fwrite(Key)
+    end,
     true = is_binary(Account),
     true = is_binary(Oracle),
     HS = constants:hash_size(),
     HS = size(Oracle),
     PS = constants:pubkey_size(),
     PS = size(Account),
-    X = dict:find({unmatched, {key, Account, Oracle}}, Dict),
+    X = dict:find({unmatched, Key}, Dict),
     B = Height > forks:get(39),
     C = if
             B -> error;
@@ -122,8 +149,17 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, {unmatched, Key}} -> empty;
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                138 -> trees2:deserialize(5, Y);
+%                _ ->
+%                    deserialize(Y)
+%            end
     end.
+key_to_int({unmatched, Key}) ->
+    key_to_int(Key);
 key_to_int({key, Account, Oracle}) ->
     true = is_binary(Account),
     true = is_binary(Oracle),
@@ -134,7 +170,6 @@ key_to_int({key, Account, Oracle}) ->
     <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.
 get(K, Tree) ->
-    %we should check if this is a key for headers, and if it is, do headers_get instead.
     %ID = key_to_int({key, <<?Header:PS>>, OID}),
     PS = constants:pubkey_size() * 8,
     ID = key_to_int(K),
@@ -150,9 +185,19 @@ get(K, Tree) ->
 dict_write(C, Dict) ->
     Account = C#unmatched.account,
     Oracle = C#unmatched.oracle,
-    dict:store({unmatched, {key, Account, Oracle}},
-               serialize(C),
-               Dict).
+    csc:update({unmatched, {key, Account, Oracle}},
+               C, Dict).
+dict_write_new(C, Dict) ->
+    Account = C#unmatched.account,
+    Oracle = C#unmatched.oracle,
+    Key = {key, Account, Oracle},
+    HashKey = trees2:hash_key(unmatched, Key),
+    csc:add(unmatched, HashKey, {unmatched, Key},
+            C, Dict).
+    
+%    dict:store({unmatched, {key, Account, Oracle}},
+%               C,
+%               Dict).
 write(E, Tree) ->
     K = {key, E#unmatched.account, E#unmatched.oracle},
     Key = key_to_int(K),
@@ -167,7 +212,7 @@ dict_empty_book(OID, Dict) ->
     PS = constants:pubkey_size() * 8,
     Head = <<?Null:PS>>,
     Many = 0,
-    dict_head_put(Head, Many, OID, Dict).
+    dict_head_new(Head, Many, OID, Dict).
 %    X = serialize_head(<<?Null:PS>>, 0),
 %    dict:store({unmatched, {key, <<?Null:PS>>, OID}},
 %	       X, Dict).
@@ -178,12 +223,64 @@ empty_book(OID, Tree) ->
 dict_head_get(Dict, OID) ->
     PS = constants:pubkey_size() * 8,
     Key = {key, <<?Header:PS>>, OID},
+    %io:fwrite({Key, keys, dict:fetch_keys(Dict)}),
+    case csc:read({unmatched, Key}, Dict) of
+        error -> error;
+        {empty, _, _} -> {<<?Null:PS>>, 0};
+        {ok, unmatched, 
+         {unmatched_head, Head, Many, _OID}} ->
+            {Head, Many};
+        {ok, unmatched, {Head, Many}} ->
+            {Head, Many};
+        {ok, unmatched, U = {unmatched, <<0:PS>>, Oracle, Many, Pointer}} ->
+            %1=2,
+            %<<0:256>> = Oracle, 
+            {Pointer, Many};
+        {ok, unmatched, U = {unmatched, Acc, _Oracle, _Many, Pointer}} ->
+            io:fwrite("this is a normal unmatched object, it should not be stored in the header slot.\n"),
+            io:fwrite({Key, Acc, Pointer}),
+            1=2,
+            ok;
+        X ->
+            io:fwrite("unmatched \n"),
+            %U = element(3, X),
+            %<<T:PS>> = element(2, U),
+            %<<T2:256>> = element(3, U),
+            %<<T3:PS>> = element(5, U),
+            io:fwrite({X}),
+            X
+                %#unmatched{account, oracle, amount, pointer}
+    end.
+dict_head_get_old(Dict, OID) ->
+    PS = constants:pubkey_size() * 8,
+    Key = {key, <<?Header:PS>>, OID},
     X = dict:fetch({unmatched, Key}, Dict),
     case X of
-        0 -> {<<?Null:PS>>, 0};
-        _ ->
-            deserialize_head(X)
+        {unmatched, {key, _, _}} -> 
+            {<<?Null:PS>>, 0};
+        {unmatched_head, Head, Many, OID} ->
+            {Head, Many};
+        _ -> 
+            io:fwrite("unmatched \n"),
+            io:fwrite({X}),
+            X
+            %deserialize_head(X)
     end.
+verkle_head_get(Trees, OID) ->
+    %Key = {key, <<?Header:(33*8)>>, OID},
+    Key = {key, <<?Header:(65*8)>>, OID},
+    Order = trees:vget(unmatched, Key, 
+                          dict:new(), Trees),
+    case Order of
+        {unmatched, {key, _, _}} -> empty;
+        {unmatched_head, Head, Many, OID} -> 
+            {Head, Many};
+        empty -> empty;
+        Order ->
+            io:fwrite({Order}),
+            ok
+    end.
+    
 head_get(Root, OID) ->
     false = Root == 0,
     PS = constants:pubkey_size() * 8,
@@ -206,17 +303,47 @@ dict_many_update(Many, OID, Dict) ->
     {Head, _} = dict_head_get(Dict, OID),
     dict_head_put(Head, Many, OID, Dict).
 dict_head_put(Head, Many, OID, Dict) ->
-    Y = serialize_head(Head, Many),
     PS = constants:pubkey_size() * 8,
     Key = {key, <<?Header:PS>>, OID},
-    dict:store({unmatched, Key},
-               Y,
+    %dict:store({unmatched, Key},
+    csc:update({unmatched, Key},
+               {unmatched_head, Head, Many, OID},
                Dict).
+dict_head_new(Head, Many, OID, Dict) ->
+    PS = constants:pubkey_size() * 8,
+    Key = {key, <<?Header:PS>>, OID},
+    %HK = trees2:hash_key(unmatched, Key),
+    csc:update({unmatched, Key},
+            {unmatched_head, Head, Many, OID},
+            Dict).
 head_put(Head, Many, OID, Root) ->
     PS = constants:pubkey_size() * 8,
     Y = serialize_head(Head, Many),
     ID = key_to_int({key, <<?Header:PS>>, OID}),
     trie:put(ID, Y, 0, Root, ?name).
+all_verkle(Trees, OID) ->
+    case verkle_head_get(Trees, OID) of
+        empty -> [];
+        {Head, Many} ->
+            %head is 65 byte pointer, many is int.
+            %io:fwrite({Head, Many}),
+            all_verkle2(Head, Trees, OID)
+    end.
+all_verkle2(X, Trees, OID) ->
+    %todo, implementing this.
+    PS = constants:pubkey_size() * 8,
+    case X of
+        %<<?Null:PS>> -> [<<?Header:PS>>];
+        <<?Null:PS>> -> [];
+	Pub ->
+            Order = trees:vget(
+                         unmatched,
+                         {key, Pub, OID}, 
+                         dict:new(), Trees),
+            %io:fwrite({Pub, OID, Order}),
+            [Pub|all_verkle2(Order#unmatched.pointer, Trees, OID)]
+    end.
+    
 all(Root, OID) ->%pubkeys of everyone who made bets.
     case head_get(Root, OID) of
         empty -> [];
@@ -227,7 +354,6 @@ all2(X, Root, OID) ->
     PS = constants:pubkey_size() * 8,
     case X of
         <<?Null:PS>> -> [<<?Header:PS>>];
-	
         Pub -> 
             {_, Order, _} = get({key, Pub, OID}, Root),
             [Pub|all2(Order#unmatched.pointer, Root, OID)]
@@ -261,6 +387,7 @@ dict_add2(Order, Dict, P, OID) ->
             L2 = L#unmatched{pointer = Order#unmatched.account},
             Dict2 = dict_write(L2, Dict),
             <<?Null:PS>> = Order#unmatched.pointer,
+            %dict_write_new(Order, Dict2);
             dict_write(Order, Dict2);
         M -> dict_add2(Order, Dict, M, OID)
     end.
@@ -290,8 +417,13 @@ dict_remove2(ID, OID, Dict, P) ->
             dict_remove2(ID, OID, Dict, X)
     end.
 dict_delete(Pub, OID, Dict) ->
-    Key = {key, Pub, OID},
-    dict:store({unmatched, Key}, 0, Dict).
+    Key = {unmatched, {key, Pub, OID}},
+    %dict:store({unmatched, Key}, 0, Dict).
+    %AS = constants:pubkey_size(),
+    %PS = AS * 8,
+            %Val2 = Val#unmatched{amount = 0, pointer = <<1:PS>>},%setting pointer to 1 means this was deleted.
+    csc:remove(Key, Dict).
+            %csc:update({unmatched, Key}, 0, Dict)
 delete(Pub, Root) ->
     ID = key_to_int(Pub),
     trie:delete(ID, Root, ?name).
@@ -299,6 +431,10 @@ dict_match(Order, OID, Dict, Height) ->
     %Match1 is unmatched that are still open.
     %Match2 is unmatched that are already closed. We need to pay them their winnings.
     {Head, Many} = dict_head_get(Dict, OID),
+    if
+        is_atom(Head) -> io:fwrite({Head, Many});
+        true -> ok
+    end,
     {Switch, Dict2, Matches1, Matches2} = 
         dict_match2(Order, OID, Dict, Head, [], [], Height),
     {Many2, Switch2} = 
@@ -310,6 +446,7 @@ dict_match(Order, OID, Dict, Height) ->
     Dict3 = dict_many_update(Many2, OID, Dict2),
     {Matches1, Matches2, Switch2, Dict3}.
 dict_match2(Order, OID, Dict, T, Matches1, Matches2, Height) ->
+    false = is_atom(T),
     PS = constants:pubkey_size() * 8,
     case T of
         <<?Null:PS>> ->

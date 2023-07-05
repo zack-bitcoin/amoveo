@@ -67,9 +67,17 @@ deserialize(B) ->
 dict_write(X, Dict) ->
     Account = X#matched.account,
     Oracle = X#matched.oracle,
-    dict:store({matched, {key, Account, Oracle}},
-               serialize(X),
-               Dict).
+    %dict:store({matched, {key, Account, Oracle}},
+    csc:update({matched, {key, Account, Oracle}},
+               X, Dict).
+dict_write_new(X, Dict) ->
+    Account = X#matched.account,
+    Oracle = X#matched.oracle,
+    Key = {key, Account, Oracle},
+    HashKey = trees2:hash_key(matched, Key),
+    csc:add(matched, HashKey, {matched, Key},
+            X, Dict).
+    
 write(E, Tree) ->
     K = {key, E#matched.account, E#matched.oracle},
     Key = key_to_int(K),
@@ -77,7 +85,20 @@ write(E, Tree) ->
     trie:put(Key, X, 0, Tree, ?name).
 dict_get({key, Account, Oracle}, Dict) ->
     dict_get({key, Account, Oracle}, Dict, 0).
-dict_get({key, Account, Oracle}, Dict, Height) ->
+dict_get(Key = {key, Account, Oracle}, 
+         Dict, Height) ->
+    B = Height > forks:get(39),
+    C = if
+            B -> error;
+            true -> empty
+        end,
+    case csc:read({matched, Key}, Dict) of
+        error -> C;
+        {empty, _, _} -> empty;
+        {ok, matched, Val} -> Val
+    end.
+dict_get_old(Key = {key, Account, Oracle}, 
+         Dict, Height) ->
     true = is_binary(Account),
     %io:fwrite(Oracle),
     true = is_binary(Oracle),
@@ -85,7 +106,7 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     HS = size(Oracle),
     PS = constants:pubkey_size(),
     PS = size(Account),
-    X = dict:find({matched, {key, Account, Oracle}}, Dict),
+    X = dict:find({matched, Key}, Dict),
     B = Height > forks:get(39),
     C = if
             B -> error;
@@ -94,8 +115,18 @@ dict_get({key, Account, Oracle}, Dict, Height) ->
     case X of
 	error -> C;
         {ok, 0} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, {matched, Key}} -> empty;
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                89 -> trees2:deserialize(4, Y);
+%                _ ->
+%                    deserialize(Y)
+%            end
     end.
+
+key_to_int({matched, Key}) -> 
+    key_to_int(Key);
 key_to_int({key, Account, Oracle}) -> 
     <<Y:256>> = hash:doit(<<Account/binary, Oracle/binary>>),
     Y.
@@ -110,7 +141,7 @@ get(ID, Tree) ->%should probably be generalized to trees module.
 	end,
     {X, V, Proof}.
 dict_delete(Key, Dict) ->
-    dict:store({matched, Key}, 0, Dict).
+    csc:remove({matched, Key}, Dict).
 delete(Key, Tree) ->
     Int = key_to_int(Key),
     trie:delete(Int, Tree, ?name).
@@ -163,9 +194,9 @@ test2() ->
     Key = {key, Pub, OID},
     CFG = trie:cfg(oracle_bets),
     Dict0 = dict:new(),
-    Dict1 = dict_write(C, Dict0),
+    Dict1 = dict_write_new(C, Dict0),
     Account = #acc{balance = 100000, nonce = 0, pubkey = Pub},
-    Dict2 = accounts:dict_write(Account, Dict1),
+    Dict2 = accounts:dict_write_new(Account, Dict1),
     C = dict_get(Key, Dict2),
     Dict3 = dict_add_bet(Pub, OID, 1, 100, Dict2),
     Bet2 = dict_get(Key, Dict3),

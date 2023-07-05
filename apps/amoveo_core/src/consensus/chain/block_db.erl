@@ -123,6 +123,9 @@ handle_cast({write, Block, Hash}, X) ->
 handle_cast({load_page, U}, X) -> 
     {Loc, Size} = write_page(U, X),
     {Start, End} = height_range(U),
+    %io:fwrite("block db load page "),
+    %io:fwrite(integer_to_list(Start)),
+    %io:fwrite("\n"),
     PageNumber = X#d.page_number,
     Pages2 = dict:store(PageNumber, {Loc, Size, Start, End}, X#d.pages),
     BK = dict:fetch_keys(U),
@@ -241,7 +244,10 @@ compress(X) ->
 uncompress(X) ->
     S = zlib:open(),
     zlib:inflateInit(S),
-    Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
+    A = zlib:inflate(S, X),
+    B = list_to_binary(A),
+    Y = binary_to_term(B),
+    %Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
     zlib:close(S),
     Y.
     %binary_to_term(zlib:uncompress(X)).

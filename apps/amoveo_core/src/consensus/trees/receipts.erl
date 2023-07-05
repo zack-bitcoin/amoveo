@@ -1,7 +1,7 @@
 -module(receipts).
 -export([new/3,
          write/2, get/2, delete/2,
-         dict_delete/2, dict_write/2, dict_get/2,%update dict stuff
+         dict_delete/2, dict_write/2, dict_get/2,dict_get/3,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
          tid/1, pubkey/1, id/1,
@@ -49,26 +49,54 @@ deserialize(<<T:256, P:520, N0/binary>>) ->
     new(<<T:256>>, <<P:520>>,  N).
 
 dict_write(R, Dict) ->
+    %csc:update({receipts, {key, R#receipt.id}}, R, Dict).
+    true = is_binary(R#receipt.id),
+    csc:update({receipts, R#receipt.id}, R, Dict).
+
+dict_write_old(R, Dict) ->
     dict:store({receipts, R#receipt.id},
-               serialize(R),
+               %serialize(R),
+               R,
                Dict).
 write(R, Root) ->
     ID = R#receipt.id,
     S = serialize(R),
     trie:put(key_to_int(ID), S, 0, Root, receipts).
 
+key_to_int({key, <<X:256>>}) ->
+    key_to_int(<<X:256>>);
 key_to_int(<<X:256>>) ->
     X.
 dict_get(Key, Dict) ->
+    dict_get(Key, Dict, 0).
+dict_get(K, Dict, Height) 
+  when is_binary(K) and (size(K) == 32) ->
+    dict_get({key, K}, Dict, Height);
+dict_get(Key = {key, K}, Dict, _Height) ->
+    case csc:read({receipts, K}, Dict) of
+        error -> error;
+        {empty, _, _} -> empty;
+        {ok, receipts, Val} -> Val
+    end.
+            
+dict_get_old(Key, Dict) ->
     <<_:256>> = Key,
     X = dict:find({receipts, Key}, Dict),
     case X of
 	error -> error;
         {ok, 0} -> empty;
         {ok, empty} -> empty;
-        {ok, Y} -> deserialize(Y)
+        {ok, {receipts, Key}} -> empty;
+        {ok, Y} -> Y
+%            SY = size(Y),
+%            case SY of
+%                73 -> trees2:deserialize(10, Y);
+%                _ -> deserialize(Y)
+%            end
     end.
-get(ID, Receipts) ->
+%deserialize 10
+%get({key, ID}, Receipts) when is_binary(ID) ->
+get(ID, Receipts) when is_binary(ID) ->
     <<_:256>> = ID,
     {RH, Leaf, Proof} = trie:get(key_to_int(ID), Receipts, receipts),
     V = case Leaf of
@@ -76,8 +104,9 @@ get(ID, Receipts) ->
 	    L -> deserialize(leaf:value(L))
 	end,
     {RH, V, Proof}.
-dict_delete(Key, Dict) ->      
-    dict:store({receipts, Key}, 0, Dict).
+dict_delete(Key, Dict) when is_binary(Key) ->      
+    csc:remove({receipts, Key}, Dict).
+    %dict:store({receipts, Key}, 0, Dict).
 delete(ID,Tree) ->
     trie:delete(ID, Tree, receipts).
 make_leaf(Key, V, CFG) ->

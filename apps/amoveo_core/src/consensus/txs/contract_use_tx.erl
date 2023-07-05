@@ -45,7 +45,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Contract = contracts:dict_get(CID, Dict2),
     #contract{
       many_types = Many,
-      nonce = ContractNonce,
+               %nonce = ContractNonce,
       last_modified = LM,
       delay = Delay,
       closed = Closed,
@@ -61,13 +61,21 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                   volume = Volume2
                  },
     Dict3 = contracts:dict_write(Contract2, Dict2),
+    true = length(dict:fetch_keys(Dict2)) ==
+        length(dict:fetch_keys(Dict3)),
     Dict4 = 
         case Source of
             <<0:256>> ->%veo type
                 Facc2 = accounts:dict_update(From, Dict3, -Amount, none),
                 accounts:dict_write(Facc2, Dict3);%using veo to buy a complete set of subcurrencies
             _ ->
-                Key = sub_accounts:make_key(From, Source, SourceType),
+                F52 = forks:get(52),
+                Key = if
+                          NewHeight < F52 ->
+                              sub_accounts:make_key(From, Source, SourceType);
+                          true ->
+                              sub_accounts:make_v_key(From, Source, SourceType)
+                      end,
                 OA = sub_accounts:dict_get(Key, Dict3),
                 A2 = 
                     case OA of
@@ -83,12 +91,17 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 send_sub_accounts(0, _, _, _, Dict) ->
     Dict;
 send_sub_accounts(N, From, CID, Amount, Dict) ->
-    Key = sub_accounts:make_key(From, CID, N),
+    %Key = sub_accounts:make_key(From, CID, N),
+    Key = sub_accounts:make_v_key(From, CID, N),
     OA = sub_accounts:dict_get(Key, Dict),
     A2 = 
         case OA of
-            empty -> sub_accounts:new(From, Amount, CID, N);
-            _ -> sub_accounts:dict_update(Key, Dict, Amount, none)
+            empty -> 
+                A2 = sub_accounts:new(
+                       From, Amount, CID, N);
+            _ -> 
+                A2 = sub_accounts:dict_update(
+                       Key, Dict, Amount, none)
         end,
     Dict2 = sub_accounts:dict_write(A2, Dict),
     send_sub_accounts(N - 1, From, CID, Amount, Dict2).
