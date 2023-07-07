@@ -78,7 +78,10 @@ handle_call(make, _, X) ->
                  make_temp_dir(Temp2),
                  if
                      Height < F52 ->
-                         ok = backup_trees(T, CR);%makes a copy of the tree files.
+                         timer:sleep(1000),
+                         ok = backup_trees(T, CR),
+                         timer:sleep(1000),
+                         ok;%makes a copy of the tree files.
                      true ->
                          tree:quick_save(amoveo),
                          %Mode = verkle_trees_sup:mode(),
@@ -184,14 +187,14 @@ sync() ->
                   checksync(P)
           end).
 checksync(P = {IP, Port}) ->
-    io:fwrite("checksync\n"),
+    %io:fwrite("checksync\n"),
     sync_kill:start(),
     Y = talker:talk(
           {checkpoint}, P),
     timer:sleep(100),
     case Y of
         {ok, []} -> 
-            io:fwrite("changing peer\n"),
+            %io:fwrite("changing peer\n"),
             %1=2,
             sync();
         {ok, CPL} -> sync(P, CPL);
@@ -221,7 +224,8 @@ sync(IP, Port, CPL) ->
             1=2
     end,
     CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
-    %io:fwrite("read header\n"),
+    %CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
+    io:fwrite("checkpoint read header\n"),
     Header = case headers:read(CP1) of
                  error ->
                      io:fwrite("we need to sync more headers first\n"),
@@ -261,11 +265,11 @@ sync(IP, Port, CPL) ->
     %S = "tar -xf " ++ Tarball ++ " " ++ Temp, %this version was working for multi-node tests on one computer.
     os:cmd("mkdir " ++ Temp),
     os:cmd(S),
-    io:fwrite(S),
-    io:fwrite("\n"),
+    %io:fwrite(S),
+    %io:fwrite("\n"),
 
     Roots = if
-        is_integer(TDB) ->
+                is_integer(TDB) ->
                     %io:fwrite("mv " ++ Temp ++ "/amoveo_v_stem " ++ CR ++ "data/amoveo_v_stem.db\n"),
                     os:cmd("mv " ++ Temp ++ "/backup_temp/*.db " ++ CR ++ "data/."),
                     %os:cmd("mv " ++ Temp ++ "/amoveo_v_leaf.db " ++ CR ++ "data/amoveo_v_leaf.db"),
@@ -326,7 +330,7 @@ sync(IP, Port, CPL) ->
                     io:fwrite(Temp),
                     io:fwrite("\n"),
                     %os:cmd("mv "++ Temp ++ "/* " ++ CR ++ "data/."),
-                    io:fwrite("test -d " ++Temp ++ "/backup_temp && echo \"yes\""),
+                    %io:fwrite("test -d " ++Temp ++ "/backup_temp && echo \"yes\""),
                     case os:cmd("test -d " ++Temp ++ "/backup_temp && echo \"yes\"") of
                         "yes\n" ->
                             io:fwrite("getting from another updated node\n"),
@@ -334,37 +338,37 @@ sync(IP, Port, CPL) ->
                             io:fwrite("mv "++ Temp ++ "/backup_temp/* " ++ CR ++ "data/.\n");
                         X ->
                             io:fwrite("getting it from an old node\n"),
-                            os:cmd("mv "++ Temp ++ "/db/backup_temp/* " ++ CR ++ "data/."),
-                            io:fwrite("mv "++ Temp ++ "/db/backup_temp/* " ++ CR ++ "data/.")
+                            os:cmd("cp "++ Temp ++ "/db/backup_temp/* " ++ CR ++ "data/."),
+                            io:fwrite("cp "++ Temp ++ "/db/backup_temp/* " ++ CR ++ "data/.")
                     end,
                             
-                    os:cmd("rm -rf "++ Temp),
-                    os:cmd("rm "++ Tarball),
+                    %os:cmd("rm -rf "++ Temp),
+                    %os:cmd("rm "++ Tarball),
 
 
 
-            TreeTypes = tree_types(element(1, TDB)),
+                    TreeTypes = tree_types(element(1, TDB)),
 
     %TDB is trees from the old block.
                     timer:sleep(500),
-            io:fwrite("about to reload ets\n"),
+                    %io:fwrite("about to reload ets\n"),
 
     %todo. what if a page is empty? we need to load an empty table with the correct configuration.
     %the configuration data is in a bunch of tree_child/6 in amoveo_sup. 
 
-            lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),%grabs the copy of the table from the hard drive, and loads it into ram.
+                    lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),%grabs the copy of the table from the hard drive, and loads it into ram.
                     timer:sleep(2000),
-            io:fwrite("reloaded ets\n"),
-            MRoots = block:make_roots(TDB),%this works because when we downloaded the checkpoint from them, it is the same data being stored at the same pointer locations.
-            io:fwrite("made roots\n"),
+                    %io:fwrite("reloaded ets\n"),
+                    MRoots = block:make_roots(TDB),%this works because when we downloaded the checkpoint from them, it is the same data being stored at the same pointer locations.
+                    %io:fwrite("made roots\n"),
             lists:map(fun(Type) -> 
     %delete everything from the checkpoint besides the merkel trees of the one block we care about. Also verifies all the links in the merkel tree.
                               Pointer = trees:Type(TDB),
                               trie:clean_ets(Type, Pointer)
                       end, TreeTypes),
-            io:fwrite("cleaned ets\n"),
+                    %io:fwrite("cleaned ets\n"),
                     MRoots
-    end,
+            end,
     %try syncing the blocks between here and the top.
     block_hashes:add(CP1),
     {true, NBlock3} = block:check2(Block, NBlock2),
@@ -373,9 +377,11 @@ sync(IP, Port, CPL) ->
     gen_server:cast(block_db, {write, NBlock3, CP1}),
     block_db:set_ram_height(Height),
     headers:absorb_with_block([Header]),
+    io:fwrite("checkpoint: about to recent blocks add\n"),
     recent_blocks:add(CP1, 
                       Header#header.accumulative_difficulty, 
                       Height),
+    io:fwrite("recent blocks added\n"),
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
 

@@ -1,11 +1,14 @@
+can't get a full node to sync. the checkpoint seems corrupted.
+* it seems like if a checkpoint is generated while rapidly syncing blocks at the same time, then that checkpoint ends up corrupted.
+
+
+
 peers_heights:peers_heights is failing if some of the peers get shut down.
+span threads to connect to each peer.
 
 
-update the servers to use the verkle branch.
 * clean up print statements while syncing.
-merge the verkle branch into master.
 update the servers to use the master branch.
-* maybe keep at least one old server, to help people sync with the network if they are using old code.
 
 
 

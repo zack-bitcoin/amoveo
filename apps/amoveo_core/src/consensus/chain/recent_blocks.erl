@@ -46,7 +46,9 @@ handle_call({add, Hash, TotalWork, Height}, _, X) ->
 				      A1 < B1
 			      end,
 			      X#r.blocks),
+              io:fwrite("about to remove before\n"),
               Blocks = remove_before(BS, AncestorsWork),
+              io:fwrite("removed before\n"),
               %Blocks = remove_before(X#r.blocks, AncestorsWork),
               #r{blocks = [{Hash, TotalWork}|Blocks], work = TotalWork, save_limit = AncestorsWork};
           TotalWork > X#r.save_limit ->

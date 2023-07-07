@@ -31,6 +31,7 @@ tree_killer([H|T]) ->
     supervisor:terminate_child(amoveo_sup, H),
     tree_killer(T).
 trees() ->
+    %oracle_bets ?
     [accounts, channels, existence, oracles, orders, governance, matched, unmatched, sub_accounts, contracts, trades, markets, stablecoins, receipts].
     
 stop() -> 

@@ -168,11 +168,13 @@ trade_peers(Peer) ->
     remote_peer({peers, MyPeers}, Peer),
     peers:add(TheirsPeers).
 get_headers(Peer) -> 
+    io:fwrite("get headers\n"),
     N = (headers:top())#header.height,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     Start = max(0, N - FT), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
+    io:fwrite("get headers 2\n"),
     {ok, HB} = ?HeadersBatch,
     Headers = remote_peer({headers, HB, N}, Peer),
     case Headers of
@@ -193,6 +195,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 	    end
     end.
 get_headers3(Peer, N) ->
+    io:fwrite("get headers 3\n"),
     AH = api:height(),
     {ok, HB} = ?HeadersBatch,
     %true = (N > AH - HB - 1),
