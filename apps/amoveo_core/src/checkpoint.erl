@@ -190,8 +190,7 @@ checksync(P = {IP, Port}) ->
     timer:sleep(100),
     case Y of
         {ok, []} -> 
-            %io:fwrite("changing peer\n"),
-            %1=2,
+            io:fwrite("This peer doesn't have any checkpoints. Attempting to find a different peer\n"),
             sync();
         {ok, CPL} -> sync(P, CPL);
         X -> io:fwrite(X),
@@ -207,21 +206,38 @@ sync(IP, Port, CPL) ->
     %set the config variable `reverse_syncing` to true.
     %let all the headers sync first before you run this.
     Peer = {IP, Port},
+    {ok, ForkTolerance} = 
+        application:get_env(
+          amoveo_core, fork_tolerance),
     CR = constants:custom_root(),
-    io:fwrite("downloading checkpoint\n"),
-    %{ok, CPL} = talker:talk({checkpoint}, Peer),
+    io:fwrite("searching for a checkpoint\n"),
 
-    if
-        is_binary(CPL) -> io:fwrite({CPL}),
-                          1=2;
-        is_list(CPL) -> ok;
-        true -> 
-            io:fwrite("is not a list\n"),
-            1=2
-    end,
+    HCPL0 = lists:map(
+             fun(C) ->
+                     case headers:read(C) of
+                         {ok, H} ->
+                             H2 = H#header.height,
+                             {H2, C};
+                         error ->
+                             {}
+                     end
+             end, CPL),
+    TopHeight = api:height(),
+    HCPL = lists:filter(fun(X) ->
+                                case X of
+                                    {H, _} -> H < (TopHeight - ForkTolerance);
+                                    _ -> false
+                                end
+                        end, HCPL0),
+    case HCPL of
+        [] -> 
+            io:fwrite("this peer doesn't have a checkpoint at an early enough height to conform to the security configuration of this node. Attempting to find a different peer...\n"),
+            sync();
+        _ ->
+    {_, CP1} = hd(HCPL),
+
     %CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
-    CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
-    io:fwrite("checkpoint read header\n"),
+    %CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
     Header = case headers:read(CP1) of
                  error ->
                      io:fwrite("we need to sync more headers first\n"),
@@ -237,7 +253,7 @@ sync(IP, Port, CPL) ->
         "hash is " ++
     %io:fwrite(packer:pack(CP1)),
         base58:binary_to_base58(CP1) ++
-        "\n",
+        ", now loading checkpoint\n",
     io:fwrite(PrintString),
     TopHeader = headers:top(),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
@@ -252,11 +268,13 @@ sync(IP, Port, CPL) ->
     NBlock2 = NBlock#block{trees = {NDict, NNewDict, NProofTree, CP1}},
     Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
     Roots = NBlock#block.roots,
+            io:fwrite("Found a candidate checkpoint. downloading... \n"),
     TarballData = get_chunks(CP1, Peer, 0),
     Tarball = CR ++ "backup.tar.gz",
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
     %S = "tar -C "++ CR ++" -xf " ++ Tarball,
+            io:fwrite("unzipping the checkpoint\n"),
     S = "tar -xf " ++ Tarball ++ " -C " ++ Temp,
     %S = "tar -xf " ++ Tarball ++ " " ++ Temp, %this version was working for multi-node tests on one computer.
     os:cmd("mkdir " ++ Temp),
@@ -320,26 +338,26 @@ sync(IP, Port, CPL) ->
                     %todo, delete everything from the table besides what can be proved from this single root.
                     %todo, return the root hash of the tree.
         true ->
-                    io:fwrite("merkle checkpoint\n"),
-                    io:fwrite(Tarball),
-                    io:fwrite("\n"),
-                    io:fwrite(Temp),
-                    io:fwrite("\n"),
+                    io:fwrite("loading a merkle checkpoint.\n"),
+                    %io:fwrite(Tarball),
+                    %io:fwrite("\n"),
+                    %io:fwrite(Temp),
+                    %io:fwrite("\n"),
                     %os:cmd("mv "++ Temp ++ "/* " ++ CR ++ "data/."),
                     %io:fwrite("test -d " ++Temp ++ "/backup_temp && echo \"yes\""),
                     case os:cmd("test -d " ++Temp ++ "/backup_temp && echo \"yes\"") of
                         "yes\n" ->
-                            io:fwrite("getting from another updated node\n"),
+                            io:fwrite("new zip format\n"),
                             os:cmd("mv "++ Temp ++ "/backup_temp/* " ++ CR ++ "data/."),
                             io:fwrite("mv "++ Temp ++ "/backup_temp/* " ++ CR ++ "data/.\n");
                         X ->
-                            io:fwrite("getting it from an old node\n"),
+                            io:fwrite("old zip format\n"),
                             os:cmd("cp "++ Temp ++ "/db/backup_temp/* " ++ CR ++ "data/."),
                             io:fwrite("cp "++ Temp ++ "/db/backup_temp/* " ++ CR ++ "data/.")
                     end,
                             
-                    %os:cmd("rm -rf "++ Temp),
-                    %os:cmd("rm "++ Tarball),
+                    os:cmd("rm -rf "++ Temp),
+                    os:cmd("rm "++ Tarball),
 
 
 
@@ -347,14 +365,14 @@ sync(IP, Port, CPL) ->
 
     %TDB is trees from the old block.
                     timer:sleep(500),
-                    io:fwrite("about to reload ets\n"),
+                    %io:fwrite("about to reload ets\n"),
 
     %todo. what if a page is empty? we need to load an empty table with the correct configuration.
     %the configuration data is in a bunch of tree_child/6 in amoveo_sup. 
 
                     lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),%grabs the copy of the table from the hard drive, and loads it into ram.
-                    timer:sleep(2000),
-                    io:fwrite("reloaded ets\n"),
+                    %timer:sleep(2000),
+                    %io:fwrite("reloaded ets\n"),
                     MRoots = block:make_roots(TDB),%this works because when we downloaded the checkpoint from them, it is the same data being stored at the same pointer locations.
                     io:fwrite("made roots\n"),
             lists:map(fun(Type) -> 
@@ -365,23 +383,17 @@ sync(IP, Port, CPL) ->
                       end, TreeTypes),
                     MRoots
             end,
-    io:fwrite("cleaned ets\n"),
     %try syncing the blocks between here and the top.
     block_hashes:add(CP1),
     {true, NBlock3} = block:check2(Block, NBlock2),
     %block_absorber:do_save(NBlock3, CP1),
-    io:fwrite("writing blocks\n"),
     gen_server:cast(block_db, {write, Block, BlockHash}),
     gen_server:cast(block_db, {write, NBlock3, CP1}),
-    io:fwrite("set ram height\n"),
     block_db:set_ram_height(Height),
-    io:fwrite("absorb header with block\n"),
     headers:absorb_with_block([Header]),
-    io:fwrite("checkpoint: about to recent blocks add\n"),
     recent_blocks:add(CP1, 
                       Header#header.accumulative_difficulty, 
                       Height),
-    io:fwrite("recent blocks added\n"),
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
 
@@ -391,7 +403,8 @@ sync(IP, Port, CPL) ->
     %reverse_sync(Peer),
     timer:sleep(100),
     io:fwrite("checkpoint starting sync\n"),
-    sync:start([{IP, Port}]).
+            sync:start([{IP, Port}])
+    end.
     %ok.
 
 all_zero([]) -> true;
@@ -427,12 +440,14 @@ reverse_sync(Height, Peer) ->
     sync_kill:start(),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
     {ok, NBlock} = talker:talk({block, Height}, Peer),
+    io:fwrite("reverse sync got first 2 blocks\n"),
     Roots = NBlock#block.roots,
 
     {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
     Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
     %TDB = Block#block.trees,
     %Roots = block:make_roots(TDB),
+    io:fwrite("reverse sync start loop\n"),
     reverse_sync2(Height, Peer, Block2, Roots).
 
 

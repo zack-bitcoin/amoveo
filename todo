@@ -1,4 +1,5 @@
 in checkpoint.erl we turned off trie:clean_ets because it was causing failure to sync with the checkpoint.
+We probably need to do clean_ets to prevent a memory leak, so we should try to figure out what is going wrong.
 
 
 can't get a full node to sync. the checkpoint seems corrupted.

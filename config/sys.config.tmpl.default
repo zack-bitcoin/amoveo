@@ -68,7 +68,7 @@
     {block_threads, 2},
     {push_blocks_batch, 50},
 
-    {checkpoint_depth, 1000},
+    {checkpoint_depth, 1000},%we want to keep this bigger than the fork_tolerance.
     {reverse_syncing, true},
     {minimum_to_verify, 162000}, %below this block height, it does not verify blocks, it just checks that the blocks hash matches the header for the same height.
 
