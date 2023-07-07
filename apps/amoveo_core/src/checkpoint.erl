@@ -78,9 +78,7 @@ handle_call(make, _, X) ->
                  make_temp_dir(Temp2),
                  if
                      Height < F52 ->
-                         timer:sleep(1000),
-                         ok = backup_trees(T, CR),
-                         timer:sleep(1000),
+                         backup_trees(T, CR),
                          ok;%makes a copy of the tree files.
                      true ->
                          tree:quick_save(amoveo),
@@ -170,10 +168,8 @@ get_chunks2(Hash, Peer, N, Result) ->
 
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
-    %IP = {46,101,185,98},
-    %IP = {159,89,87,58},
-    %IP = {159,223,201,207},%the pool.
-    IP = {159,223,85,216},
+    IP = {159,223,85,216},%the pool
+    %IP = {159,65,126,146},%germany
     Port = 8080,
     spawn(fun() ->
                   sync(IP, Port)
@@ -223,8 +219,8 @@ sync(IP, Port, CPL) ->
             io:fwrite("is not a list\n"),
             1=2
     end,
-    CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
-    %CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
+    %CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
+    CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
     io:fwrite("checkpoint read header\n"),
     Header = case headers:read(CP1) of
                  error ->
@@ -351,31 +347,35 @@ sync(IP, Port, CPL) ->
 
     %TDB is trees from the old block.
                     timer:sleep(500),
-                    %io:fwrite("about to reload ets\n"),
+                    io:fwrite("about to reload ets\n"),
 
     %todo. what if a page is empty? we need to load an empty table with the correct configuration.
     %the configuration data is in a bunch of tree_child/6 in amoveo_sup. 
 
                     lists:map(fun(TN) -> trie:reload_ets(TN) end, TreeTypes),%grabs the copy of the table from the hard drive, and loads it into ram.
                     timer:sleep(2000),
-                    %io:fwrite("reloaded ets\n"),
+                    io:fwrite("reloaded ets\n"),
                     MRoots = block:make_roots(TDB),%this works because when we downloaded the checkpoint from them, it is the same data being stored at the same pointer locations.
-                    %io:fwrite("made roots\n"),
+                    io:fwrite("made roots\n"),
             lists:map(fun(Type) -> 
     %delete everything from the checkpoint besides the merkel trees of the one block we care about. Also verifies all the links in the merkel tree.
                               Pointer = trees:Type(TDB),
-                              trie:clean_ets(Type, Pointer)
+                              %trie:clean_ets(Type, Pointer)
+                              ok
                       end, TreeTypes),
-                    %io:fwrite("cleaned ets\n"),
                     MRoots
             end,
+    io:fwrite("cleaned ets\n"),
     %try syncing the blocks between here and the top.
     block_hashes:add(CP1),
     {true, NBlock3} = block:check2(Block, NBlock2),
     %block_absorber:do_save(NBlock3, CP1),
+    io:fwrite("writing blocks\n"),
     gen_server:cast(block_db, {write, Block, BlockHash}),
     gen_server:cast(block_db, {write, NBlock3, CP1}),
+    io:fwrite("set ram height\n"),
     block_db:set_ram_height(Height),
+    io:fwrite("absorb header with block\n"),
     headers:absorb_with_block([Header]),
     io:fwrite("checkpoint: about to recent blocks add\n"),
     recent_blocks:add(CP1, 

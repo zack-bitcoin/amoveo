@@ -1,3 +1,6 @@
+in checkpoint.erl we turned off trie:clean_ets because it was causing failure to sync with the checkpoint.
+
+
 can't get a full node to sync. the checkpoint seems corrupted.
 * it seems like if a checkpoint is generated while rapidly syncing blocks at the same time, then that checkpoint ends up corrupted.
 
