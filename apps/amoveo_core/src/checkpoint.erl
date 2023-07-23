@@ -364,7 +364,7 @@ sync(IP, Port, CPL) ->
                     TreeTypes = tree_types(element(1, TDB)),
 
     %TDB is trees from the old block.
-                    timer:sleep(500),
+                    %timer:sleep(500),
                     %io:fwrite("about to reload ets\n"),
 
     %todo. what if a page is empty? we need to load an empty table with the correct configuration.

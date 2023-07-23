@@ -327,7 +327,7 @@ doit({proof, IDs, Hash}) ->
 %                     IDs),
     {Proof, IDs3} = trees2:get_proof(IDs, Loc, fast),
     %todo. put this proof in a format that javascript will understand.
-    {Proof, IDs3};
+    {ok, {Proof, IDs3}};
     
 doit({proof, TreeName, ID, Hash}) ->
 %here is an example of looking up the 5th governance variable. the word "governance" has to be encoded base64 to be a valid packer:pack encoding.
@@ -338,7 +338,7 @@ doit({proof, TreeName, ID, Hash}) ->
     TN = trees:name(TreeName), 
     if
         is_integer(Trees) ->
-            io:fwrite("we needed a verkle proof, not a merkle proof\n"),
+            %io:fwrite("we needed a verkle proof, not a merkle proof\n"),
             doit({proof, [{TN, ID}], Hash});
         true ->
             %merkle case

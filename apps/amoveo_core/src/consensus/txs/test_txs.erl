@@ -4067,7 +4067,17 @@ test(66) ->
     end,
 
     success;
-   
+test(68) ->
+    %making and verifying verkle proofs. update 52.
+    restart_chain(),
+    mine_blocks(4),
+    true = forks:get(52) < block:height(),
+    TP = (block:top())#block.trees,
+    {Proof, Leaves} = trees2:get_proof([{accounts, keys:pubkey()}], TP, fast),
+    {true, _ProofTree} = trees2:verify_proof(Proof, Leaves),
+    success;
+    
+ 
 test(unused) ->
     io:fwrite("test stablecoin_new_tx\n"),
     headers:dump(),

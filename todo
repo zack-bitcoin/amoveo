@@ -1,29 +1,45 @@
-in checkpoint.erl we turned off trie:clean_ets because it was causing failure to sync with the checkpoint.
-We probably need to do clean_ets to prevent a memory leak, so we should try to figure out what is going wrong.
+
+we need to set up the p2p derivatives server in order to test out the trades and receipts and offer_explorer.html
+* it isn't connecting to the light node.
 
 
-can't get a full node to sync. the checkpoint seems corrupted.
-* it seems like if a checkpoint is generated while rapidly syncing blocks at the same time, then that checkpoint ends up corrupted.
+make sure that all verkle proofs work:
+X acc
+X contract
+X sub_acc
+X market
+X oracle
+trade
+receipt
+
+test html pages
+* offer_explorer.html
 
 
 
-peers_heights:peers_heights is failing if some of the peers get shut down.
-span threads to connect to each peer.
-
-
-* clean up print statements while syncing.
-update the servers to use the master branch.
-
-
-
-we have an api for making verkle proofs.
-We are able to send those proofs to javascript, and javascript knows that it is looking at a verkle proof.
-The javascript libraries seem to be loading.
-The problem now is probably that the proof isn't exactly in the format that the javascript expects.
+when we verify verkle proofs in the light node, make sure we are checking the connection between the header root and the start of the verkle proof.
 
 
 
 schedule the hard update.
+
+
+the new_oracle.html page is working off the old version where one scalar is 10 binary. we need to look into how much of it needs to be updated.
+
+in lookup.html it is trying to look up governance values that no longer exist.
+instead, we should just display a chart of basic blockchain info, like the block reward and block time.
+
+in checkpoint.erl we turned off trie:clean_ets because it was causing failure to sync with the checkpoint.
+We probably need to do clean_ets to prevent a memory leak, so we should try to figure out what is going wrong and fix it.
+
+
+peers_heights:peers_heights is failing if some of the peers get shut down.
+spawn threads to connect to each peer.
+
+
+
+
+
 
 merge the rest of this todo list with the one in amoveo-docs. start working on harberger
 

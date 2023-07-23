@@ -666,7 +666,7 @@ remove_leaves_proof(<<X:256>>) ->
 remove_leaves_proof(N) when is_integer(N) -> N.
 
 
-%todo. in restore_leaves_proof, sometimes there is an empty branch that stores 2 different leaves
+%todo. in restore_leaves_proof, sometimes there is an empty branch that stores 2 different leaves (I think this problem was resolved already?)
 restore_leaves_proof([], T) -> {[], T};
 restore_leaves_proof([{I, 0}], T) -> 
     {[{I, 0}], T};
@@ -675,7 +675,8 @@ restore_leaves_proof(X, [{Tree, K}|T]) ->
     restore_leaves_proof(X, T);
 restore_leaves_proof([{I, 1}], [L|T]) -> 
     case L of
-        {Tree, Key} -> {[{I, 0}], T};
+        {Tree, Key} -> 
+            {[{I, 0}], T};
         _ -> 
             V = hash:doit(serialize(L)),
             K = key(L),
@@ -683,7 +684,6 @@ restore_leaves_proof([{I, 1}], [L|T]) ->
     end;
 restore_leaves_proof(Proofs, Leaves) 
   when is_tuple(Proofs) -> 
-    
     {Proofs2, Leaves2} = 
         restore_leaves_proof(
           tuple_to_list(Proofs), Leaves),

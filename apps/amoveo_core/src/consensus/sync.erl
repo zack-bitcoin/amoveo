@@ -483,9 +483,9 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
                     %todo, download and sync from a checkpoint.
                     ok;
                 true -> 
-                    io:fwrite("new get blocks start, common height is: "),
-                    io:fwrite(integer_to_list(CommonHeight)),
-                    io:fwrite("\n"),
+                    %io:fwrite("new get blocks start, common height is: "),
+                    %io:fwrite(integer_to_list(CommonHeight)),
+                    %io:fwrite("\n"),
                     new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
             end;
 	%true ->
