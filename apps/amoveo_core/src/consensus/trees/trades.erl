@@ -67,13 +67,13 @@ dict_get(K, Dict)
 dict_get(Key = {key, K}, Dict) ->
     case csc:read({trades, K}, Dict) of
         error -> 
-            L = dict:fetch_keys(Dict),
-            if
-                not(L == []) ->
-                    io:fwrite({K, L}),
-                    ok;
-                true -> ok
-            end,
+%            L = dict:fetch_keys(Dict),
+%            if
+%                not(L == []) ->
+%                    io:fwrite({K, L}),
+%                    ok;
+%                true -> ok
+%            end,
             error;
         {empty, _, _} -> empty;
         {ok, trades, Val} -> Val

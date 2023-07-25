@@ -1,19 +1,11 @@
+test the DEX, and betting from the simplified tool interface.
+* in the sell veo tool, when you accept a trade, it fails to make the 99% sell offer
 
-we need to set up the p2p derivatives server in order to test out the trades and receipts and offer_explorer.html
-* it isn't connecting to the light node.
-
-
-make sure that all verkle proofs work:
-X acc
-X contract
-X sub_acc
-X market
-X oracle
-trade
-receipt
 
 test html pages
 * offer_explorer.html
+
+light node format.js, change the default IP back to the server.
 
 
 
