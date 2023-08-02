@@ -225,7 +225,8 @@ sync(IP, Port, CPL) ->
     TopHeight = api:height(),
     HCPL = lists:filter(fun(X) ->
                                 case X of
-                                    {H, _} -> H < (TopHeight - ForkTolerance);
+                                    {H, _} -> %H < (TopHeight - ForkTolerance);
+                                        true;
                                     _ -> false
                                 end
                         end, HCPL0),
