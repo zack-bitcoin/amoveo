@@ -4298,11 +4298,27 @@ test(empty) ->
     PH = block:hash(BP),
     Trees = block_trees(BP),
 
+    success;
+test(many_accounts) ->
+    N = 100,
+    All = make_many(N, 0, []),
+    lists:map(fun(_) ->
+                      timer:sleep(200),
+                      {P, _} = signing:new_key(),
+                      spawn(fun() ->
+                                    api:spend(P, 10)
+                            end)
+              end, All),
+    
     success.
-    
-    
 
     %creating a shareable contract with subcurrencies.
+
+make_many(I, _, R) when I < 1 ->
+    R;
+make_many(N, X, R) ->
+    make_many(N-1, X, [X|R]).
+
 
 test35(_, _, _, 0) -> ok;
 test35(D, S, P, N) ->

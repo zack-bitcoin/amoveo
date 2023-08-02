@@ -463,7 +463,10 @@ deserialize(9, <<I:256, C1:256, C2:256, T1:16, T2:16,
             amount1 = A1, amount2 = A2, shares = S};
 deserialize(10, <<T:256, P:264, N:32>>) ->
     P2 = decompress_pub(<<P:264>>),
-    #receipt{tid = <<T:256>>, pubkey = P2, nonce = N};
+    R = #receipt{tid = <<T:256>>, pubkey = P2, nonce = N},
+    ID = receipts:id_maker(R),
+    R#receipt{id = ID};
+%    #receipt{id = ID, tid = <<T:256>>, pubkey = P2, nonce = N};
 %deserialize(_, T) when is_tuple(T) -> T;
 deserialize(N, B) ->
     io:fwrite({N, B, size(B)}),
@@ -666,16 +669,15 @@ remove_leaves_proof(<<X:256>>) ->
 remove_leaves_proof(N) when is_integer(N) -> N.
 
 
-%todo. in restore_leaves_proof, sometimes there is an empty branch that stores 2 different leaves (I think this problem was resolved already?)
-restore_leaves_proof([], T) -> {[], T};
+restore_leaves_proof([], Leaves) -> {[], Leaves};
 restore_leaves_proof([{I, 0}], T) -> 
     {[{I, 0}], T};
-restore_leaves_proof(X, [{Tree, K}|T]) -> 
+restore_leaves_proof(Proofs, [{_Tree, _K}|T]) -> 
     %skip empty slot.
-    restore_leaves_proof(X, T);
+    restore_leaves_proof(Proofs, T);
 restore_leaves_proof([{I, 1}], [L|T]) -> 
     case L of
-        {Tree, Key} -> 
+        {_Tree, _Key} -> 
             {[{I, 0}], T};
         _ -> 
             V = hash:doit(serialize(L)),

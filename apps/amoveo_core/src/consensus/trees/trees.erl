@@ -427,6 +427,19 @@ vget(TreeID, Key) ->
 vget(TreeID, Key, _Dict, Loc) ->
     Key2 = trees2:hash_key(TreeID, Key),
     32 = size(Key2),
+%    io:fwrite("trees:vget/4 \n"),
+%    if
+%        is_atom(TreeID) -> io:fwrite("atom: ");
+%        true -> io:fwrite("not atom: ")
+%    end,
+%    io:fwrite(TreeID),
+%    io:fwrite("\n"),
+%    if
+%        is_binary(Key) ->
+%            io:fwrite(base64:encode(Key));
+%        true -> ok
+%    end,
+%    io:fwrite("\n"),
     Leaves = 
         %trees2:get_proof([Key2], Loc, fast),
         %trees2:get_proof([{TreeID, Key}], Loc, fast),
