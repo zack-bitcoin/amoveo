@@ -1,12 +1,6 @@
 light node needs to handle orphaned blocks somehow.
 
 
-write a bunch of info to the consensus state. verify that the light node can still verify verkle proofs.
-
-test html pages
-* offer_explorer.html
-
-light node format.js, change the default IP back to the server.
 change p2p back from test mode.
 change explorer back from test mode.
 
