@@ -168,8 +168,9 @@ get_chunks2(Hash, Peer, N, Result) ->
 
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
-    IP = {159,223,85,216},%the pool
+    %IP = {159,223,85,216},%the pool
     %IP = {159,65,126,146},%germany
+    IP = {45, 55, 194, 109}, %ubuntu 22
     Port = 8080,
     spawn(fun() ->
                   sync(IP, Port)
@@ -312,14 +313,14 @@ sync(IP, Port, CPL) ->
 
                     
                     Stem0 = stem_verkle:get(Pointer, CFG),
-                    <<Stem0A:256, Stem0B:256,
-                      Stem0C:256, Stem0D:256>> = 
-                        element(2, Stem0),
+%                    <<Stem0A:256, Stem0B:256,
+%                      Stem0C:256, Stem0D:256>> = 
+%                        element(2, Stem0),
                     %io:fwrite({Stem0A, Stem0B, Stem0C, Stem0D}),
-                    CleanedPoint = ed:e_mul(element(2, Stem0), <<8:256/little>>),
-                    <<Stem1A:256, Stem1B:256,
-                      Stem1C:256, Stem1D:256>> = 
-                        CleanedPoint,
+%                    CleanedPoint = ed:e_mul(element(2, Stem0), <<8:256/little>>),
+%                    <<Stem1A:256, Stem1B:256,
+%                      Stem1C:256, Stem1D:256>> = 
+%                        CleanedPoint,
                     ok = stem_verkle:check_root_integrity(Stem0),
                     Types = element(3, Stem0),
                     %Bool0 = all_zero(tuple_to_list(Types)),
@@ -376,12 +377,13 @@ sync(IP, Port, CPL) ->
                     %io:fwrite("reloaded ets\n"),
                     MRoots = block:make_roots(TDB),%this works because when we downloaded the checkpoint from them, it is the same data being stored at the same pointer locations.
                     io:fwrite("made roots\n"),
-            lists:map(fun(Type) -> 
+                    lists:map(fun(Type) -> 
     %delete everything from the checkpoint besides the merkel trees of the one block we care about. Also verifies all the links in the merkel tree.
-                              Pointer = trees:Type(TDB),
+                                      Pointer = trees:Type(TDB),
                               %trie:clean_ets(Type, Pointer)
-                              ok
-                      end, TreeTypes),
+                                      ok
+                              end, TreeTypes),
+                    true = full_tree_merkle(TDB, TreeTypes),
                     MRoots
             end,
     %try syncing the blocks between here and the top.
@@ -407,6 +409,25 @@ sync(IP, Port, CPL) ->
             sync:start([{IP, Port}])
     end.
     %ok.
+
+
+full_tree_merkle(Trees, TTs) ->
+    %we don't need a verkle version, because tree:clean_ets does that.
+    R = lists:map(fun(Type) ->
+                          Pointer = trees:Type(Trees),
+                          trie:integrity_check(Pointer, Type)
+                  end, TTs),
+    %io:fwrite(R),
+    R2 = lists:foldl(fun(X, A) ->
+                             X and A
+                     end, true, R),
+    if
+        R2 -> true;
+        true -> io:fwrite({R, TTs}),
+                false
+    end.
+            
+
 
 all_zero([]) -> true;
 all_zero([0|T]) -> 
@@ -483,6 +504,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     Page = block_db:uncompress(CompressedPage),
     PageLength = length(dict:fetch_keys(Page)),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, PageLength),
+    %io:fwrite("load pages verified blocks\n"),
     %TODO
     %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
     %if a block has an unknown header, then drop this peer.
@@ -497,6 +519,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
                   amoveo_core, block_cache),
     PageBytes = size(term_to_binary(Page)),
     Pages = cut_page(BottomBlock#block.prev_hash, BlockCacheSize, Page, dict:new(), []),
+    %io:fwrite("load pages cut pages\n"),
     
     lists:map(fun(Page) ->
                       block_db:load_page(Page)
@@ -507,6 +530,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             io:fwrite("synced all blocks back to the genesis.\n"),
             ok;
         true -> 
+            %io:fwrite("getting next page\n"),
             {ok, NextCompressed} = talker:talk({blocks, 50, StartHeight-2}, Peer), %get next compressed page.
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
             spawn(fun() ->

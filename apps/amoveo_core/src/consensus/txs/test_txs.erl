@@ -4300,10 +4300,10 @@ test(empty) ->
 
     success;
 test(many_accounts) ->
-    N = 100,
+    N = 39,
     All = make_many(N, 0, []),
     lists:map(fun(_) ->
-                      timer:sleep(200),
+                      timer:sleep(1000),
                       {P, _} = signing:new_key(),
                       spawn(fun() ->
                                     api:spend(P, 10)

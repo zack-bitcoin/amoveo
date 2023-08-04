@@ -1,3 +1,28 @@
+we built a better checkpoint, but it is failing to build the block for the verkle update.
+It looks like a serialization error.
+
+
+
+
+When we make the checkpoint, we are doing it by making a copy of the file that contains the database.
+Copying a file this way is not secure against race conditions. Like, if we are syncing the blocks quickly, and we try to copy a checkpoint at block height N, but while copying that checkpoint, we sync many more blocks and edit the database.
+im thinking the solution to this is what when we make a checkpoint, we should scan the entire history that comes from a certain root hash, and copy/paste each element from that database into a new one.
+This operation would be secure against race conditions.
+or maybe this isn't necessary.
+
+
+
+now when we download a merkle checkpoint, we verify that the data is correct and complete. every stem and leaf is correctly connected together.
+But now we aren't able to sync, because the existing checkpoint is invalid.
+We need to back up and rebuild a good checkpoint by verifying all the blocks.
+
+
+when you download a checkpoint, it is important to verify that the data is correct and it is all there. check that every stem is correctly storing it's children, and every leaf's hash is correct.
+This is important for security, so we don't sync a bad checkpoint.
+- once this function is ready, use it to get a verified working version of the checkpoint. we might need to resurrect the old version of amoveo that syncs forwards in order to build the checkpoint.
+
+
+
 light node needs to handle orphaned blocks somehow.
 
 

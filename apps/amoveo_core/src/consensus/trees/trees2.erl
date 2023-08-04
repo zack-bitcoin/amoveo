@@ -280,7 +280,8 @@ compress_pub(<<4, X:256>>) ->
     <<4, X:256>>;
 compress_pub(X) ->
     io:fwrite({X, size(X)}),
-    ok.
+    %ok.
+    bad_pub.
 
 
 det_pow(A, 1) -> A;
