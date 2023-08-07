@@ -221,11 +221,20 @@ all_accounts() ->
     Leafs = trie:get_all(Accounts, accounts),
     A2 = lists:map(fun(A) -> deserialize(leaf:value(A)) end, Leafs),
     A3 = lists:reverse(lists:keysort(2, A2)),
-    lists:map(fun(A) -> io:fwrite(integer_to_list(A#acc.balance div 100000000)),
-			io:fwrite(" "),
-			<<X:80, _/binary>> = base64:encode(A#acc.pubkey),
-			io:fwrite(<<X:80>>),
-			io:fwrite("\n") end, A3),
+    lists:map(fun(A) -> 
+                      Bal = A#acc.balance,
+                      if
+                          Bal > 10000000 ->
+                              io:fwrite(integer_to_list(Bal div 100000000)),
+                              io:fwrite(" "),
+           %<<X:80, _/binary>> = base64:encode(A#acc.pubkey),
+                              X = base64:encode(A#acc.pubkey),
+                              %io:fwrite(<<X:80>>),
+                              io:fwrite(X),
+                              io:fwrite("\n");
+                          true -> ok
+                      end
+              end, A3),
     A2.
 
 test() ->

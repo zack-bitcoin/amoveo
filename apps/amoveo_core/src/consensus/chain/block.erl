@@ -455,6 +455,7 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
                 trees2:merkle2verkle(Trees6, 1);
             true -> Trees6
         end,
+    ok,
     Trees7.
                 
 

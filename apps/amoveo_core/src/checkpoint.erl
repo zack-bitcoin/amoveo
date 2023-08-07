@@ -2,7 +2,8 @@
 -module(checkpoint).
 -behaviour(gen_server).
 -export([backup_p/1,
-         make/0, %check if the top header with a block needs a checkpoint, and if so, makes it.
+         make/0,
+         make/1, %check if the top header with a block needs a checkpoint, and if so, makes it.
          recent/0, %returns a list of recent block hashes where the block is a checkpoint.
          clean/0, %deletes old unneeded checkpoints.
          chunk_name/1,
@@ -57,11 +58,13 @@ handle_cast(clean, X) ->
     X2 = X#d{checkpoint_hashes = CH2},
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
-handle_call(make, _, X) -> 
+handle_call({make, Force}, _, X) -> 
     Header = headers:top_with_block(),
-    B = backup_p(Header),%check if this is a checkpoint block.
+    B = Force or backup_p(Header),%check if this is a checkpoint block.
     TH = headers:top(),
     Height = Header#header.height,
+
+    %only create checkpoints for recent blocks.
     B2 = Height > 
         (TH#header.height - 
              (7 * mft())),
@@ -169,8 +172,8 @@ get_chunks2(Hash, Peer, N, Result) ->
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
     %IP = {159,223,85,216},%the pool
-    %IP = {159,65,126,146},%germany
-    IP = {45, 55, 194, 109}, %ubuntu 22
+    IP = {159,65,126,146},%germany
+    %IP = {45, 55, 194, 109}, %ubuntu 20
     Port = 8080,
     spawn(fun() ->
                   sync(IP, Port)
@@ -342,7 +345,7 @@ sync(IP, Port, CPL) ->
         true ->
                     io:fwrite("loading a merkle checkpoint.\n"),
                     %io:fwrite(Tarball),
-                    %io:fwrite("\n"),
+                    %io:fwrite("\n,
                     %io:fwrite(Temp),
                     %io:fwrite("\n"),
                     %os:cmd("mv "++ Temp ++ "/* " ++ CR ++ "data/."),
@@ -405,6 +408,7 @@ sync(IP, Port, CPL) ->
     %reverse_sync2(Height, Peer, Block2, Roots),
     %reverse_sync(Peer),
     timer:sleep(100),
+            make(true),
     io:fwrite("checkpoint starting sync\n"),
             sync:start([{IP, Port}])
     end.
@@ -882,9 +886,9 @@ backup_trees([H|T], CR) ->
     cp(CR, H, "_rest.db"),
     backup_trees(T, CR).
 
-
-make() ->
-    gen_server:call(?MODULE, make).
+make() -> make(false).
+make(Force) ->
+    gen_server:call(?MODULE, {make, Force}).
     
 clean() ->
     gen_server:cast(?MODULE, clean).

@@ -27,6 +27,11 @@
 		    oracle, %oracle id
 		    amount,
 		    pointer}).
+%unmatched key {key, Account, Oracle}
+%header key {key, <<1:520>, oracle}
+
+
+
 
 -define(name, unmatched).
 -define(Null, 0).
@@ -225,7 +230,23 @@ dict_head_get(Dict, OID) ->
     Key = {key, <<?Header:PS>>, OID},
     %io:fwrite({Key, keys, dict:fetch_keys(Dict)}),
     case csc:read({unmatched, Key}, Dict) of
-        error -> error;
+        error -> 
+            Keys = dict:fetch_keys(Dict),
+            Keys2 = lists:filter(fun(X) ->
+                                         case X of 
+                                             {unmatched, _} -> true;
+                                             _ -> false
+                                         end
+                                 end, Keys),
+            Key2 = element(2, hd(Keys2)),
+            %io:fwrite(dict:fetch_keys(Dict)),
+            %Key2 = hd(tl(tl(tl(dict:fetch_keys(Dict))))),
+            <<KeyN1:520>> = element(2, Key),
+            <<KeyN2:520>> = element(2, Key2),
+            io:fwrite({Key, Key2, element(2, Key) == element(2, Key2),
+                       KeyN1, KeyN2}),
+            io:fwrite({Key, dict:find({unmatched, Key}, Dict), hd(dict:fetch_keys(Dict)) == {unmatched, Key}, dict:fetch_keys(Dict)}),
+            error;
         {empty, _, _} -> {<<?Null:PS>>, 0};
         {ok, unmatched, 
          {unmatched_head, Head, Many, _OID}} ->
@@ -275,6 +296,9 @@ verkle_head_get(Trees, OID) ->
         {unmatched, {key, _, _}} -> empty;
         {unmatched_head, Head, Many, OID} -> 
             {Head, Many};
+        {unmatched, _, _, _, _} ->
+            U2 = serialize(Order),
+            deserialize_head(U2);
         empty -> empty;
         Order ->
             io:fwrite({Order}),

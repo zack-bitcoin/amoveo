@@ -46,7 +46,8 @@ type2int(sub_acc) -> 6;
 type2int(contract) -> 7;
 type2int(trade) -> 8;
 type2int(market) -> 9;
-type2int(receipt) -> 10.
+type2int(receipt) -> 10;
+type2int(B) when is_binary(B) -> 5.
 
 int2dump_name(1) -> accounts_dump;
 %int2dump_name(2) -> exists_dump;
@@ -68,16 +69,19 @@ cs2v([A|T]) ->
     %verkle data is a list of leaves that can be fed into store_verkle:batch/3.
     CFG = tree:cfg(amoveo),
     %#consensus_state{val = A} = A0,
-    K = key(A),
-    V = serialize(A),
-    H = hash:doit(V),
-    M1 = type2int(element(1, A)),
-    DBName = int2dump_name(M1),
-    M = dump:put(V, DBName),
-    Meta = <<M1, M:(7*8)>>, 
-
-    Leaf = leaf_verkle:new(K, H, Meta, CFG),
-    [Leaf|cs2v(T)].
+    K = key(A), %A is {<<4,164,...>>, 1}
+    case K of
+        bad -> cs2v(T);
+        _ ->
+            V = serialize(A),
+            H = hash:doit(V),
+            M1 = type2int(element(1, A)),
+            DBName = int2dump_name(M1),
+            M = dump:put(V, DBName),
+            Meta = <<M1, M:(7*8)>>, 
+            Leaf = leaf_verkle:new(K, H, Meta, CFG),
+            [Leaf|cs2v(T)]
+    end.
     
 
 update_proof(L, ProofTree) ->
@@ -98,14 +102,68 @@ store_verified(Loc, ProofTree) ->
     store_verkle:verified(
       Loc, ProofTree, CFG).
 
+remove_repeat([L1 = {leaf, A, X, <<Type, P1:56>>}, 
+               L2 = {leaf, A, X, <<_, P2:56>>}|T]) ->
+    if
+        not(P1 == P2) ->
+            DBName = int2dump_name(Type),
+            dump:delete(P1, DBName);
+        true -> ok
+    end,
+    remove_repeat([L2|T]);
+remove_repeat([L1 = {leaf, A, _, <<Type1, P1:56>>}, 
+               L2 = {leaf, A, _, <<Type2, P2:56>>}|T]) ->
+    io:fwrite("trees2 store things failure because we are trying to store 2 different things in the same slot."),
+    DBName1 = int2dump_name(Type1),
+    X = dump:get(P1, DBName1),
+    DBName2 = int2dump_name(Type2),
+    Y = dump:get(P2, DBName2),
+    Acc = deserialize(1, X),
+    WeirdAddr = base64:decode(<<"BCdW548Bb9YppmBiYDbGJM9ApGIEkum1muoYrg+saWHjOABlAFjlx/IMFKUwZXTw0+PK7X0Nw9CXGNq+9L4pb2E=">>),
+    WeirdAddr2 = base64:decode(<<"BCt0x829BD824B016326A401d083B33D092293333A83IlCVaAvL29TuGDEJyZZ5BbPJNlTO08Dba5a5CD+eFxs=">>),
+    ThisAddr = case element(1, Acc) of
+                   acc -> element(4, Acc);
+                   _ -> 0
+               end,
+    if
+        (WeirdAddr == ThisAddr) ->
+            io:fwrite("handling one old address that is double stored\n"),
+            remove_repeat(T);
+        (WeirdAddr2 == ThisAddr) ->
+            io:fwrite("handling a second old address that is double stored\n"),
+            remove_repeat(T);
+        true -> 
+            {Addra, Addrb} = case element(1, Acc) of
+                                 acc -> 
+                                     Addr = element(4, Acc),
+                                     <<X1:264, Y1:256>> = Addr,
+                                     {<<X1:264>>, <<Y1:256>>};
+                                 _ -> {0,0}
+                             end,
+            io:fwrite({DBName1, deserialize(1, X), deserialize(1, Y), X == Y, base64:encode(Addra), base64:encode(Addrb)}),
+            1=2
+    end;
+
+remove_repeat([H|T]) ->
+    [H|remove_repeat(T)];
+remove_repeat([]) -> [].
+
 store_things(Things, Loc) ->
     %return the pointer to the new version of the verkle tree.
     CFG = tree:cfg(amoveo),
     %io:fwrite({Things}),
     false = is_record(hd(Things), consensus_state),
     V = cs2v(Things),
+    V2 = lists:sort(fun({leaf, <<A:256>>, _, _}, 
+                        {leaf, <<B:256>>, _, _}) -> 
+                            A =< B
+                    end, V),
+    V3 = remove_repeat(V2),
+    
     %io:fwrite("store batch\n"),
-    {P, _, _} = store_verkle:batch(V, Loc, CFG),
+    %io:fwrite({Things, V}),
+    {P, _, _} = store_verkle:batch(V3, Loc, CFG),
+    %io:fwrite("stored batch\n"),
     P.
 val2int({X, _}) ->
     val2int(X);
@@ -209,12 +267,31 @@ hash_key(N, X) ->
     1=2,
     X.
 
-key({Tree, K}) ->
-    hash_key(Tree, K);
+key({Tree, Key}) when is_atom(Tree) -> 
+    hash_key(Tree, Key);
+
+key({Head, Many}) when is_binary(Head) and is_integer(Many) ->
+    %unmatched head
+    %io:fwrite({Tree, K}),%{<<4,164,...>>, 1}
+    %key = {key, <<1:PS>>, OID}
+    Key = {key, <<1:520>>, Head}, 
+    hash_key(unmatched, Key);
+    %hash_key(Tree, K);
+    
 key(#acc{pubkey = Pub}) ->
     %hash of the pubkey.
-    Pub2 = compress_pub(Pub),
-    hash:doit(Pub2);
+    ZeroPub = base64:decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEFAx4lA9qJP3/x4hz1EkNIQAAAAAAAAA="),
+    ZeroPub2 = base64:decode("v8X+pcYXf+kLyaTW0F6W228vqIQPKrXegIJU0SoVn4Wr5EIYUOeHGwo7AhNuCjfIz7+fUpgqNSTPQsmCfxpieeQ="),
+    ZeroPub3 = base64:decode("DtLQX8Wlh3VHkTBPd77/SS8vZTxtvDCRBumkUnYVSVOoVgVtd//+WRBh3CrpLEYoHTtNpMyuiPDzUhxwcYHLdCM="),
+    if
+        (Pub == ZeroPub) -> bad;
+        (Pub == ZeroPub2) -> bad;
+        (Pub == ZeroPub3) -> bad;
+        true ->
+    
+            Pub2 = compress_pub(Pub),
+            hash:doit(Pub2)
+    end;
 %key(#exist{hash = X}) ->
 %    hash:doit(X);
 key(#oracle{id = X}) ->
@@ -235,8 +312,18 @@ key({unmatched_head, Head, Many, OID}) ->
     hash:doit(<<OID/binary, 2>>);%33 bytes
 %key({unmatched_head, Head, Many, OID}) -> 
 %    hash:doit(<<OID/binary, 9>>);
+key(K = #unmatched{oracle = accounts}) ->
+    io:fwrite(K),
+    1=2;
 key(K = #unmatched{account = <<1:520>>, 
                    oracle = B}) ->
+    if
+        not(is_binary(B)) -> 
+            io:fwrite(K),%{unmatched, <<1:520>>, accounts, undefined, undefined 
+            % unmatched {account, oracle, amount, pointer}
+            1=2;
+        true -> ok
+    end,
     hash:doit(<<B/binary, 2>>);%33 bytes
 key(K = #unmatched{account = A, oracle = B}) ->
     A2 = compress_pub(A),%error here when we are storing the head. see unmatched:serialize_head
@@ -279,7 +366,9 @@ compress_pub(<<4, X:256>>) ->
     1=2,
     <<4, X:256>>;
 compress_pub(X) ->
-    io:fwrite({X, size(X)}),
+    <<E:8, A:128, B:128, C:128, D:128>> = X,
+    <<X1:264, X2:256>> = X,
+    io:fwrite({<<E:8, A:128>>, <<B:128>>, <<C:128>>, <<D:128>>, base64:encode(X), base64:encode(<<X1:264>>), base64:encode(<<X2:256>>)}),
     %ok.
     bad_pub.
 
@@ -324,6 +413,13 @@ decompress_pub(<<A, X:256>>) ->
     end.
     
     
+serialize({Pub = <<_:520>>, Many}) ->
+%unmatched head
+    Pub2 = compress_pub(Pub),
+    <<Pub2/binary, Many:64, 0:520>>;
+%1=2,
+    %serialize({unmatched_head, Head, Many, OID});
+%    ok;
 serialize(
   #acc{pubkey = Pub, nonce = Nonce, 
        balance = Balance}) ->
@@ -366,6 +462,7 @@ serialize(
     <<A2/binary, O/binary, M:64, P2/binary>>; 
 %33 + 32 +8 + 33 = 66 + 40 = 106
 serialize({unmatched_head, Head, Many, OID}) ->
+%   incorrect because serialization doesn't include the oid.
     Head2 = compress_pub(Head),
     <<0:264, OID/binary, Many:64, Head2/binary>>;
 %33 + 8 + 32 + 33 = 106
@@ -435,8 +532,12 @@ deserialize(4, <<A:264, O:256, T:64, F:64, B:64>>) ->
     #matched{account = A2, oracle = <<O:256>>, 
              true = T, false = F, bad = B};
 deserialize(5, <<0:264, OID:256, Many:64, Head:264>>) ->
+    %this was commented to sync. make sure it isn't broken.
     A2 = decompress_pub(<<Head:264>>),
     {unmatched_head, A2, Many, <<OID:256>>};
+deserialize(5, <<A:264, Many:64, 0:520>>) ->
+    A2 = decompress_pub(<<A:264>>),
+    {A2, Many};
 deserialize(5, <<A:264, O:256, Am:64, P:264>>) ->
     A2 = decompress_pub(<<A:264>>),
     P2 = decompress_pub(<<P:264>>),
@@ -475,7 +576,7 @@ deserialize(N, B) ->
     ok.
 
     
-
+%to_keys(L) -> lists:map(fun(X) -> key(X) end, L).
 to_keys([]) -> [];
 to_keys([Acc|T]) ->
     [key(Acc)|to_keys(T)].
@@ -535,9 +636,9 @@ get(Keys, Loc) when is_integer(Loc) ->
                               {UnhashedKey, empty};
                           _ ->
                               {leaf, Key2, _, <<T,DL:56>>} = Leaf,
-                              %it is weird that Key isn't the same as Key2.
                               if
                                   not(Key == Key2) ->
+                          %it is weird that Key isn't the same as Key2.
                                       Acc = dump_get(T, DL),
                                       io:fwrite({Key, Key2, Acc, dict:fetch(Key, TreesDict), Keys
                                                  %dict:fetch(Key2, TreesDict)
@@ -745,10 +846,20 @@ verify_proof(Proof0, Things) ->
         verify_verkle:proof(Proof, CFG),
     %todo. in verify_verkle:proof, if there are 2 things stored in the same branch, and you try to make a proof of both of them, when you verify the proof, only one of the 2 things is included.
     %or maybe it is just missing leaves.
+    lists:map(fun(X) ->
+                      case X of
+                          {unmatched, _, accounts, _, _} ->
+                              io:fwrite(Things),
+                              1=2;
+                          #unmatched{oracle = accounts} ->
+                              io:fwrite(Things),
+                              1=2;
+                          _ -> ok
+                      end
+              end, Things),
 
-
-    %io:fwrite({Leaves}),
     Ks = to_keys(Things),
+    
     Hs = lists:map(
            fun(A) -> 
                    case A of
@@ -994,7 +1105,14 @@ merkle2verkle(
               Leaves = 
                   lists:map(
                     fun(F) -> 
-                            (Type):deserialize(leaf:value(F)) end,
+                            Des = (Type):deserialize(leaf:value(F)),
+%                            case Des of
+%                                {_, 1} -> io:fwrite({Type, F, leaf:value(F)}),
+%                                          1 = 2;
+%                                _ -> ok
+%                            end,
+                            Des
+                    end,
                     Leaves0),
               if
                   true -> ok;
