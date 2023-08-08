@@ -1,8 +1,10 @@
+we tried doing the hard update.
+The main mining pool was working normally, but the secondary mining pool was failing to build the verkle update block, even after resyncing from the checkpoint.
+It seems like the database could be corrupted again?
+we need to figure out what is wrong before we can do thie update.
 
 
 
-
-light node needs to handle orphaned blocks somehow.
 
 
 change p2p back from test mode.
@@ -12,6 +14,7 @@ change explorer back from test mode.
 
 schedule the hard update.
 
+light node needs to handle orphaned blocks somehow.
 
 the new_oracle.html page is working off the old version where one scalar is 10 binary. we need to look into how much of it needs to be updated.
 

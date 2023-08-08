@@ -14,6 +14,7 @@
          reverse_sync/0,
          reverse_sync/1,
          reverse_sync/2, 
+         full_tree_merkle/0, full_tree_merkle/1,
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
 %Eventually we will need a function that can recombine the chunks, and unencode the gzipped tar to restore from a checkpoint.
@@ -414,6 +415,14 @@ sync(IP, Port, CPL) ->
     end.
     %ok.
 
+full_tree_merkle() ->
+    full_tree_merkle(block:top()).
+
+full_tree_merkle(Block = #block{trees = Trees}) ->
+    full_tree_merkle(Trees);
+full_tree_merkle(Trees) ->
+    TreeTypes = tree_types(element(1, Trees)),
+    full_tree_merkle(Trees, TreeTypes).
 
 full_tree_merkle(Trees, TTs) ->
     %we don't need a verkle version, because tree:clean_ets does that.
