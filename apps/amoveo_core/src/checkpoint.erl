@@ -171,8 +171,8 @@ get_chunks2(Hash, Peer, N, Result) ->
 
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
-    %IP = {159,223,85,216},%the pool
-    IP = {159,65,126,146},%germany
+    IP = {159,223,85,216},%the pool
+    %IP = {159,65,126,146},%germany
     %IP = {45, 55, 194, 109}, %ubuntu 20
     Port = 8080,
     spawn(fun() ->
