@@ -472,6 +472,19 @@ reverse_sync(Peer) ->
 
 reverse_sync(Height, Peer) ->
     io:fwrite("reverse sync/2\n"),
+    case Peer of
+        {{P1, P2, P3, P4}, _} ->
+            io:fwrite("peer: "),
+            io:fwrite(integer_to_list(P1)),
+            io:fwrite("."),
+            io:fwrite(integer_to_list(P2)),
+            io:fwrite("."),
+            io:fwrite(integer_to_list(P3)),
+            io:fwrite("."),
+            io:fwrite(integer_to_list(P4)),
+            io:fwrite("\n");
+        _ -> io:fwrite({Peer})
+    end,
     sync_kill:start(),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
     {ok, NBlock} = talker:talk({block, Height}, Peer),
@@ -489,51 +502,57 @@ reverse_sync(Height, Peer) ->
 reverse_sync2(Height, Peer, Block2, Roots) ->
     %io:fwrite("reverse_sync2\n"),
     H2 = max(0, Height-50),
+    io:fwrite("reverse sync get compressed page\n"),
     {ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
-    %io:fwrite("reverse_sync 2 got blocks\n"),
+    io:fwrite("reverse_sync 2 got blocks\n"),
     Page0 = if
                is_binary(ComPage0) -> 
+                    io:fwrite("uncompress binary page\n"),
                    block_db:uncompress(ComPage0);
                is_list(ComPage0) ->
                    %block hash is slow, this version is bad. make sure it doesn't happen too frequently.
+                    io:fwrite("uncompress list page\n"),
                     lists:foldl(
                       fun(X, Acc) -> 
                               dict:store(block:hash(X), X, Acc) end, 
                       dict:new(), ComPage0)
             end,
-    %io:fwrite("reverse_sync 2 decompressed blocks\n"),
+    io:fwrite("reverse_sync 2 decompressed blocks\n"),
     Page = dict:filter(%remove data that is already in block_db.
              fun(_, Value) ->
                      Value#block.height < 
                          (Height - 1)
              end, Page0),
-    %io:fwrite("reverse_sync 2 filtered the blocks\n"),
+    io:fwrite("reverse_sync 2 filtered the blocks\n"),
     CompressedPage = block_db:compress(Page),
-    %io:fwrite("reverse_sync 2 recompressed the blocks\n"),
+    io:fwrite("reverse_sync 2 recompressed the blocks\n"),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
-    %io:fwrite("load pages\n"),
+    io:fwrite("load pages\n"),
     go = sync_kill:status(),
-    Page = block_db:uncompress(CompressedPage),
+    io:fwrite("load pages: uncompress page\n"),
+    Page = block_db:uncompress(CompressedPage),%fails here.
     PageLength = length(dict:fetch_keys(Page)),
+    io:fwrite("load pages: verify_blocks\n"),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, PageLength),
-    %io:fwrite("load pages verified blocks\n"),
+    io:fwrite("load pages verified blocks\n"),
     %TODO
     %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
     %if a block has an unknown header, then drop this peer.
     %if any block is invalid, display a big error message.
-    %io:fwrite("checkpoint \n"),
-    %io:fwrite(integer_to_list(NewBottom#block.height)),
-    %io:fwrite("\n"),
+    io:fwrite("checkpoint \n"),
+    io:fwrite(integer_to_list(NewBottom#block.height)),
+    io:fwrite("\n"),
 
     %TODO instead of loading this as one page, we should check if our configured page size is smaller, and cut them up if needed.
     %a page is a dictionary storing blocks by their hash.
     {ok, BlockCacheSize} = application:get_env(
                   amoveo_core, block_cache),
     PageBytes = size(term_to_binary(Page)),
+    io:fwrite("load pages, to cut pages\n"),
     Pages = cut_page(BottomBlock#block.prev_hash, BlockCacheSize, Page, dict:new(), []),
-    %io:fwrite("load pages cut pages\n"),
-    
+
+    io:fwrite("load pages block_db load_page\n"),
     lists:map(fun(Page) ->
                       block_db:load_page(Page)
               end, lists:reverse(Pages)),
@@ -543,7 +562,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             io:fwrite("synced all blocks back to the genesis.\n"),
             ok;
         true -> 
-            %io:fwrite("getting next page\n"),
+            io:fwrite("getting next page\n"),
             {ok, NextCompressed} = talker:talk({blocks, 50, StartHeight-2}, Peer), %get next compressed page.
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
             spawn(fun() ->
@@ -615,7 +634,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     end,
     %{ok, NB0} = dict:find(B#block.prev_hash, P),
     NB0 = case dict:find(B#block.prev_hash, P) of
-              error -> io:fwrite({"checkpoint, can't find prev hash\n", P});
+              error -> io:fwrite({"checkpoint, can't find prev hash\n", B#block.height, dict:fetch_keys(P)});
               {ok, NB01} -> NB01
           end,
     F52 = forks:get(52),

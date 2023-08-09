@@ -241,7 +241,7 @@ compress(X) ->
     zlib:close(S),
     %zlib:compress(term_to_binary(X)).
     list_to_binary([B1, B2]).
-uncompress(X) ->
+uncompress(X) when is_binary(X) ->
     S = zlib:open(),
     zlib:inflateInit(S),
     A = zlib:inflate(S, X),
@@ -249,9 +249,28 @@ uncompress(X) ->
     Y = binary_to_term(B),
     %Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
     zlib:close(S),
-    Y.
+    Y;
+uncompress(X) when is_list(X) -> 
+    %it is a list of blocks, but we want to return it in a page format.
+    blocks_to_page_safe(X).
+
     %binary_to_term(zlib:uncompress(X)).
+
+blocks_to_page_safe(L) ->
+    lists:foldl(
+      fun(X, Acc) -> 
+              dict:store(block:hash(X), X, Acc) end, 
+      dict:new(), L).
     
+
+blocks_to_page(L) ->    
+    L2 = lists:reverse(L),
+    blocks_to_page2(L2, block:hash(hd(L2)), dict:new()).
+blocks_to_page2([Block], Hash, D) ->
+    dict:store(Hash, Block, D);
+blocks_to_page2([Block|T], Hash, D) ->
+    blocks_to_page2(T, Block#block.prev_hash,
+                    dict:store(Hash, Block, D)).
             
 
 % * starting from the head, walk backwards FT steps. everything earlier than that block is going to the hd.

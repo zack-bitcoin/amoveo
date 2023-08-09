@@ -142,7 +142,7 @@ doit({headers, _Many, N}) ->
     N2 = N - (N rem 5000),
     %N2 = N rem 5000,
     if
-        N2 < (T - 5000) ->
+        N < (T - 5000) ->
             X = many_headers(5000, N2),
             {ok, X};
         true ->

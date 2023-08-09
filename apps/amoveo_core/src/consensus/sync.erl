@@ -4,6 +4,7 @@
 	 start/1, start/0, stop/0, status/0, cron/0,
 	 give_blocks/3, push_new_block/1, remote_peer/2,
 	 get_headers/1, trade_txs/1, force_push_blocks/1,
+         get_headers/0,
 	 trade_peers/1, cron/0, shuffle/1,
          low_to_high/1, dict_to_blocks/2]).
 -include("../records.hrl").
@@ -167,20 +168,41 @@ trade_peers(Peer) ->
     MyPeers = amoveo_utils:tuples2lists(peers:all()),
     remote_peer({peers, MyPeers}, Peer),
     peers:add(TheirsPeers).
+get_headers() -> 
+    Peers = peers:all(),
+    Peers2 = shuffle(Peers),
+    Peers3 = remove_self(Peers),
+    spawn(fun() ->
+                  get_headers(hd(Peers3))
+          end).
 get_headers(Peer) -> 
-    %io:fwrite("get headers\n"),
+    io:fwrite("sync get headers\n"),
     N = (headers:top())#header.height,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     Start = max(0, N - FT), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
-    %io:fwrite("get headers 2\n"),
+    io:fwrite("get headers 2\n"),
     {ok, HB} = ?HeadersBatch,
+    io:fwrite("get headers "),
+    %io:fwrite(integer_to_list(HB)),
+    %io:fwrite(" "),
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
     Headers = remote_peer({headers, HB, N}, Peer),
     case Headers of
-	error -> error;
-	bad_peer -> error;
+	error -> 
+            io:fwrite("get headers error 1\n"),
+            error;
+	bad_peer -> 
+            io:fwrite("get headers error 2\n"),
+            error;
 	_ ->
+            io:fwrite("get headers absorb 2\n"),
+            io:fwrite(integer_to_list(length(Headers))),
+            io:fwrite(" "),
+            io:fwrite(integer_to_list((hd(Headers))#header.height)),
+            io:fwrite("\n"),
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),
 	    case CommonHash of
@@ -195,13 +217,16 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 	    end
     end.
 get_headers3(Peer, N) ->
-    %io:fwrite("get headers 3\n"),
+    io:fwrite("get headers 3\n"),
     AH = api:height(),
     {ok, HB} = ?HeadersBatch,
     %true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
     AH2 = api:height(),
     true = (N > AH2 - HB - 1),
+    io:fwrite("get headers absorb3\n"),
+    io:fwrite(integer_to_list(length(Headers))),
+    io:fwrite("\n"),
     headers:absorb(Headers),
     if
         length(Headers) > (HB div 2) -> 
