@@ -176,19 +176,12 @@ get_headers() ->
                   get_headers(hd(Peers3))
           end).
 get_headers(Peer) -> 
-    io:fwrite("sync get headers\n"),
     N = (headers:top())#header.height,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     Start = max(0, N - FT), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
-    io:fwrite("get headers 2\n"),
     {ok, HB} = ?HeadersBatch,
-    io:fwrite("get headers "),
-    %io:fwrite(integer_to_list(HB)),
-    %io:fwrite(" "),
-    io:fwrite(integer_to_list(N)),
-    io:fwrite("\n"),
     Headers = remote_peer({headers, HB, N}, Peer),
     case Headers of
 	error -> 
@@ -198,11 +191,6 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
             io:fwrite("get headers error 2\n"),
             error;
 	_ ->
-            io:fwrite("get headers absorb 2\n"),
-            io:fwrite(integer_to_list(length(Headers))),
-            io:fwrite(" "),
-            io:fwrite(integer_to_list((hd(Headers))#header.height)),
-            io:fwrite("\n"),
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),
 	    case CommonHash of
@@ -217,16 +205,12 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 	    end
     end.
 get_headers3(Peer, N) ->
-    io:fwrite("get headers 3\n"),
     AH = api:height(),
     {ok, HB} = ?HeadersBatch,
     %true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
     AH2 = api:height(),
     true = (N > AH2 - HB - 1),
-    io:fwrite("get headers absorb3\n"),
-    io:fwrite(integer_to_list(length(Headers))),
-    io:fwrite("\n"),
     headers:absorb(Headers),
     if
         length(Headers) > (HB div 2) -> 
