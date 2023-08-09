@@ -1,9 +1,6 @@
-there is a problem with syncing blocks in reverse.
-The api for blocks is {blocks, many, start_height}.
-if you request recent blocks, it returns the entire rane.
-if you request old blocks, it returns the page that includes start_height.
-This works well for syncing forwards, but for syncing backwards we want something different. We want the page that includes start_height - many.
-
+test the dex in merkle mode.
+we tried doing it off-chain with main net code, but we need to mine a block to finish the test.
+either test on main net, or set up a testnet that uses the merkle code.
 
 
 
@@ -11,9 +8,6 @@ we tried doing the hard update.
 The main mining pool was working normally, but the secondary mining pool was failing to build the verkle update block, even after resyncing from the checkpoint.
 It seems like the database could be corrupted again?
 we need to figure out what is wrong before we can do thie update.
-
-
-
 
 
 change p2p back from test mode.
@@ -24,6 +18,30 @@ change explorer back from test mode.
 schedule the hard update.
 
 light node needs to handle orphaned blocks somehow.
+
+
+
+
+add employment contracts.
+It is a pretty simple mechanism. The database object is like:
+{job_id, worker_pub, boss_pub, price, tax_rate, balance, time}
+
+and the transaction types are:
+* create job- {worker, tax_rate, initial_balance}
+* change price - {job_id, new_price} (signed by boss)
+* buy job - {job_id}
+* deposit veo to the job's balance.
+
+The tax is paid from the job's balance.
+like 90% of the tax goes to the worker, and 10% is burned.
+
+If you don't deposit veo to pay the tax, eventually the balance gets low enough, and then the price starts dropping exponentially so that it never runs out of money. To act as a continuous auction.
+If you withdraw almost all the veo, then the price may be forced downwards, to accomodate this auction curve.
+At a given balance, the contract has a maximum price.
+
+
+
+
 
 the new_oracle.html page is working off the old version where one scalar is 10 binary. we need to look into how much of it needs to be updated.
 

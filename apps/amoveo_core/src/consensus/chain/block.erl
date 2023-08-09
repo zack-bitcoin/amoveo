@@ -634,8 +634,8 @@ make_roots(Trees) when (element(1, Trees) == trees4) ->
             markets = trie:root_hash(markets, trees:markets(Trees))};
 make_roots(Trees) when (element(1, Trees) == trees5) ->
     %io:fwrite("block make roots 5\n"),
-    io:fwrite(integer_to_list(trees:accounts(Trees))),
-    io:fwrite("\n"),
+    %io:fwrite(integer_to_list(trees:accounts(Trees))),
+    %io:fwrite("\n"),
     A = trie:root_hash(accounts, trees:accounts(Trees)),
     %io:fwrite("block make roots 5 1\n"),
  
