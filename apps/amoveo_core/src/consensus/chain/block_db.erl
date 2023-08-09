@@ -474,7 +474,7 @@ read_reverse(Many, Highest) ->
             read_by_height(Highest);
         true ->
             StartHeight = max(Highest - Many, RH),
-            Block = block:get_by_height(StartHeight),
+            Block = block:get_by_height(Highest),
             {ok, Z} = gen_server:call(?MODULE, {read, Highest-StartHeight, StartHeight, Block}),
             Z
     end.
@@ -505,7 +505,14 @@ read(Many, Height) ->
                     X = min(H, Height + Many - 1),
                     Block = block:get_by_height(X),
                     D = max(0, Height - H),
-                    {ok, Z} = gen_server:call(?MODULE, {read, Many-D, Height-D, Block}),
+                    %Height - D
+                    %height - max(0, height - h)
+                    %if height > h -> h
+                    %if height < h -> height
+                    HD = min(Height, H),
+
+                    %{ok, Z} = gen_server:call(?MODULE, {read, Many-D, Height-D, Block}),
+                    {ok, Z} = gen_server:call(?MODULE, {read, Many-D, HD, Block}),
                     Z
             end
     end.

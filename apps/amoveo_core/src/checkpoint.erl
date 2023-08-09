@@ -525,6 +525,11 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
                      Value#block.height < 
                          (Height - 1)
              end, Page0),
+    io:fwrite("page lengths "),
+    io:fwrite(integer_to_list(length(dict:fetch_keys(Page0)))),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(length(dict:fetch_keys(Page)))),
+    io:fwrite("\n"),
     io:fwrite("reverse_sync 2 filtered the blocks\n"),
     CompressedPage = block_db:compress(Page),
     io:fwrite("reverse_sync 2 recompressed the blocks\n"),
@@ -533,7 +538,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     io:fwrite("load pages\n"),
     go = sync_kill:status(),
     io:fwrite("load pages: uncompress page\n"),
-    Page = block_db:uncompress(CompressedPage),%fails here.
+    Page = block_db:uncompress(CompressedPage),
     PageLength = length(dict:fetch_keys(Page)),
     io:fwrite("load pages: verify_blocks\n"),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, PageLength),
@@ -543,7 +548,11 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
     %if a block has an unknown header, then drop this peer.
     %if any block is invalid, display a big error message.
     io:fwrite("checkpoint \n"),
+    io:fwrite(integer_to_list(BottomBlock#block.height)),
+    io:fwrite(" "),
     io:fwrite(integer_to_list(NewBottom#block.height)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(PageLength)),
     io:fwrite("\n"),
 
     %TODO instead of loading this as one page, we should check if our configured page size is smaller, and cut them up if needed.
