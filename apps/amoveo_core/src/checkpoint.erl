@@ -470,7 +470,7 @@ reverse_sync() ->
 reverse_sync(Peer) ->
     io:fwrite("reverse sync/1\n"),
     spawn(fun() ->
-                  Height = block:bottom() + 1,
+                  Height = block:bottom(),
                   reverse_sync(Height, Peer)
           end).
 
@@ -508,7 +508,7 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     H2 = max(0, Height-50),
     io:fwrite("reverse sync get compressed page\n"),
     %{ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
-    {ok, ComPage0} = talker:talk({blocks, -1, 50, Height}, Peer),
+    {ok, ComPage0} = talker:talk({blocks, -1, 50, Height-1}, Peer),
     io:fwrite("reverse_sync 2 got blocks\n"),
     Page0 = if
                is_binary(ComPage0) -> 
@@ -520,7 +520,8 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
                     lists:foldl(
                       fun(X, Acc) -> 
                               dict:store(block:hash(X), X, Acc) end, 
-                      dict:new(), ComPage0)
+                      dict:new(), ComPage0);
+                true -> io:fwrite({ComPage0})
             end,
     io:fwrite("reverse_sync 2 decompressed blocks\n"),
     Page = dict:filter(%remove data that is already in block_db.
@@ -532,6 +533,13 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     io:fwrite(integer_to_list(length(dict:fetch_keys(Page0)))),
     io:fwrite(" "),
     io:fwrite(integer_to_list(length(dict:fetch_keys(Page)))),
+    PageLength = length(dict:fetch_keys(Page)),
+    if
+        PageLength == 0 ->
+            io:fwrite(Page0),
+            1 = 2;
+        true -> ok
+    end,
     io:fwrite("\n"),
     io:fwrite("reverse_sync 2 filtered the blocks\n"),
     CompressedPage = block_db:compress(Page),
@@ -581,7 +589,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             io:fwrite("\n"),
             %{ok, NextCompressed} = talker:talk({blocks, 50, StartHeight-2}, Peer), %get next compressed page.
             {ok, NextCompressed} = talker:talk({blocks, -1, 50, StartHeight-1}, Peer), %get next compressed page.
-            io:fwrite({StartHeight, block_db:uncompress(NextCompressed)}),
+            %io:fwrite({StartHeight, block_db:uncompress(NextCompressed)}),
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
             spawn(fun() ->
                        load_pages(NextCompressed, NewBottom, NextRoots, Peer)

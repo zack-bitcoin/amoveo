@@ -445,7 +445,7 @@ read_by_height(Height) ->
     %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     RH = ram_height(),
     if
-        Height < RH ->
+        Height =< RH ->
             %true = Height < RH,
             true = Height > -1,
             gen_server:call(?MODULE, {read_by_height, Height});
