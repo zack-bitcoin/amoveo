@@ -2,6 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
          read/1, read/2, write/2,
+         read_reverse/2,
          read_by_height/1,
          load_page/1,
          uncompress/1, compress/1,
@@ -463,6 +464,21 @@ genesis()  ->
     
 exists(Hash) -> 
     gen_server:call(?MODULE, {exists, Hash}).
+read_reverse(Many, Highest) ->
+    %highest is the highest in the range of blocks that we want to return.
+    % if we return a page, make sure highest is included.
+    H = block:height(),
+    RH = ram_height(),
+    if
+        (Highest < RH) -> 
+            read_by_height(Highest);
+        true ->
+            StartHeight = max(Highest - Many, RH),
+            Block = block:get_by_height(StartHeight),
+            {ok, Z} = gen_server:call(?MODULE, {read, Highest-StartHeight, StartHeight, Block}),
+            Z
+    end.
+            
 read(Many, Height) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),
     case Version of

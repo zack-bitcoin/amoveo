@@ -1,3 +1,12 @@
+there is a problem with syncing blocks in reverse.
+The api for blocks is {blocks, many, start_height}.
+if you request recent blocks, it returns the entire rane.
+if you request old blocks, it returns the page that includes start_height.
+This works well for syncing forwards, but for syncing backwards we want something different. We want the page that includes start_height - many.
+
+
+
+
 we tried doing the hard update.
 The main mining pool was working normally, but the secondary mining pool was failing to build the verkle update block, even after resyncing from the checkpoint.
 It seems like the database could be corrupted again?

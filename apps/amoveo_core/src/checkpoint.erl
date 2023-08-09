@@ -452,7 +452,8 @@ reverse_sync() ->
     %find a peer that has a checkpoint.
     spawn(fun() ->
                   Ps = peers:all(),
-                  Ps2 = sync:shuffle(Ps),
+                  Ps2 = sync:remove_self(
+                          sync:shuffle(Ps)),
                   P = hd(Ps2),
                   case talker:talk(
                          {checkpoint}, P) of
@@ -486,8 +487,8 @@ reverse_sync(Height, Peer) ->
         _ -> io:fwrite({Peer})
     end,
     sync_kill:start(),
-    {ok, Block} = talker:talk({block, Height-1}, Peer),
-    {ok, NBlock} = talker:talk({block, Height}, Peer),
+    {ok, Block} = talker:talk({block, Height-1}, Peer),%same as bottom.
+    {ok, NBlock} = talker:talk({block, Height}, Peer),%one above bottom.
     io:fwrite("reverse sync got first 2 blocks\n"),
     Roots = NBlock#block.roots,
 
@@ -503,7 +504,8 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     %io:fwrite("reverse_sync2\n"),
     H2 = max(0, Height-50),
     io:fwrite("reverse sync get compressed page\n"),
-    {ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
+    %{ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
+    {ok, ComPage0} = talker:talk({blocks, -1, 50, Height}, Peer),
     io:fwrite("reverse_sync 2 got blocks\n"),
     Page0 = if
                is_binary(ComPage0) -> 
@@ -563,7 +565,8 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             ok;
         true -> 
             io:fwrite("getting next page\n"),
-            {ok, NextCompressed} = talker:talk({blocks, 50, StartHeight-2}, Peer), %get next compressed page.
+            %{ok, NextCompressed} = talker:talk({blocks, 50, StartHeight-2}, Peer), %get next compressed page.
+            {ok, NextCompressed} = talker:talk({blocks, -1, 50, StartHeight}, Peer), %get next compressed page.
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
             spawn(fun() ->
                        load_pages(NextCompressed, NewBottom, NextRoots, Peer)
@@ -634,7 +637,9 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     end,
     %{ok, NB0} = dict:find(B#block.prev_hash, P),
     NB0 = case dict:find(B#block.prev_hash, P) of
-              error -> io:fwrite({"checkpoint, can't find prev hash\n", B#block.height, dict:fetch_keys(P)});
+              error -> 
+                  Blocks = sync:low_to_high(sync:dict_to_blocks(dict:fetch_keys(P), P)),
+                  io:fwrite({"checkpoint, can't find prev hash\n", B#block.height, (hd(Blocks))#block.height, (hd(lists:reverse(Blocks)))#block.height});
               {ok, NB01} -> NB01
           end,
     F52 = forks:get(52),

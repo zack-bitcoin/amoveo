@@ -4,7 +4,7 @@
 	 start/1, start/0, stop/0, status/0, cron/0,
 	 give_blocks/3, push_new_block/1, remote_peer/2,
 	 get_headers/1, trade_txs/1, force_push_blocks/1,
-         get_headers/0,
+         get_headers/0, remove_self/1,
 	 trade_peers/1, cron/0, shuffle/1,
          low_to_high/1, dict_to_blocks/2]).
 -include("../records.hrl").
@@ -390,6 +390,10 @@ remove_self(L) ->%assumes that you only appear once or zero times in the list.
     Me = {MyIP, MyPort},
     remove_self2(L, Me).
 remove_self2([], _) -> [];
+remove_self2([{192,168,_, _}|T], Me) ->
+    remove_self2(T, Me);
+remove_self2([{127,0,0,1}|T], Me) ->
+    remove_self2(T, Me);
 remove_self2([H|T], Me) ->
     if
 	H == Me -> T;

@@ -113,6 +113,9 @@ doit({blocks, Many, N}) ->
     X = block_db:read(Many, N),
     %X = many_blocks(Many, N),
     {ok, X};
+doit({blocks, -1, Many, Highest}) ->
+    X = block_db:read_reverse(Many, Highest),
+    {ok, X};
 doit({header, N}) when is_integer(N) -> 
     {ok, block:block_to_header(block:get_by_height(N))};
 doit({header, H}) ->
