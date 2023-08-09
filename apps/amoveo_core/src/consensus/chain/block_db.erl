@@ -470,7 +470,7 @@ read_reverse(Many, Highest) ->
     H = block:height(),
     RH = ram_height(),
     if
-        (Highest < RH) -> 
+        (Highest =< RH) -> 
             read_by_height(Highest);
         true ->
             StartHeight = max(Highest - Many, RH),

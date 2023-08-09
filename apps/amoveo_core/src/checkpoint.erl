@@ -15,6 +15,7 @@
          reverse_sync/1,
          reverse_sync/2, 
          full_tree_merkle/0, full_tree_merkle/1,
+         sync/1,
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
 %Eventually we will need a function that can recombine the chunks, and unencode the gzipped tar to restore from a checkpoint.
@@ -206,6 +207,8 @@ sync({IP, Port}, CPL) ->
     sync(IP, Port, CPL);
 sync(IP, Port) ->
     checksync({IP, Port}).
+sync({IP, Port}) ->
+    sync(IP, Port).
 
 sync(IP, Port, CPL) ->
     %set the config variable `reverse_syncing` to true.
@@ -573,9 +576,12 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             io:fwrite("synced all blocks back to the genesis.\n"),
             ok;
         true -> 
-            io:fwrite("getting next page\n"),
+            io:fwrite("getting next page\n start height:"),
+            io:fwrite(integer_to_list(StartHeight)),
+            io:fwrite("\n"),
             %{ok, NextCompressed} = talker:talk({blocks, 50, StartHeight-2}, Peer), %get next compressed page.
-            {ok, NextCompressed} = talker:talk({blocks, -1, 50, StartHeight}, Peer), %get next compressed page.
+            {ok, NextCompressed} = talker:talk({blocks, -1, 50, StartHeight-1}, Peer), %get next compressed page.
+            io:fwrite({StartHeight, block_db:uncompress(NextCompressed)}),
             %load_pages(NextCompressed, NewBottom, BottomBlock#block.roots, Peer)
             spawn(fun() ->
                        load_pages(NextCompressed, NewBottom, NextRoots, Peer)
