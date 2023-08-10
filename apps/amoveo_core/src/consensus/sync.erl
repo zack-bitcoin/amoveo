@@ -374,9 +374,9 @@ remove_self(L) ->%assumes that you only appear once or zero times in the list.
     Me = {MyIP, MyPort},
     remove_self2(L, Me).
 remove_self2([], _) -> [];
-remove_self2([{192,168,_, _}|T], Me) ->
+remove_self2([{{192,168,0, _}, _}|T], Me) ->
     remove_self2(T, Me);
-remove_self2([{127,0,0,1}|T], Me) ->
+remove_self2([{{127,0,0,1}, _}|T], Me) ->
     remove_self2(T, Me);
 remove_self2([H|T], Me) ->
     if
