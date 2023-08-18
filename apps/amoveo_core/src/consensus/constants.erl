@@ -50,7 +50,7 @@ custom_root_location() ->
 custom_root() -> 
     {ok, T} = application:get_env(amoveo_core, kind),
     case T of
-        "production" -> custom_root_location();
+        "production" -> custom_root_loxocation();
         _ -> ""
     end.
             

@@ -293,9 +293,7 @@ sync(IP, Port, CPL) ->
 
     Roots = if
                 is_integer(TDB) ->
-                    %io:fwrite("mv " ++ Temp ++ "/amoveo_v_stem " ++ CR ++ "data/amoveo_v_stem.db\n"),
                     os:cmd("mv " ++ Temp ++ "/backup_temp/*.db " ++ CR ++ "data/."),
-                    %os:cmd("mv " ++ Temp ++ "/amoveo_v_leaf.db " ++ CR ++ "data/amoveo_v_leaf.db"),
                     os:cmd("rm -rf "++ Temp),
                     os:cmd("rm "++ Tarball),
                     

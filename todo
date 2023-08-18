@@ -1,16 +1,34 @@
+we updated constants.erl so that the local version of amoveo will store it's files in /db.
 
-we tried doing the hard update.
-The main mining pool was working normally, but the secondary mining pool was failing to build the verkle update block, even after resyncing from the checkpoint.
-It seems like the database could be corrupted again?
-we need to figure out what is wrong before we can do thie update.
-
-
-change p2p back from test mode.
-change explorer back from test mode.
+it seems like checkpoint.erl, in sync/3, it isn't unpacking the verkle checkpoint correctly for production version. around line 300.
+- sync the headers and back them up.
+- add print statments and comment out lines that delete files to figure out what step goes wrong.
 
 
+looks like the verkle tree is being stored in the release instead of in the database folder.
+* looks like syncing the checkpoint isn't working.
 
-schedule the hard update.
+* tree.erl in the verkle repository is generating file locations from the ids, this can't work to store in the correct place. We need to teach tree.erl about using other files.
+* these functions in tree.erl need to know where files are being stored. They all already have the CFG, so we just need to update the CFG to contain location info, and then update every spot we call dump.
+- reload_ets
+- quick_save
+- clean_ets
+* these functions in stem_verkle.erl
+- put/3
+- put/2
+- put_batch/2
+- get/2
+- delete/2
+- update/3
+* these functions in leaf_verkle.erl
+- put_batch/2
+- put/2
+- get/2
+- delete/2
+
+
+
+
 
 light node needs to handle orphaned blocks somehow.
 
@@ -19,13 +37,41 @@ light node needs to handle orphaned blocks somehow.
 
 add employment contracts.
 It is a pretty simple mechanism. The database object is like:
-{job_id, worker_pub, boss_pub, price, tax_rate, balance, time}
+{job_id 32_bytes, worker_pub 32_bytes,
+ boss_pub 32 bytes, price veos,
+ tax_rate 8 bytes,
+ balance veos, time block_height}
+
+Every time there is a tx, we update the job.
+we update time.
+we pay the tax linearly until the balance hits it's constraint, after that point the balance and price drop exponentially per block. Loss in balance is for paying taxes.
+
+
+tax_rate/balance/price constraint: We must always have enough balance left over to keep paying the current tax for a week.
+balance >= tax_rate_per_block * price * 1000.
+If this inequality stops being true, then the price gets reset to:
+price = balance / (tax_rate_per_block * 1000)
+This acts as an auction.
+
+balance_n = tax_rate_per_block * price_n * 1000.
+balance_n+1 = balance_n - (tax_rate_per_block * price).
+price_n+1 = balance_n+1 / (tax_rate_per_block * 1000)
+          //substitute for balance_n+1
+  = (balance_n - (tax_rate_per_block * price_n)) / (tax_rate_per_block * 1000)
+          //substitute for balance_n
+  = ((tax_rate_per_block * price_n * 1000) - (tax_rate_per_block * price_n)) / (tax_rate_per_block * 1000)
+  = (tax_rate_per_block * price_n * 999) / (tax_rate_per_block * 1000)
+  = (price_n) * (999/1000)
+
 
 and the transaction types are:
-* create job- {worker, tax_rate, initial_balance}
-* change price - {job_id, new_price} (signed by boss)
-* buy job - {job_id}
-* deposit veo to the job's balance.
+* job_create - {worker, tax_rate, initial_balance} (signed by worker)
+* job_price - {job_id, new_price} (signed by boss) 
+* job_buy - {job_id, balance} (signed by who will be the new boss) old balance goes to old owner, balance is the new balance.
+* job_deposit {job_id, amount} (signed by boss) to send or withdraw money from a job.
+* job_tax - {job_id} (signed by both)
+
+
 
 The tax is paid from the job's balance.
 like 90% of the tax goes to the worker, and 10% is burned.
