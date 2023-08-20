@@ -117,7 +117,7 @@ handle_call({make, Force}, _, X) ->
                                %clean(),
                                clean()
                        end),
-                 os:cmd("rm -rf "++Temp),
+                 %os:cmd("rm -rf "++Temp),
                  CH2 = [Hash|
                         X#d.checkpoint_hashes],
                  X#d{checkpoint_hashes = CH2};
@@ -148,6 +148,9 @@ move_chunks(Temp, CR, Hash) ->
 get_chunks_old(Hash, Peer, N) ->
     case talker:talk({checkpoint, Hash, N}, Peer) of
         {ok, D} -> 
+            io:fwrite("got chunk\n"),
+            io:fwrite(integer_to_list(N)),
+            io:fwrite("\n"),
             R = get_chunks(Hash, Peer, N+1),
             <<D/binary, R/binary>>;
         {error, "out of bounds"} ->
@@ -160,8 +163,13 @@ get_chunks(Hash, Peer, N) ->
     get_chunks2(Hash, Peer, N, []).
 get_chunks2(Hash, Peer, N, Result) ->
     case talker:talk({checkpoint, Hash, N}, Peer) of
-        {ok, D} -> get_chunks2(Hash, Peer, N+1, [D|Result]);
+        {ok, D} -> 
+            io:fwrite("got chunk"),
+            io:fwrite(integer_to_list(N)),
+            io:fwrite("\n"),
+            get_chunks2(Hash, Peer, N+1, [D|Result]);
         {error, "out of bounds"} ->
+            io:fwrite("last chunk\n"),
             R2 = lists:reverse(Result),
             list_to_binary(R2);
         {error, E} ->
@@ -174,6 +182,7 @@ get_chunks2(Hash, Peer, N, Result) ->
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
     IP = {159,223,85,216},%the pool
+    %IP = {64, 227, 21, 70},%explorer
     %IP = {159,65,126,146},%germany
     %IP = {45, 55, 194, 109}, %ubuntu 20
     Port = 8080,
@@ -265,13 +274,19 @@ sync(IP, Port, CPL) ->
         ", now loading checkpoint\n",
     io:fwrite(PrintString),
     TopHeader = headers:top(),
+            io:fwrite("checkpoint sync get block 1\n"),
     {ok, Block} = talker:talk({block, Height-1}, Peer),
+            io:fwrite("checkpoint sync get block 2\n"),
     {ok, NBlock} = talker:talk({block, Height}, Peer),
+            io:fwrite("checkpoint sync get block 3\n"),
     TDB = Block#block.trees,
     %io:fwrite({TDB}),
     TDBN = NBlock#block.trees,
+            io:fwrite("checkpoint sync get block 4\n"),
     true = check_header_link(TopHeader, Header),
+            io:fwrite("checkpoint sync get block 5\n"),
     Header = block:block_to_header(NBlock),
+            io:fwrite("checkpoint sync check block 1\n"),
     {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
     {NDict, NNewDict, NProofTree, CP1} = block:check0(NBlock),
     NBlock2 = NBlock#block{trees = {NDict, NNewDict, NProofTree, CP1}},
@@ -279,6 +294,7 @@ sync(IP, Port, CPL) ->
     Roots = NBlock#block.roots,
             io:fwrite("Found a candidate checkpoint. downloading... \n"),
     TarballData = get_chunks(CP1, Peer, 0),
+            io:fwrite("Found a candidate checkpoint, got chunks. \n"),
     Tarball = CR ++ "backup.tar.gz",
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
@@ -293,9 +309,9 @@ sync(IP, Port, CPL) ->
 
     Roots = if
                 is_integer(TDB) ->
-                    os:cmd("mv " ++ Temp ++ "/backup_temp/*.db " ++ CR ++ "data/."),
-                    os:cmd("rm -rf "++ Temp),
-                    os:cmd("rm "++ Tarball),
+                    os:cmd("mv " ++ Temp ++ "/db/backup_temp/*.db " ++ CR ++ "data/."),
+                    os:cmd("rm -rf "++ Temp), %%
+                    os:cmd("rm "++ Tarball), %%
                     
                     io:fwrite("verkle checkpoint\n"),
                     %todo, load the table from the hard drive into ram.

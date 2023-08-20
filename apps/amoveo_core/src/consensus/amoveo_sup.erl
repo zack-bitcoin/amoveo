@@ -18,7 +18,8 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       found_block_timer, vanity, peers_heights,
                white_list, nc_sigs, 
                mining_pool_refresher, 
-               checkpoint, soft_fork, 
+               %checkpoint, soft_fork, 
+               soft_fork, 
                verkle_trees_sup, header_cache
               ]).
 child_killer([]) -> [];
@@ -37,7 +38,7 @@ trees() ->
 stop() -> 
     sync:stop(),
     timer:sleep(1000),
-    child_killer(?keys),
+    child_killer(?keys ++ [checkpoint]),
     tree_killer(trees()),
     ok = application:stop(amoveo_core),
     ok = application:stop(amoveo_http),
@@ -54,7 +55,8 @@ tree_child(Id, KeySize, Size, Meta, Mode, TrieSize) ->
     Sup = list_to_atom(atom_to_list(Id) ++ "_sup"),
     {Sup, {trie_sup, start_link, [KeySize, Size, Id, TrieSize, Meta, constants:hash_size(), Mode, Location]}, permanent, 5000, supervisor, [trie_sup]}.
 init([]) ->
-    Children = child_maker(?keys),
+    
+    Children = child_maker(?keys) ++ [{checkpoint, {checkpoint, start_link, []}, permanent, 60000, worker, [checkpoint]}],
     Tries = lists:map(fun({Id, KeySize, Size, Meta, Mode, TS}) ->
                               tree_child(Id, KeySize, Size, Meta, Mode, TS)
                      end, trie_data()),

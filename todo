@@ -1,3 +1,12 @@
+update the explorer and the mining pool for the new way that checkpoints work.
+* we need to copy the db files from inside the release, to the db folder.
+
+
+
+checkpoints are super slow.
+It would be faster to download the consensus state data, and recalculate the verkle tree from it on our end.
+
+
 we updated constants.erl so that the local version of amoveo will store it's files in /db.
 
 it seems like checkpoint.erl, in sync/3, it isn't unpacking the verkle checkpoint correctly for production version. around line 300.
@@ -31,6 +40,7 @@ looks like the verkle tree is being stored in the release instead of in the data
 
 
 light node needs to handle orphaned blocks somehow.
+
 
 
 
@@ -79,6 +89,13 @@ like 90% of the tax goes to the worker, and 10% is burned.
 If you don't deposit veo to pay the tax, eventually the balance gets low enough, and then the price starts dropping exponentially so that it never runs out of money. To act as a continuous auction.
 If you withdraw almost all the veo, then the price may be forced downwards, to accomodate this auction curve.
 At a given balance, the contract has a maximum price.
+
+
+links related to making maps in js.
+https://help.openstreetmap.org/questions/7019/how-to-put-a-pin-at-the-map
+https://leafletjs.com/
+https://openlayers.org/
+
 
 
 
