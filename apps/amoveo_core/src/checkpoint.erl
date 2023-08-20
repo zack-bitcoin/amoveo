@@ -73,6 +73,7 @@ handle_call({make, Force}, _, X) ->
     X2 = if
              (B and B2) ->
                  Hash = block:hash(Header),
+                 spawn(fun() ->
                  F52 = forks:get(52),
                  T = amoveo_sup:trees(),
                  CR = constants:custom_root(),
@@ -110,9 +111,11 @@ handle_call({make, Force}, _, X) ->
                  make_tarball(Tarball, Temp),%maybe we should do the packaging and zipping in erlang, so we don't need a sleep statement TODO
                  timer:sleep(200),%maybe this isn't necessary? seems like os:cmd waits for the command to finish before returning.
                  chunkify(Tarball, Temp2),%break up the gzipped tar file into 1 megabyte chunks, each in a different file.
+                 io:fwrite("deleting tarball\n"),
                  remove_tarball(Tarball),%delete the gzipped file
+                 io:fwrite("moving chunks\n"),
                  move_chunks(Temp2, CR, Hash),
-                 spawn(fun() ->
+%                 spawn(fun() ->
                                timer:sleep(1000),
                                %clean(),
                                clean()
@@ -120,6 +123,7 @@ handle_call({make, Force}, _, X) ->
                  %os:cmd("rm -rf "++Temp),
                  CH2 = [Hash|
                         X#d.checkpoint_hashes],
+                 io:fwrite("updating checkpoint hashes\n"),
                  X#d{checkpoint_hashes = CH2};
              true -> X
          end,
@@ -134,8 +138,8 @@ make_temp_dir(Temp) ->
 make_tarball(Tarball, Temp) ->
     io:fwrite("making tarball\n"),
     S = "tar -czvf " ++ Tarball ++ " " ++ Temp,%make a gzipped tar of the copy of the tree files. 
-    %io:fwrite(S),
-    %io:fwrite("\n"),
+    io:fwrite(S),
+    io:fwrite("\n"),
     os:cmd(S).%make a gzipped tar of the copy of the tree files. 
 remove_tarball(Tarball) ->
     spawn(fun() ->
@@ -891,9 +895,11 @@ chunkify(File, Folder) ->
 chunkify2(<<>>, _, _) -> ok;
 chunkify2(<<S:8388608, R/binary>>, F, N) -> 
     %8388608 is 1 megabyte.
+    io:fwrite("chunkify2\n"),
     file:write_file(F++chunk_name(N), <<S:8388608>>),
     chunkify2(R, F, N+1);
 chunkify2(R, F, N) -> 
+    io:fwrite("chunkify done\n"),
     file:write_file(F ++ chunk_name(N), R),
     ok.
 chunk_name(N) ->
