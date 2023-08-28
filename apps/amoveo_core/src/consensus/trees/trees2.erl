@@ -1161,7 +1161,9 @@ one_root_maker(Pointer, CFG) ->
     %os:cmd("truncate -s 0 cleaner/data/*"),
     %os:cmd("rm cleaner/data/*"),
     os:cmd("rm -r cleaner/data"),
-    os:cmd("cp -r cleaner/empty_version cleaner/data"),
+    %os:cmd("cp -r cleaner/empty_version cleaner/data"),
+    os:cmd("tar -xf ../../../../empty_version.tar.gz"),
+    os:cmd("cp -r empty_version cleaner/data"),
     timer:sleep(500),
     %reload the cleaner verkle tree, it should be empty.
     %io:fwrite("one_root_clean: reload the now empty cleaner db\n"),
