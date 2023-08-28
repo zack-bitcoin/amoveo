@@ -1,6 +1,7 @@
 -module(trees2).
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
-        val2int/1]).
+         one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
+         val2int/1]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -49,6 +50,17 @@ type2int(market) -> 9;
 type2int(receipt) -> 10;
 type2int(B) when is_binary(B) -> 5.
 
+int2type(1) -> acc;
+int2type(3) -> oracle;
+int2type(4) -> matched;
+int2type(5) -> unmatched;
+int2type(6) -> sub_acc;
+int2type(7) -> contract;
+int2type(8) -> trade;
+int2type(9) -> market;
+int2type(10) -> receipt.
+    
+
 int2dump_name(1) -> accounts_dump;
 %int2dump_name(2) -> exists_dump;
 int2dump_name(3) -> oracles_dump;
@@ -59,6 +71,17 @@ int2dump_name(7) -> contracts_dump;
 int2dump_name(8) -> trades_dump;
 int2dump_name(9) -> markets_dump;
 int2dump_name(10) -> receipts_dump.
+
+int2cleaner_name(1) -> accounts_cleaner;
+%int2cleaner_name(2) -> exists_cleaner;
+int2cleaner_name(3) -> oracles_cleaner;
+int2cleaner_name(4) -> matched_cleaner;
+int2cleaner_name(5) -> unmatched_cleaner;
+int2cleaner_name(6) -> sub_accs_cleaner;
+int2cleaner_name(7) -> contracts_cleaner;
+int2cleaner_name(8) -> trades_cleaner;
+int2cleaner_name(9) -> markets_cleaner;
+int2cleaner_name(10) -> receipts_cleaner.
 
 
 
@@ -1126,7 +1149,240 @@ merkle2verkle(
     %io:fwrite("trees2 store things \n"),
     %io:fwrite(AllLeaves),
     store_things(AllLeaves, Loc).
+-record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
+one_root_clean(Pointer, CFG) ->
+    NewPointer = one_root_maker(Pointer, CFG),
+    recover_from_clean_version(NewPointer),
+    NewPointer.
+
+one_root_maker(Pointer, CFG) ->
+    %delete the contents of the files in the cleaner folder.
+    io:fwrite("one_root_clean: truncate\n"),
+    %os:cmd("truncate -s 0 cleaner/data/*"),
+    %os:cmd("rm cleaner/data/*"),
+    os:cmd("rm -r cleaner/data"),
+    os:cmd("cp -r cleaner/empty_version cleaner/data"),
+    timer:sleep(500),
+    %reload the cleaner verkle tree, it should be empty.
+    %io:fwrite("one_root_clean: reload the now empty cleaner db\n"),
+    bits:reset(accounts_cleaner),
+    bits:reset(cleaner_v_leaf),
+    bits:reset(cleaner_v_stem),
+    bits:reset(contracts_cleaner),
+    bits:reset(markets_cleaner),
+    bits:reset(matched_cleaner),
+    bits:reset(oracles_cleaner),
+    bits:reset(receipts_cleaner),
+    bits:reset(sub_accs_cleaner),
+    bits:reset(trades_cleaner),
+    bits:reset(unmatched_cleaner),
+
+    dump:reload(accounts_cleaner),
+    dump:reload(contracts_cleaner),
+    dump:reload(markets_cleaner),
+    dump:reload(matched_cleaner),
+    dump:reload(oracles_cleaner),
+    dump:reload(receipts_cleaner),
+    dump:reload(sub_accs_cleaner),
+    dump:reload(trades_cleaner),
+    dump:reload(unmatched_cleaner),
+
+    tree:reload_ets(cleaner),
+    timer:sleep(500),
+    %build the clean version
+    io:fwrite("one_root_clean: copy the data for that one root to the cleaner db\n"),
+    CFG2 = CFG#cfg{id = cleaner},
+    NewPointer = one_root_clean_stem(Pointer, CFG, CFG2),
+    %copy the clean version over the main version.
+    io:fwrite("one_root_clean: back up the cleaner db to the hard disk\n"),
+    tree:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
+
+    NewPointer.
+
+recover_from_clean_version(Pointer) ->
+    io:fwrite("one_root_clean: copying everything from the cleaner db back to the main db\n"),
+
+
+    %TODO. we need to make sure it is on the hard disk in the cleaner folder before we start copying things.
+
+    IDs = [1,3,4,5,6,7,8,9,10],
+
+    lists:map(fun(ID) -> dump:quick_save(
+                           int2cleaner_name(ID)) end, 
+              IDs),
+    dump:quick_save(cleaner_v_leaf),
+    dump:quick_save(cleaner_v_stem),
+    timer:sleep(3000),
+
+    os:cmd("cp -r cleaner/data/accounts_cleaner.db ../../../../db/data/accounts_dump.db"),
+    os:cmd("cp -r cleaner/data/contracts_cleaner.db ../../../../db/data/contracts_dump.db"),
+    os:cmd("cp -r cleaner/data/existence_cleaner.db ../../../../db/data/existence_dump.db"),
+    os:cmd("cp -r cleaner/data/markets_cleaner.db ../../../../db/data/markets_dump.db"),
+    os:cmd("cp -r cleaner/data/matched_cleaner.db ../../../../db/data/matched_dump.db"),
+    os:cmd("cp -r cleaner/data/oracles_cleaner.db ../../../../db/data/oracles_dump.db"),
+    os:cmd("cp -r cleaner/data/receipts_cleaner.db ../../../../db/data/receipts_dump.db"),
+    os:cmd("cp -r cleaner/data/sub_accounts_cleaner.db ../../../../db/data/sub_accounts_dump.db"),
+    os:cmd("cp -r cleaner/data/trades_cleaner.db ../../../../db/data/trades_dump.db"),
+    os:cmd("cp -r cleaner/data/unmatched_cleaner.db ../../../../db/data/unmatched_dump.db"),
+
+    os:cmd("cp -r cleaner/data/accounts_cleaner_rest.db ../../../../db/data/accounts_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/contracts_cleaner_rest.db ../../../../db/data/contracts_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/existence_cleaner_rest.db ../../../../db/data/existence_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/markets_cleaner_rest.db ../../../../db/data/markets_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/matched_cleaner_rest.db ../../../../db/data/matched_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/oracles_cleaner_rest.db ../../../../db/data/oracles_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/receipts_cleaner_rest.db ../../../../db/data/receipts_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/sub_accounts_cleaner_rest.db ../../../../db/data/sub_accounts_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/trades_cleaner_rest.db ../../../../db/data/trades_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/unmatched_cleaner_rest.db ../../../../db/data/unmatched_dump_rest.db"),
+
+
+    lists:map(fun(ID_num) ->
+                      Name = int2dump_name(ID_num),
+                      CleanName = int2cleaner_name(ID_num),
+                      bits:reset(Name),
+                      Top = bits:top(CleanName),
+                      copy_bits(1, Top, CleanName, Name)
+              end, IDs),
+
+    bits:reset(amoveo_v_leaf),
+    bits:reset(amoveo_v_stem),
+    copy_bits(1, bits:top(cleaner_v_leaf), cleaner_v_leaf, amoveo_v_leaf),
+    copy_bits(1, bits:top(cleaner_v_stem), cleaner_v_stem, amoveo_v_stem),
+
+
+%    os:cmd("cp -r cleaner/data/cleaner_v_leaf_bits.db ../../../../db/data/amoveo_v_leaf_bits.db"),
+    os:cmd("cp -r cleaner/data/cleaner_v_leaf.db ../../../../db/data/amoveo_v_leaf.db"),
+    os:cmd("cp -r cleaner/data/cleaner_v_leaf_rest.db ../../../../db/data/amoveo_v_leaf_rest.db"),
+%    os:cmd("cp -r cleaner/data/cleaner_v_stem_bits.db ../../../../db/data/amoveo_v_stem_bits.db"),
+    os:cmd("cp -r cleaner/data/cleaner_v_stem.db ../../../../db/data/amoveo_v_stem.db"),
+    os:cmd("cp -r cleaner/data/cleaner_v_stem_rest.db ../../../../db/data/amoveo_v_stem_rest.db"),
+
+    timer:sleep(1000),
+
+
+
+%accounts_cleaner.db     cleaner_v_leaf_rest.db  cleaner_v_stem_rest.db  matched_cleaner.db   sub_accs_cleaner.db
+%cleaner_v_leaf_bits.db  cleaner_v_stem_bits.db  contracts_cleaner.db    oracles_cleaner.db   trades_cleaner.db
+%cleaner_v_leaf.db       cleaner_v_stem.db       markets_cleaner.db      receipts_cleaner.db  unmatched_cleaner.db
+
+    %reload the verkle tree.
+    io:fwrite("one_root_clean: reloading the main db \n"),
+    tree:reload_ets(amoveo),
+%    dump:reload(amoveo_v_leaf),%reload the bits part....
+%    dump:reload(amoveo_v_stem),
+    %tree:clean_ets(amoveo, Pointer),
+    dump:reload(accounts_dump),
+    dump:reload(contracts_dump),
+    dump:reload(markets_dump),
+    dump:reload(matched_dump),
+    dump:reload(oracles_dump),
+    dump:reload(receipts_dump),
+    dump:reload(sub_accs_dump),
+    dump:reload(trades_dump),
+    dump:reload(unmatched_dump),
+
+    %delete the contents of the cleaner folder to save space.
+    %os:cmd("rm -rf cleaner/*.db"),
+    ok.
+
+copy_bits(X, Top, _, _) when X > Top ->
+    ok;
+copy_bits(I, Top, CleanName, Name) ->
+    B = bits:get(CleanName, I),
+    if
+        B ->
+            bits:set(Name, I);
+        true -> ok
+    end,
+    copy_bits(I+1, Top, CleanName, Name).
     
+
+one_root_clean_stem(Pointer, 
+               CFG, %the old database we are reading from.
+               CFG2) -> %the new database we are inserting to.
+    
+    %make a new verkle database. copy over everything that we want to keep. It is a depth first scan of the old tree.
+
+    %make the new database.
+    %io:fwrite("one root clean stem "),
+    %io:fwrite(integer_to_list(Pointer)),
+    %io:fwrite("\n"),
+    S = stem_verkle:get(Pointer, CFG),
+    SanityHash = stem_verkle:hash(S),
+    P = tuple_to_list(stem_verkle:pointers(S)),
+    T = tuple_to_list(stem_verkle:types(S)),
+    H = tuple_to_list(stem_verkle:hashes(S)),
+    P2 = one_root_clean2(P, T, H, CFG, CFG2),
+    S2 = setelement(4, S, list_to_tuple(P2)),
+    SanityHash = stem_verkle:hash(S2),
+    %S2 = S#stem_verkle{pointers = list_to_tuple(P2)},
+    stem_verkle:put(S2, CFG2).
+-record(leaf, {key, value, meta}).
+one_root_clean2([], [], _, _, _) -> [];
+one_root_clean2(
+  [Pointer|PT], [Type|TT], [Hash|HT], 
+  CFG, CFG2 ) -> 
+    P2 = case Type of
+             0 -> %empty
+                 Hash = <<0:256>>,
+                 0;
+             1 -> %another stem
+                 P3 = one_root_clean_stem(Pointer, CFG, CFG2),
+                 Stem = stem_verkle:get(P3, CFG2),
+                 Hash2 = stem_verkle:hash(Stem),%different.
+                 if
+                     not(Hash == Hash2) -> 
+                         Stem0 = stem_verkle:get(Pointer, CFG),
+                         Hash3 = stem_verkle:hash(Stem0),
+                         io:fwrite({Hash2, Hash, Hash3, Stem, Stem0});
+                     true -> ok
+                 end,
+                 P3;
+             2 -> %a leaf
+                 Leaf = leaf_verkle:get(Pointer, CFG),
+                 #leaf{key = Key, value = LeafHash, meta = Meta} = Leaf,
+                 Hash = store_verkle:leaf_hash(Leaf, CFG),
+                 %Hash = leaf_verkle:hash(Leaf, CFG),
+                 %<<N:256>> = store_verkle:leaf_hash(Leaf, CFG),
+                 <<M1, Pointer2:(7*8)>> = Meta,
+                 %Type = int2type(M1),
+                 CS0 = dump:get(Pointer2, int2dump_name(M1)),
+                 %CSHash = hash:doit(CS0),
+                 %CS = deserialize(M1, CS0),
+
+                 Pointer4 = dump:put(CS0, int2cleaner_name(M1)),
+                 Meta2 = <<M1, Pointer4:(7*8)>>,
+                 Leaf2 = Leaf#leaf{meta = Meta2},
+
+                 %io:fwrite({Hash, LeafHash, CSHash}),
+                 %io:fwrite({Key, M1, CS}),
+                 %Hash = fr:encode(N),
+                 %SL = leaf_verkle:serialize(Leaf, CFG),
+                 %ets:insert(LID, {Pointer, SL})
+
+                 %todo, we need to store the actual consensus state data to it's file as well. decode the leaf, and store the data in the cleaner db.
+                 %from cs2v
+                 %meta = <<M1, M:(7*8)>>
+            %V = serialize(A),
+            %H = hash:doit(V),
+            %M1 = type2int(element(1, A)),
+            %DBName = int2dump_name(M1),
+
+
+                 Pointer3 = leaf_verkle:put(Leaf2, CFG2),
+                 %io:fwrite("put a leaf. stem1: "),
+                 %io:fwrite(integer_to_list(Pointer)),
+                 %io:fwrite(",  stem2: "),
+                 %io:fwrite(integer_to_list(Pointer3)),
+                 %io:fwrite(",  leaf1: "),
+                 %io:fwrite(integer_to_list(Pointer2)),
+                 %io:fwrite(",  leaf2: "),
+                 %io:fwrite(integer_to_list(Pointer4)),
+                 %io:fwrite("\n"),
+                 Pointer3
+         end,
+    [P2|one_root_clean2(PT, TT, HT, CFG, CFG2)].
 
 test(0) ->
     %testing the raw verkle tree interface. only stores keys and values of 32 bytes.
@@ -1351,7 +1607,38 @@ test(4) ->
     %{true, V2} = verify_proof(Proof3, As3),
     {true, V2} = verify_proof(Proof3, As2b),
     prune(Loc2, Loc3),
-    success.
+    success;
+test(5) ->
+    %testing the tool for deleting everything besides the history connected to a single root.
+    Many = 20,
+    Keys = lists:map(fun(_) -> signing:new_key()
+                     end, range(1, Many)),
+    As = lists:map(
+           fun({P, _}) ->
+                   #acc{pubkey = P, 
+                        balance = 100000000, 
+                        nonce = 0} 
+           end, Keys),
+    AsB = lists:map(
+           fun({P, _}) ->
+                   #acc{pubkey = P, 
+                        balance = 100000002, 
+                        nonce = 0} 
+           end, Keys),
+    Loc = 1,
+    {As0, As1} = lists:split(Many div 2, As),
+    Loc2 = store_things(As1, Loc),
+    CFG = tree:cfg(amoveo),
+    Loc2V1 = stem_verkle:get(Loc2, CFG),
+    Loc3 = store_things(AsB, Loc2),
+    Loc4 = store_things(As0, Loc3),
+    
+    one_root_clean(Loc4, CFG),
+    ok.
+    %timer:sleep(1000),
+    %loc2 should be empty. loc3 and loc4 should not be.
+    %Loc2V2 = stem_verkle:get(Loc2, CFG),
+    %{Loc2V1, Loc2V2}.
 
     
 print_now() ->    

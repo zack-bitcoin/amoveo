@@ -4,7 +4,7 @@
          dict_delete/2, dict_write/2, dict_get/2,dict_get/3,%update dict stuff
          verify_proof/4, make_leaf/3, key_to_int/1, 
 	 deserialize/1, serialize/1, 
-         tid/1, pubkey/1, id/1,
+         tid/1, pubkey/1, id/1, id_maker/1,
 	 all/0,
 	 test/0]).
 -include("../../records.hrl").

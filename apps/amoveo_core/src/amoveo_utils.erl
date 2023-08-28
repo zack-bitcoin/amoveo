@@ -4,7 +4,7 @@
 	 block_rewards/2,
 	 tx_history/1, tx_history/2, tx_history/3,
 	 address_history/2,address_history/3,address_history/4,
-	 push_txs/0, key_full_to_light/1
+	 push_txs/0, key_full_to_light/1, iterator/2
 	]).
 -include("records.hrl").
 
@@ -222,3 +222,7 @@ bin_to_hex(<<15:4, R/bitstring>>) ->
 key_full_to_light(K) ->		      
     B = base64:decode(K),
     bin_to_hex(B).
+
+iterator(_, 0) -> [];
+iterator(X, N) when N > 0 -> 
+    [X|iterator(X, N-1)].

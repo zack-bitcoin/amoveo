@@ -139,8 +139,12 @@ absorb(X) ->
     H = block:height(),
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     H2 = max(0, H - FT + 1),
-    B = block:get_by_height(H2),
-    absorb(X, block:hash(B)).
+    B0 = block:get_by_height(H2),
+    Hash = case B0 of
+            error -> <<>>;
+            _ -> block:hash(B0)
+        end,
+    absorb(X, Hash).
 absorb([], CommonHash) -> 
     CommonHash;
 absorb([First|T], R) when is_binary(First) ->

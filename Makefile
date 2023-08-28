@@ -165,6 +165,9 @@ clean: $$(KIND)
 	mkdir db/blocks
 	rm -rf db/checkpoints/
 	mkdir db/checkpoints
+	rm -rf db/cleaner/
+	mkdir db/cleaner/
+	mkdir db/cleaner/data
 	@touch ./config/$(KIND)/sys.config
 	@rm  ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/
@@ -177,6 +180,9 @@ old-clean: $$(KIND)
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/blocks/
 	@rm -rf ./_build/$(KIND)/rel/amoveo_core/checkpoints/
 	@mkdir ./_build/$(KIND)/rel/amoveo_core/checkpoints/
+	@rm -rf ./_build/$(KIND)/rel/amoveo_core/cleaner/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/cleaner/
+	@mkdir ./_build/$(KIND)/rel/amoveo_core/cleaner/data
 	@touch ./config/$(KIND)/sys.config
 	@rm  ./config/$(KIND)/sys.config
 	@rm -rf ./_build/$(KIND)/rel/log/

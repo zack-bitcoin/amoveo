@@ -311,26 +311,37 @@ sync(IP, Port, CPL) ->
     %io:fwrite(S),
     %io:fwrite("\n"),
 
-    Roots = if
-                is_integer(TDB) ->
-                    os:cmd("mv " ++ Temp ++ "/db/backup_temp/*.db " ++ CR ++ "data/."),
-                    os:cmd("rm -rf "++ Temp), %%
-                    os:cmd("rm "++ Tarball), %%
+    Roots = 
+      if
+          is_integer(TDB) ->
+              os:cmd("mv " ++ Temp ++ "/db/backup_temp/*.db " ++ CR ++ "data/."),
+              os:cmd("rm -rf "++ Temp), %%
+              os:cmd("rm "++ Tarball), %%
                     
-                    io:fwrite("verkle checkpoint\n"),
+              io:fwrite("verkle checkpoint\n"),
                     %todo, load the table from the hard drive into ram.
-                    ID = amoveo,
+              ID = amoveo,
                     %Pointer = NBlock#block.trees,
-                    Pointer = TDB,
-                    CFG = tree:cfg(ID),
+              Pointer = TDB,
+
+              io:fwrite("pointer0 is: "), 
+              io:fwrite(integer_to_list(Pointer)),
+              io:fwrite("\n"),
+              
+
+
+              CFG = tree:cfg(ID),
+              %Pointer = trees2:one_root_clean(Pointer0, CFG),
+
+
                     %Mode = verkle_trees_sup:mode(),
                     %case Mode of
                     %    ram ->
                     %        tree:reload_ets(ID);
                     %    hd -> tree:reload_ets(ID)
                     %end,
-                    timer:sleep(1000),
-                    tree:reload_ets(ID),
+              timer:sleep(1000),
+              tree:reload_ets(ID),
                     timer:sleep(1000),
                     io:fwrite("checkpoint loading stem pointer: "),
                     io:fwrite(integer_to_list(Pointer)),
@@ -361,7 +372,7 @@ sync(IP, Port, CPL) ->
                     %io:fwrite({stem_verkle:root(Stem) == ed:extended_zero(), stem_verkle:hash(Stem)}),
                     %try doing tree:root_hash of ed:extended_zero()
                     
-                    tree:root_hash(ID, Pointer);
+              tree:root_hash(ID, Pointer);
                     %todo, delete everything from the table besides what can be proved from this single root.
                     %todo, return the root hash of the tree.
         true ->
@@ -419,20 +430,30 @@ sync(IP, Port, CPL) ->
     gen_server:cast(block_db, {write, NBlock3, CP1}),
     block_db:set_ram_height(Height),
     headers:absorb_with_block([Header]),
-    recent_blocks:add(CP1, 
-                      Header#header.accumulative_difficulty, 
-                      Height),
+    recent_blocks:add(
+      CP1, 
+      Header#header.accumulative_difficulty, 
+      Height),
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
+
+
+            if 
+                is_integer(TDB) ->
+                    trees2:one_root_clean(TDB, tree:cfg(amoveo));
+                true -> ok
+            end,
 
     %io:fwrite("checkpoint starting reverse sync\n"),
     %timer:sleep(100),
     %reverse_sync2(Height, Peer, Block2, Roots),
     %reverse_sync(Peer),
-    timer:sleep(100),
+    timer:sleep(5000),
             make(true),
+    timer:sleep(2000),
     io:fwrite("checkpoint starting sync\n"),
-            sync:start([{IP, Port}])
+            %sync:start([{IP, Port}])
+            ok
     end.
     %ok.
 
@@ -470,6 +491,7 @@ all_zero(_) -> false.
 
 reverse_sync() ->
     io:fwrite("reverse sync/0\n"),
+    sync_kill:start(),
     %find a peer that has a checkpoint.
     spawn(fun() ->
                   Ps = peers:all(),
@@ -508,11 +530,25 @@ reverse_sync(Height, Peer) ->
         _ -> io:fwrite({Peer})
     end,
     sync_kill:start(),
+    io:fwrite("reverse sync/2 got block 0\n"),
     {ok, Block} = talker:talk({block, Height-1}, Peer),%same as bottom.
+    io:fwrite("reverse sync/2 got block 1\n"),
     {ok, NBlock} = talker:talk({block, Height}, Peer),%one above bottom.
+    io:fwrite("reverse sync/2 got block 2\n"),
     Roots = NBlock#block.roots,
 
+    if
+        true -> ok;
+        is_integer(Roots) ->
+            ok;
+        is_tuple(Roots) ->
+            ok;
+        true -> io:fwrite({Roots, NBlock})
+    end,
+        
+
     {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
+    io:fwrite("reverse sync/2 check0\n"),
     Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
     %TDB = Block#block.trees,
     %Roots = block:make_roots(TDB),
@@ -520,7 +556,7 @@ reverse_sync(Height, Peer) ->
 
 
 reverse_sync2(Height, Peer, Block2, Roots) ->
-    %io:fwrite("reverse_sync2\n"),
+    io:fwrite("reverse_sync2\n"),
     H2 = max(0, Height-50),
     %{ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
     {ok, ComPage0} = talker:talk({blocks, -1, 50, Height-1}, Peer),
@@ -550,22 +586,19 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     CompressedPage = block_db:compress(Page),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
+    %io:fwrite("load pages\n"),
     go = sync_kill:status(),
     Page = block_db:uncompress(CompressedPage),
     PageLength = length(dict:fetch_keys(Page)),
+    %io:fwrite("verify blocks\n"),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, PageLength),
-    %TODO
-    %cut the DP into like 10 sub-lists, and make a process to verify each one. make sure there is 1 block of overlap, to know that the sub-lists are connected.
-    %if a block has an unknown header, then drop this peer.
-    %if any block is invalid, display a big error message.
-
-    %TODO instead of loading this as one page, we should check if our configured page size is smaller, and cut them up if needed.
-    %a page is a dictionary storing blocks by their hash.
     {ok, BlockCacheSize} = application:get_env(
                   amoveo_core, block_cache),
     PageBytes = size(term_to_binary(Page)),
+    %io:fwrite("cut page\n"),
     Pages = cut_page(BottomBlock#block.prev_hash, BlockCacheSize, Page, dict:new(), []),
 
+    %io:fwrite("block_db load page\n"),
     lists:map(fun(Page) ->
                       block_db:load_page(Page)
               end, lists:reverse(Pages)),
@@ -575,6 +608,7 @@ load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
             io:fwrite("synced all blocks back to the genesis.\n"),
             ok;
         true -> 
+            go = sync_kill:status(),
             {ok, NextCompressed} = talker:talk({blocks, -1, 50, StartHeight-1}, Peer), %get next compressed page.
             spawn(fun() ->
                        load_pages(NextCompressed, NewBottom, NextRoots, Peer)
@@ -630,7 +664,10 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
                   amoveo_core, minimum_to_verify),
     {ok, TestMode} = application:get_env(
                        amoveo_core, test_mode),
+            F52 = forks:get(52),
     if
+        
+        ((Height > F52) and ((Height rem 20) == 0)) or 
         ((Height rem 200) == 0) ->
         %((Height rem 1) == 0) ->
             {_, T1, T2} = erlang:timestamp(),
@@ -697,16 +734,22 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
                         {RootsList, Leaves0} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
                                                 %Roots2 = [roots2|RootsList],
                         if
+                            Height == F52 -> ok;
                             (PrevRoots == 0) -> 
                                 io:fwrite({PrevRoots, RootsList});
                             not(is_tuple(PrevRoots)) ->
                                 io:fwrite({PrevRoots, RootsList});
                             true -> ok
                         end,
-                        Bool = 
-                            check_roots_match(
-                              RootsList, 
-                              tl(tuple_to_list(PrevRoots))),
+                        Bool = case Height of
+                                   F52 -> 
+                                       B52_hash = block:hash(B),
+                                       B52_hash == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
+                                   _ ->
+                                       check_roots_match(
+                                         RootsList, 
+                                         tl(tuple_to_list(PrevRoots)))
+                               end,
                         if
                             not(Bool) -> 
                                 io:fwrite({{height, Height}, {lengths, length(RootsList), length(tl(tuple_to_list(PrevRoots))), length(TreeTypes)}, {roots_list, RootsList}, {prev_roots, PrevRoots}, {tree_types, TreeTypes}, lists:map(fun(X) -> {X, dict:fetch(X, NewDict3)} end, dict:fetch_keys(NewDict3))});

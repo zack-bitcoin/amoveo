@@ -150,7 +150,7 @@ absorb_internal(Block) ->
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 		    if
-			(Block2#block.height rem 100) == 0 ->
+			(Block2#block.height rem 20) == 0 ->
 			%1 == 1 ->
                             {_, T1, T2} = erlang:timestamp(),
 			    io:fwrite("absorb block height: "),

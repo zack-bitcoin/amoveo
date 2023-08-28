@@ -47,22 +47,26 @@ internal(PruneBlock, KeepBlock, F) ->
     TE = TD ++ [receipts, stablecoins],
     T1 = PruneBlock#block.trees,
     T2 = KeepBlock#block.trees,
-    Trees = case element(1, T1) of%
-		trees -> TA;%
-		trees2 -> TB;
-                trees3 -> TC;
-                trees4 -> TD;
-                trees5 -> TE
-	    end,%
-    _ = 
-	lists:map(fun(T) ->
-			  T1 = PruneBlock#block.trees,
-			  T2 = KeepBlock#block.trees,
-			  A1 = trees:T(T1),
-			  A2 = trees:T(T2),
-			  F(A1, A2, T)
-		  end, Trees),
-    ok.
+    if
+        is_integer(T1) -> ok;
+        true ->
+            Trees = case element(1, T1) of%
+                        trees -> TA;%
+                        trees2 -> TB;
+                        trees3 -> TC;
+                        trees4 -> TD;
+                        trees5 -> TE
+                    end,%
+            _ = 
+                lists:map(fun(T) ->
+                                  T1 = PruneBlock#block.trees,
+                                  T2 = KeepBlock#block.trees,
+                                  A1 = trees:T(T1),
+                                  A2 = trees:T(T2),
+                                  F(A1, A2, T)
+                          end, Trees),
+            ok
+    end.
 order_sorter({orders, Keya}, {orders, Keyb}) ->%
     PS = constants:pubkey_size()*8,%
     <<A:PS>> = Keya#key.pub,%

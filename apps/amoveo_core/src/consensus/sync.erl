@@ -222,6 +222,7 @@ new_get_blocks(Peer, N, TheirBlockHeight, _) when (N > TheirBlockHeight) ->
 new_get_blocks(Peer, N, TheirBlockHeight, 0) ->
     io:fwrite("gave up syncing");
 new_get_blocks(Peer, N, TheirBlockHeight, Tries) ->
+    io:fwrite("sync new get blocks\n"),
     go = sync_kill:status(),
     Height = block:height(),
     AHeight = api:height(),
@@ -240,6 +241,7 @@ new_get_blocks(Peer, N, TheirBlockHeight, Tries) ->
                   end)
                 %new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
     end.
+    
 new_get_blocks2(_TheirBlockHeight, _N, _Peer, 0) ->
     ok;
 new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
@@ -249,7 +251,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
     BH0 = block:height(),
     true = N < TheirBlockHeight + 1,
     go = sync_kill:status(),
-    N2 = min(BH0, N),
+    %N2 = min(BH0, N),
     Blocks = talker:talk({blocks, 50, N}, Peer),
     BH2 = block:height(),
     go = sync_kill:status(),
@@ -267,9 +269,9 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
 	    timer:sleep(600),
 	    new_get_blocks2(TheirBlockHeight,  N, Peer, Tries - 1);
 	{ok, Bs} -> 
-            %io:fwrite("got compressed blocks, asked for height: "),
-            %io:fwrite(integer_to_list(N2)),
-            %io:fwrite("\n"),
+            io:fwrite("got compressed blocks, asked for height: "),
+            io:fwrite(integer_to_list(N)),
+            io:fwrite("\n"),
             L = if
                     is_list(Bs) -> Bs;
                     true ->
@@ -277,17 +279,17 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                         L0 = low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)),
                         L0
                 end,
-            %io:fwrite("uncompressed the blocks\n"),
+            io:fwrite("uncompressed the blocks\n"),
             S = length(L),
-            %io:fwrite("many blocks: "),
-            %io:fwrite(integer_to_list(S)),
-            %io:fwrite("\n"),
-            %io:fwrite("first height: "),
-            %io:fwrite(integer_to_list(element(2, hd(L)))),
-            %io:fwrite("\n"),
-            %io:fwrite("last height: "),
-            %io:fwrite(integer_to_list(element(2, hd(lists:reverse(L))))),
-            %io:fwrite("\n"),
+            io:fwrite("many blocks: "),
+            io:fwrite(integer_to_list(S)),
+            io:fwrite("\n"),
+            io:fwrite("first height: "),
+            io:fwrite(integer_to_list(element(2, hd(L)))),
+            io:fwrite("\n"),
+            io:fwrite("last height: "),
+            io:fwrite(integer_to_list(element(2, hd(lists:reverse(L))))),
+            io:fwrite("\n"),
             if
                 S == 0 -> ok;
                 true ->

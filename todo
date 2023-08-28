@@ -1,41 +1,57 @@
-update the explorer and the mining pool for the new way that checkpoints work.
-* we need to copy the db files from inside the release, to the db folder.
+ets tables store their names internally.
+you can't load a second table if you already have a table with that name.
+you can rename tables that are loaded.
+this is preventing us from copying all the *_bits.db files.
+So, for each of the *_bits gen server in the cleaner verkle database, we should loop over every bit in the database, and duplicate those bits to the main verkle database.
+
+
+remove unnecessary print statements in dump.
 
 
 
-checkpoints are super slow.
-It would be faster to download the consensus state data, and recalculate the verkle tree from it on our end.
+trying to get the checkpoint to shrink.
+when we load the new bits file into the amoveo, it fails at the ets:file2tab(File) step.
+after that, the file ends up corrupted in a weird way. it is like it both exists and does not. seems like some thread is creating and destroying it rapidly.
 
 
-we updated constants.erl so that the local version of amoveo will store it's files in /db.
-
-it seems like checkpoint.erl, in sync/3, it isn't unpacking the verkle checkpoint correctly for production version. around line 300.
-- sync the headers and back them up.
-- add print statments and comment out lines that delete files to figure out what step goes wrong.
 
 
-looks like the verkle tree is being stored in the release instead of in the database folder.
-* looks like syncing the checkpoint isn't working.
 
-* tree.erl in the verkle repository is generating file locations from the ids, this can't work to store in the correct place. We need to teach tree.erl about using other files.
-* these functions in tree.erl need to know where files are being stored. They all already have the CFG, so we just need to update the CFG to contain location info, and then update every spot we call dump.
-- reload_ets
-- quick_save
-- clean_ets
-* these functions in stem_verkle.erl
-- put/3
-- put/2
-- put_batch/2
-- get/2
-- delete/2
-- update/3
-* these functions in leaf_verkle.erl
-- put_batch/2
-- put/2
-- get/2
-- delete/2
+trying to get the checkpoint to load.
+we get the cleaner db working, but it isn't clear we are saving everything to the hard disk correctly.
+if we do dump:reload(accounts_cleaner), it seems to work correctly.
+but when we try dump:reload(accounts_dump), it leaves it in a broken state. bits:top(accounts_dump) timesout.
+
+When we put data into the cleaner, we can tell the bits module to restart from empty.
+when we copy back to the main db, the bits module needs to restart by reading data from the file. This seems to be where it is breaking.
+it seems to get caught in an infinite loop.
 
 
+
+
+
+if loading a checkpoint saves 2 blocks, why do we have only one after?
+
+
+
+trying to start with a checkpoint, and do trees2:one_root_clean/2
+looks like block:tree is stuck on 4. should update to new pointer after cleaning somehow.
+- but, the other block is storing a tuple there. Where does the pointer get stored??
+
+
+
+
+we got a second verkle tree working, and we can use it to clean all our database except for what can be proved from a single root.
+trees2:one_root_clean/2
+we should modify it for creating checkpoints, so the checkpoint is smaller.
+we should use it when syncing checkpoints, so we don't put anything extra in the database.
+
+
+
+tree_data:garbage is only for merkle. we should use tree:garbage to make the verkle analogue.
+we need to test prune_verkle to see if it even works. we need to write new better tests.
+
+when we sync forwards, it seems to do it in jumps. why isn't it one block at a time?
 
 
 
