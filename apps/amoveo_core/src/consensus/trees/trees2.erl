@@ -1153,6 +1153,7 @@ merkle2verkle(
 one_root_clean(Pointer, CFG) ->
     NewPointer = one_root_maker(Pointer, CFG),
     recover_from_clean_version(NewPointer),
+    io:fwrite("one root clean done\n"),
     NewPointer.
 
 one_root_maker(Pointer, CFG) ->

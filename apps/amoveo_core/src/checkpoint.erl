@@ -231,7 +231,20 @@ sync(IP, Port, CPL) ->
         application:get_env(
           amoveo_core, fork_tolerance),
     CR = constants:custom_root(),
-    io:fwrite("searching for a checkpoint\n"),
+    io:fwrite("searching for a checkpoint, trying: "),
+    case IP of
+        {IPA, IPB, IPC, IPD} ->
+            io:fwrite(integer_to_list(IPA)),
+            io:fwrite("."),
+            io:fwrite(integer_to_list(IPB)),
+            io:fwrite("."),
+            io:fwrite(integer_to_list(IPC)),
+            io:fwrite("."),
+            io:fwrite(integer_to_list(IPD)),
+            ok;
+        _ -> io:fwrite(IP)
+    end,
+    io:fwrite("\n")
 
     HCPL0 = lists:map(
              fun(C) ->
