@@ -1167,6 +1167,7 @@ one_root_clean(Pointer, CFG) ->
     end,
     io:fwrite("one root clean 3\n"),
     recover_from_clean_version(NewPointer),
+    Hash = scan_verkle(NewPointer, CFG),
     io:fwrite("one root clean done\n"),
     NewPointer.
 

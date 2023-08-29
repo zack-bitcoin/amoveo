@@ -1,4 +1,5 @@
-seems like checkpoints are corrupted if they are made while syncing. the node that hosts the checkpoint isn't corrupted.
+the checkpoint always seems corrupted when we try to sync it.
+We should try to make checks to prevent the creation of corrupt checkpoints.
 
 
 trying to get checkpoints to sync two hops.
