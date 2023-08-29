@@ -185,8 +185,8 @@ get_chunks2(Hash, Peer, N, Result) ->
 
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
-    IP = {159,223,85,216},%the pool
-    %IP = {64, 227, 21, 70},%explorer
+    %IP = {159,223,85,216},%the pool
+    IP = {64, 227, 21, 70},%explorer
     %IP = {159,65,126,146},%germany
     %IP = {45, 55, 194, 109}, %ubuntu 20
     Port = 8080,
@@ -232,19 +232,22 @@ sync(IP, Port, CPL) ->
           amoveo_core, fork_tolerance),
     CR = constants:custom_root(),
     io:fwrite("searching for a checkpoint, trying: "),
+    %64 227 21 70
     case IP of
         {IPA, IPB, IPC, IPD} ->
-            io:fwrite(integer_to_list(IPA)),
-            io:fwrite("."),
-            io:fwrite(integer_to_list(IPB)),
-            io:fwrite("."),
-            io:fwrite(integer_to_list(IPC)),
-            io:fwrite("."),
-            io:fwrite(integer_to_list(IPD)),
+            String01 = 
+            integer_to_list(IPA) ++
+            "."++
+            integer_to_list(IPB) ++
+            "."++
+            integer_to_list(IPC) ++
+            "."++
+            integer_to_list(IPD),
+            io:fwrite(String01),
             ok;
         _ -> io:fwrite(IP)
     end,
-    io:fwrite("\n")
+    io:fwrite("\n"),
 
     HCPL0 = lists:map(
              fun(C) ->
