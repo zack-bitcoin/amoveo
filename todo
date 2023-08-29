@@ -1,3 +1,11 @@
+finally got the germany server to sync.
+* check that we can sync from germany to the laptop.
+* make sure to update the config files when we update the explorer and pool
+
+
+
+
+
 if we just turn on a node and try to sync, it is failing to copy the cleaner stuff over. if we turn the node off and on at line 459 of page checkpoint.erl, then this problem goes away.
 before we do trees2:one_root_clean/2
 probably some things need to get saved to the hard disk first.
