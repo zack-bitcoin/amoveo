@@ -272,7 +272,8 @@ sync(IP, Port, CPL) ->
             io:fwrite("this peer doesn't have a checkpoint at an early enough height to conform to the security configuration of this node. Attempting to find a different peer...\n"),
             sync();
         _ ->
-    {_, CP1} = hd(lists:reverse(HCPL)),
+    %{_, CP1} = hd(lists:reverse(HCPL)),
+    {_, CP1} = hd(HCPL),
 
     %CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
     %CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
