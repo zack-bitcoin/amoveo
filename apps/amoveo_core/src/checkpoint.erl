@@ -541,7 +541,7 @@ reverse_sync() ->
 reverse_sync(Peer) ->
     io:fwrite("reverse sync/1\n"),
     spawn(fun() ->
-                  Height = block:bottom(),
+                  Height = block:bottom() + 1,
                   reverse_sync(Height, Peer)
           end).
 

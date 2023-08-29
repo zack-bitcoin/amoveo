@@ -905,11 +905,11 @@ proofs_roots_match(A, B) ->
 verify(Block) ->
    %entire process of verifying the block in one place. Does not update the hard drive, does not calculate new tree root pointers.
     %does calculate the meta.
-    
+      %unused.
     X = check0(Block),
     B2 = Block#block{trees = X},
     OldBlock = get_by_hash(Block#block.prev_hash),
-    {NewDict4, NewDict3, Dict} = 
+    {NewDict4, NewDict3, Dict, ProofTree} = 
         check3(OldBlock, B2), 
     Height = Block#block.height,
     OldTrees = OldBlock#block.trees,

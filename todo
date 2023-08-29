@@ -1,6 +1,6 @@
-finally got the germany server to sync.
-* check that we can sync from germany to the laptop.
-* make sure to update the config files when we update the explorer and pool
+almost got the germany server to sync.
+the block just before the checkpoint didn't get stored.
+everything else seems good.
 
 
 
