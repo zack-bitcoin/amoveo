@@ -91,6 +91,8 @@ handle_call({make, Force}, _, X) ->
                          VerkleTrees = ["accounts", "contracts", "existence", "markets", "matched", "oracles", "receipts", "sub_accs", "trades", "unmatched"],
                          io:fwrite("quicksaving dumps\n"),
                          lists:map(fun(S) ->
+                                           io:fwrite(S),
+                                           io:fwrite("\n"),
                                            A = list_to_atom(S ++ "_dump"),
                                            dump:quick_save(A)
                                    end, VerkleTrees),
