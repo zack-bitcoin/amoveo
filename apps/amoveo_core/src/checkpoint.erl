@@ -88,6 +88,11 @@ handle_call({make, Force}, _, X) ->
                          ok;%makes a copy of the tree files.
                      true ->
                          tree:quick_save(amoveo),
+                         VerkleTrees = ["accounts", "contracts", "existence", "markets", "matched", "oracles", "receipts", "sub_accounts", "trades", "unmatched"],
+                         lists:map(fun(S) ->
+                                           A = list_to_atom(S ++ "_dump"),
+                                           dump:quick_save(A)
+                                   end, VerkleTrees),
                          %Mode = verkle_trees_sup:mode(),
                          %case Mode of
                          %    ram ->
@@ -101,7 +106,6 @@ handle_call({make, Force}, _, X) ->
                          os:cmd("cp " ++ CR ++ "data/amoveo_v_stem.db " ++ Temp ++ "/amoveo_v_stem.db"),
                          os:cmd("cp " ++ CR ++ "data/amoveo_v_stem_rest.db " ++ Temp ++ "/amoveo_v_stem_rest.db"),
                          os:cmd("cp " ++ CR ++ "data/amoveo_v_stem_bits.db " ++ Temp ++ "/amoveo_v_stem_bits.db"),
-                         VerkleTrees = ["accounts", "contracts", "existence", "markets", "matched", "oracles", "receipts", "sub_accounts", "trades", "unmatched"],
                          lists:map(fun(X) ->
                                            os:cmd("cp " ++ CR ++ "data/" ++ X ++ ".db " ++ Temp ++ "/" ++ X ++ ".db"),
                                            os:cmd("cp " ++ CR ++ "data/" ++ X ++ "_rest.db " ++ Temp ++ "/" ++ X ++ "_rest.db"),
@@ -1017,6 +1021,7 @@ cp(CR, H, S) ->
 backup_trees([], _) -> 
     ok;
 backup_trees([H|T], CR) -> 
+    %the merkle version.
     %gen_server:call({global, ids:main_id(H)}, fail),
     trie:quick_save(H),
     cp(CR, H, ".db"),
