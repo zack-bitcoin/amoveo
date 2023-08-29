@@ -452,7 +452,7 @@ sync(IP, Port, CPL) ->
       Height),
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
-
+            
 
             if 
                 is_integer(TDB) ->

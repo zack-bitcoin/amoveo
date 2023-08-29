@@ -1,6 +1,7 @@
 -module(trees2).
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
+         copy_bits/4,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -1204,6 +1205,10 @@ one_root_maker(Pointer, CFG) ->
 
 recover_from_clean_version(Pointer) ->
     io:fwrite("one_root_clean: copying everything from the cleaner db back to the main db\n"),
+    io:fwrite("clean pointer: "),
+    io:fwrite(integer_to_list(Pointer)),
+    io:fwrite("\n"),
+    
 
 
     %TODO. we need to make sure it is on the hard disk in the cleaner folder before we start copying things.
@@ -1224,7 +1229,7 @@ recover_from_clean_version(Pointer) ->
     os:cmd("cp -r cleaner/data/matched_cleaner.db ../../../../db/data/matched_dump.db"),
     os:cmd("cp -r cleaner/data/oracles_cleaner.db ../../../../db/data/oracles_dump.db"),
     os:cmd("cp -r cleaner/data/receipts_cleaner.db ../../../../db/data/receipts_dump.db"),
-    os:cmd("cp -r cleaner/data/sub_accounts_cleaner.db ../../../../db/data/sub_accounts_dump.db"),
+    os:cmd("cp -r cleaner/data/sub_acc_cleaner.db ../../../../db/data/sub_acc_dump.db"),
     os:cmd("cp -r cleaner/data/trades_cleaner.db ../../../../db/data/trades_dump.db"),
     os:cmd("cp -r cleaner/data/unmatched_cleaner.db ../../../../db/data/unmatched_dump.db"),
 
@@ -1235,7 +1240,7 @@ recover_from_clean_version(Pointer) ->
     os:cmd("cp -r cleaner/data/matched_cleaner_rest.db ../../../../db/data/matched_dump_rest.db"),
     os:cmd("cp -r cleaner/data/oracles_cleaner_rest.db ../../../../db/data/oracles_dump_rest.db"),
     os:cmd("cp -r cleaner/data/receipts_cleaner_rest.db ../../../../db/data/receipts_dump_rest.db"),
-    os:cmd("cp -r cleaner/data/sub_accounts_cleaner_rest.db ../../../../db/data/sub_accounts_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/sub_accs_cleaner_rest.db ../../../../db/data/sub_accs_dump_rest.db"),
     os:cmd("cp -r cleaner/data/trades_cleaner_rest.db ../../../../db/data/trades_dump_rest.db"),
     os:cmd("cp -r cleaner/data/unmatched_cleaner_rest.db ../../../../db/data/unmatched_dump_rest.db"),
 
@@ -1245,13 +1250,22 @@ recover_from_clean_version(Pointer) ->
                       CleanName = int2cleaner_name(ID_num),
                       bits:reset(Name),
                       Top = bits:top(CleanName),
-                      copy_bits(1, Top, CleanName, Name)
+                      copy_bits(1, Top, CleanName, Name),
+                      Top = bits:top(Name),
+                      bits:quick_save(Name),
+                      io:fwrite("copying bits "),
+                      io:fwrite(Name),
+                      io:fwrite(" "),
+                      io:fwrite(integer_to_list(Top)),
+                      io:fwrite("\n")
               end, IDs),
 
     bits:reset(amoveo_v_leaf),
     bits:reset(amoveo_v_stem),
     copy_bits(1, bits:top(cleaner_v_leaf), cleaner_v_leaf, amoveo_v_leaf),
     copy_bits(1, bits:top(cleaner_v_stem), cleaner_v_stem, amoveo_v_stem),
+                      bits:quick_save(amoveo_v_leaf),
+                      bits:quick_save(amoveo_v_stem),
 
 
 %    os:cmd("cp -r cleaner/data/cleaner_v_leaf_bits.db ../../../../db/data/amoveo_v_leaf_bits.db"),
