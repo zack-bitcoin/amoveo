@@ -1,3 +1,14 @@
+syncing the checkpoint works.
+second level syncing partially fails. it isn't cleaning the dead space from the verkle tree.
+
+
+
+when making checkpoints normally it works, if we try to force a checkpoint immediately after syncing it is failing.
+
+
+
+
+
 almost got the germany server to sync.
 can't pull checkpoints from the server, they are corrupted.
 the root doesn't pass the stem_verkle:check_root_integrity/1.

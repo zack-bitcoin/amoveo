@@ -272,7 +272,7 @@ sync(IP, Port, CPL) ->
             io:fwrite("this peer doesn't have a checkpoint at an early enough height to conform to the security configuration of this node. Attempting to find a different peer...\n"),
             sync();
         _ ->
-    {_, CP1} = hd(HCPL),
+    {_, CP1} = hd(lists:reverse(HCPL)),
 
     %CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
     %CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
@@ -475,12 +475,12 @@ sync(IP, Port, CPL) ->
 
             if 
                 is_integer(TDB) ->
-                    NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
-                    io:fwrite("new pointer is: "),
-                    io:fwrite(integer_to_list(NewPointer)),
-                    io:fwrite("\n"),
-                    BlockB = NBlock#block{trees = NewPointer},
-                    gen_server:cast(block_db, {write, BlockB, CP1}),
+                    _NewPointer = trees2:one_root_clean(TDB, tree:cfg(amoveo)),
+                    %io:fwrite("new pointer is: "),
+                    %io:fwrite(integer_to_list(NewPointer)),
+                    %io:fwrite("\n"),
+                    %BlockB = NBlock#block{trees = NewPointer},
+                    %gen_server:cast(block_db, {write, BlockB, CP1}),
                     ok;
                 true -> ok
             end,
@@ -489,11 +489,11 @@ sync(IP, Port, CPL) ->
     %timer:sleep(100),
     %reverse_sync2(Height, Peer, Block2, Roots),
     %reverse_sync(Peer),
-    timer:sleep(5000),
-            make(true),
-    timer:sleep(2000),
+%    timer:sleep(5000),
+%            make(true),
+%    timer:sleep(2000),
     io:fwrite("checkpoint starting sync\n"),
-            %sync:start([{IP, Port}])
+            sync:start([{IP, Port}]),
             ok
     end.
     %ok.
@@ -939,7 +939,7 @@ clean_helper(L) ->
     [CP1|[CP2|T]] = L2,
     TopHeader = headers:top_with_block(),
     THHeight = TopHeader#header.height,
-    Cutoff = THHeight - mft(),
+    Cutoff = THHeight - (mft() * 2),
     {ok, H2} = headers:read(CP2),
     {ok, H1} = headers:read(CP1),
     H2Height = H2#header.height,
