@@ -562,11 +562,9 @@ reverse_sync(Height, Peer) ->
     end,
     sync_kill:start(),
     io:fwrite("reverse sync/2 got block 0\n"),
-    %{ok, Block} = talker:talk({block, Height-1}, Peer),%same as bottom.
-    {ok, Block} = talker:talk({block, Height}, Peer),%same as bottom.
+    {ok, Block} = talker:talk({block, Height-1}, Peer),%same as bottom.
     io:fwrite("reverse sync/2 got block 1\n"),
-    {ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
-    %{ok, NBlock} = talker:talk({block, Height}, Peer),%one above bottom.
+    {ok, NBlock} = talker:talk({block, Height}, Peer),%one above bottom.
     io:fwrite("reverse sync/2 got block 2\n"),
     Roots = NBlock#block.roots,
 
