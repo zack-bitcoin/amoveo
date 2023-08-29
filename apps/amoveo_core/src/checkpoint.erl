@@ -477,8 +477,11 @@ sync(IP, Port, CPL) ->
             if 
                 is_integer(TDB) ->
                     %NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
-                    Stem1 = stem_verkle:get(TDBN, tree:cfg(amoveo)),
-                    NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
+                    Pointerb = NBlock3#block.trees,
+                    %Stem1 = stem_verkle:get(TDBN, tree:cfg(amoveo)),
+                    %NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
+                    Stem1 = stem_verkle:get(Pointerb, tree:cfg(amoveo)),
+                    NewPointer = trees2:one_root_clean(Pointerb, tree:cfg(amoveo)),
                     Stem2 = stem_verkle:get(NewPointer, tree:cfg(amoveo)),
                     StemHashb = stem_verkle:hash(Stem1),
                     StemHashb = stem_verkle:hash(Stem2),
@@ -499,7 +502,7 @@ sync(IP, Port, CPL) ->
 %            make(true),
 %    timer:sleep(2000),
     io:fwrite("checkpoint starting sync\n"),
-            sync:start([{IP, Port}]),
+            %sync:start([{IP, Port}]),
             ok
     end.
     %ok.
