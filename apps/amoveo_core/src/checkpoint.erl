@@ -454,6 +454,21 @@ sync(IP, Port, CPL) ->
     potential_block:dump(),
             timer:sleep(1000),
 
+
+            %turning the node on and off at this point seems to fix it. maybe some files get saved.
+            tree:quick_save(amoveo),
+            dump:quick_save(accounts_dump),
+            dump:quick_save(contracts_dump),
+            dump:quick_save(markets_dump),
+            dump:quick_save(matched_dump),
+            dump:quick_save(oracles_dump),
+            dump:quick_save(receipts_dump),
+            dump:quick_save(sub_accs_dump),
+            dump:quick_save(trades_dump),
+            dump:quick_save(unmatched_dump),
+            
+
+
             if 
                 is_integer(TDB) ->
                     trees2:one_root_clean(TDB, tree:cfg(amoveo));

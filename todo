@@ -1,3 +1,10 @@
+if we just turn on a node and try to sync, it is failing to copy the cleaner stuff over. if we turn the node off and on at line 459 of page checkpoint.erl, then this problem goes away.
+before we do trees2:one_root_clean/2
+probably some things need to get saved to the hard disk first.
+
+
+
+
 ets tables store their names internally.
 you can't load a second table if you already have a table with that name.
 you can rename tables that are loaded.
