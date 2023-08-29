@@ -1157,7 +1157,14 @@ one_root_clean(Pointer, CFG) ->
     io:fwrite("one root clean 1\n"),
     NewPointer = one_root_maker(Pointer, CFG),
     io:fwrite("one root clean 2\n"),
-    Hash = scan_verkle(NewPointer, CFG),
+    CFG2 = CFG#cfg{id = cleaner},
+    Hash2 = scan_verkle(NewPointer, CFG2),%fails here.
+    if
+        not(Hash == Hash2) ->
+            io:fwrite({stem_verkle:get(Pointer, CFG),
+                       stem_verkle:get(NewPointer, CFG2)});
+        true -> ok
+    end,
     io:fwrite("one root clean 3\n"),
     recover_from_clean_version(NewPointer),
     io:fwrite("one root clean done\n"),
@@ -1421,12 +1428,27 @@ scan_verkle2([0|PT], [0|TT], [<<0:256>>|HT], CFG) ->
 scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], CFG) -> 
     %a leaf.
     L = leaf_verkle:get(Pointer, CFG),
-    Hash = store_verkle:leaf_hash(L, CFG),
+    Hash2 = store_verkle:leaf_hash(L, CFG),
+    if
+        not(Hash == Hash2) -> 
+            io:fwrite("bad leaf hash\n"),
+            1=2;
+        true -> ok
+    end,
     success = scan_verkle2(PT, TT, HT, CFG);
 scan_verkle2([Pointer|PT], [1|TT], [Hash|HT], CFG) -> 
     %another stem.
-    Hash = scan_verkle(Pointer, CFG),
-    success = scan_verkle2(PT, TT, HT, CFG).
+    Hash2 = scan_verkle(Pointer, CFG),
+    if
+        not(Hash == Hash2) -> 
+            io:fwrite("bad stem hash\n"),
+            1=2;
+        true -> ok
+    end,
+    success = scan_verkle2(PT, TT, HT, CFG);
+scan_verkle2(_, _, _, _) -> 
+    io:fwrite("scan verkle 2 impossible error\n"),
+    1=2.
     
 
 test(0) ->
