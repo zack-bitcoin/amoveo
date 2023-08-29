@@ -1,7 +1,7 @@
 -module(trees2).
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
-         copy_bits/4, scan_verkle/2,
+         copy_bits/4, scan_verkle/2, scan_verkle/0,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -1158,7 +1158,7 @@ one_root_clean(Pointer, CFG) ->
     NewPointer = one_root_maker(Pointer, CFG),
     io:fwrite("one root clean 2\n"),
     CFG2 = CFG#cfg{id = cleaner},
-    Hash2 = scan_verkle(NewPointer, CFG2),%fails here.
+    Hash2 = scan_verkle(NewPointer, CFG2),
     if
         not(Hash == Hash2) ->
             io:fwrite({stem_verkle:get(Pointer, CFG),
@@ -1414,6 +1414,10 @@ one_root_clean2(
          end,
     [P2|one_root_clean2(PT, TT, HT, CFG, CFG2)].
 
+scan_verkle() ->
+    Pointer = (block:top())#block.trees,
+    CFG = tree:cfg(amoveo),
+    scan_verkle(Pointer, CFG).
 scan_verkle(Pointer, CFG) ->
     S = stem_verkle:get(Pointer, CFG),
     P = tuple_to_list(stem_verkle:pointers(S)),
