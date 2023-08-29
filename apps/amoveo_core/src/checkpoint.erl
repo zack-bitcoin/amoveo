@@ -461,16 +461,16 @@ sync(IP, Port, CPL) ->
 
 
             %turning the node on and off at this point seems to fix it. maybe some files get saved.
-            tree:quick_save(amoveo),
-            dump:quick_save(accounts_dump),
-            dump:quick_save(contracts_dump),
-            dump:quick_save(markets_dump),
-            dump:quick_save(matched_dump),
-            dump:quick_save(oracles_dump),
-            dump:quick_save(receipts_dump),
-            dump:quick_save(sub_accs_dump),
-            dump:quick_save(trades_dump),
-            dump:quick_save(unmatched_dump),
+            %tree:quick_save(amoveo),
+            %dump:quick_save(accounts_dump),
+            %dump:quick_save(contracts_dump),
+            %dump:quick_save(markets_dump),
+            %dump:quick_save(matched_dump),
+            %dump:quick_save(oracles_dump),
+            %dump:quick_save(receipts_dump),
+            %dump:quick_save(sub_accs_dump),
+            %dump:quick_save(trades_dump),
+            %dump:quick_save(unmatched_dump),
             
 
 
