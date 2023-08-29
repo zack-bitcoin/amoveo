@@ -93,16 +93,20 @@ doit({version, 3}) ->
 doit({give_block, Block}) -> %block can also be a list of blocks.
     %io:fwrite("ext_handler receiving blocks\n"),
     %Response = block_absorber:save(Block),
-    A = if
-	    is_list(Block) -> Block;
-	    true -> [Block]
-	end,
-    Response = block_organizer:add(A),
-    R2 = if
-	     is_atom(Response) -> 0;
-	     true -> Response
-	 end,
-    {ok, R2};
+    case sync_mode:check() of
+        quick -> {ok, 0};
+        normal ->
+            A = if
+                    is_list(Block) -> Block;
+                    true -> [Block]
+                end,
+            Response = block_organizer:add(A),
+            R2 = if
+                     is_atom(Response) -> 0;
+                     true -> Response
+                 end,
+            {ok, R2}
+    end;
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({block, 2, H}) ->
