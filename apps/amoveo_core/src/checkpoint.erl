@@ -475,12 +475,12 @@ sync(IP, Port, CPL) ->
 
             if 
                 is_integer(TDB) ->
-                    NewPointer = trees2:one_root_clean(TDB, tree:cfg(amoveo)),
+                    NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
                     io:fwrite("new pointer is: "),
                     io:fwrite(integer_to_list(NewPointer)),
                     io:fwrite("\n"),
-                    BlockB = Block#block{trees = NewPointer},
-                    gen_server:cast(block_db, {write, BlockB, BlockHash}),
+                    BlockB = NBlock#block{trees = NewPointer},
+                    gen_server:cast(block_db, {write, BlockB, CP1}),
                     ok;
                 true -> ok
             end,
