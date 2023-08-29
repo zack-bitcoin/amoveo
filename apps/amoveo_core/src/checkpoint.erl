@@ -476,12 +476,17 @@ sync(IP, Port, CPL) ->
 
             if 
                 is_integer(TDB) ->
-                    _NewPointer = trees2:one_root_clean(TDB, tree:cfg(amoveo)),
-                    %io:fwrite("new pointer is: "),
-                    %io:fwrite(integer_to_list(NewPointer)),
-                    %io:fwrite("\n"),
-                    %BlockB = NBlock#block{trees = NewPointer},
-                    %gen_server:cast(block_db, {write, BlockB, CP1}),
+                    %NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
+                    Stem1 = stem_verkle:get(TDBN, tree:cfg(amoveo)),
+                    NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
+                    Stem2 = stem_verkle:get(NewPointer, tree:cfg(amoveo)),
+                    StemHash = stem_verkle:hash(Stem1),
+                    StemHash = stem_verkle:hash(Stem2),
+                    io:fwrite("new pointer is: "),
+                    io:fwrite(integer_to_list(NewPointer)),
+                    io:fwrite("\n"),
+                    BlockB = NBlock3#block{trees = NewPointer},
+                    gen_server:cast(block_db, {write, BlockB, CP1}),
                     ok;
                 true -> ok
             end,

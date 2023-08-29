@@ -1,3 +1,8 @@
+trying to get checkpoints to sync two hops.
+currently experimenting with changing the trees pointer after syncing the checkpoint.
+
+
+
 syncing the checkpoint works.
 second level syncing partially fails. it isn't cleaning the dead space from the verkle tree.
 
