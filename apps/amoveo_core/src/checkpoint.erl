@@ -124,6 +124,7 @@ handle_call({make, Force}, _, X) ->
                  CH2 = [Hash|
                         X#d.checkpoint_hashes],
                  io:fwrite("updating checkpoint hashes\n"),
+                 timer:sleep(1000),
                  X#d{checkpoint_hashes = CH2};
              true -> X
          end,

@@ -1,3 +1,6 @@
+seems like checkpoints are corrupted if they are made while syncing. the node that hosts the checkpoint isn't corrupted.
+
+
 trying to get checkpoints to sync two hops.
 currently experimenting with changing the trees pointer after syncing the checkpoint.
 * maybe checkpoints are corrupted if they are made while syncing.
