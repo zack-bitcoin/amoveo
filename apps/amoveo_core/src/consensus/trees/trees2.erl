@@ -1152,9 +1152,13 @@ merkle2verkle(
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
 one_root_clean(Pointer, CFG) ->
+    io:fwrite("one root clean 0\n"),
     Hash = scan_verkle(Pointer, CFG),
+    io:fwrite("one root clean 1\n"),
     NewPointer = one_root_maker(Pointer, CFG),
+    io:fwrite("one root clean 2\n"),
     Hash = scan_verkle(NewPointer, CFG),
+    io:fwrite("one root clean 3\n"),
     recover_from_clean_version(NewPointer),
     io:fwrite("one root clean done\n"),
     NewPointer.
