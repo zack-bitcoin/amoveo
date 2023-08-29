@@ -88,7 +88,7 @@ handle_call({make, Force}, _, X) ->
                          ok;%makes a copy of the tree files.
                      true ->
                          tree:quick_save(amoveo),
-                         VerkleTrees = ["accounts", "contracts", "existence", "markets", "matched", "oracles", "receipts", "sub_accs", "trades", "unmatched"],
+                         VerkleTrees = ["accounts", "contracts", "markets", "matched", "oracles", "receipts", "sub_accs", "trades", "unmatched"],
                          io:fwrite("quicksaving dumps\n"),
                          lists:map(fun(S) ->
                                            io:fwrite(S),
