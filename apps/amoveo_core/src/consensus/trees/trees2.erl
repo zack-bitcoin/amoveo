@@ -1,7 +1,7 @@
 -module(trees2).
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
-         copy_bits/4,
+         copy_bits/4, scan_verkle/2,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -1152,7 +1152,9 @@ merkle2verkle(
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
 one_root_clean(Pointer, CFG) ->
+    Hash = scan_verkle(Pointer, CFG),
     NewPointer = one_root_maker(Pointer, CFG),
+    Hash = scan_verkle(NewPointer, CFG),
     recover_from_clean_version(NewPointer),
     io:fwrite("one root clean done\n"),
     NewPointer.
@@ -1400,6 +1402,28 @@ one_root_clean2(
                  Pointer3
          end,
     [P2|one_root_clean2(PT, TT, HT, CFG, CFG2)].
+
+scan_verkle(Pointer, CFG) ->
+    S = stem_verkle:get(Pointer, CFG),
+    P = tuple_to_list(stem_verkle:pointers(S)),
+    T = tuple_to_list(stem_verkle:types(S)),
+    H = tuple_to_list(stem_verkle:hashes(S)),
+    success = scan_verkle2(P, T, H, CFG),
+    stem_verkle:hash(S).
+scan_verkle2([],[],[],_) -> success;
+scan_verkle2([0|PT], [0|TT], [<<0:256>>|HT], CFG) -> 
+    %empty slot
+    success = scan_verkle2(PT, TT, HT, CFG);
+scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], CFG) -> 
+    %a leaf.
+    L = leaf_verkle:get(Pointer, CFG),
+    Hash = store_verkle:leaf_hash(L, CFG),
+    success = scan_verkle2(PT, TT, HT, CFG);
+scan_verkle2([Pointer|PT], [1|TT], [Hash|HT], CFG) -> 
+    %another stem.
+    Hash = scan_verkle(Pointer, CFG),
+    success = scan_verkle2(PT, TT, HT, CFG).
+    
 
 test(0) ->
     %testing the raw verkle tree interface. only stores keys and values of 32 bytes.
