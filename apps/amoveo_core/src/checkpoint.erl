@@ -88,11 +88,13 @@ handle_call({make, Force}, _, X) ->
                          ok;%makes a copy of the tree files.
                      true ->
                          tree:quick_save(amoveo),
-                         VerkleTrees = ["accounts", "contracts", "existence", "markets", "matched", "oracles", "receipts", "sub_accounts", "trades", "unmatched"],
+                         VerkleTrees = ["accounts", "contracts", "existence", "markets", "matched", "oracles", "receipts", "sub_accs", "trades", "unmatched"],
+                         io:fwrite("quicksaving dumps\n"),
                          lists:map(fun(S) ->
                                            A = list_to_atom(S ++ "_dump"),
                                            dump:quick_save(A)
                                    end, VerkleTrees),
+                         io:fwrite("quicksaved dumps\n"),
                          %Mode = verkle_trees_sup:mode(),
                          %case Mode of
                          %    ram ->
@@ -191,8 +193,8 @@ get_chunks2(Hash, Peer, N, Result) ->
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
     %IP = {159,223,85,216},%the pool
-    %IP = {64, 227, 21, 70},%explorer
-    IP = {159,65,126,146},%germany
+    IP = {64, 227, 21, 70},%explorer
+    %IP = {159,65,126,146},%germany
     %IP = {45, 55, 194, 109}, %ubuntu 20
     Port = 8080,
     spawn(fun() ->
@@ -483,6 +485,9 @@ sync(IP, Port, CPL) ->
                 is_integer(TDB) ->
                     %NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
                     Pointerb = NBlock3#block.trees,
+                    io:fwrite("checkpoint pointerb is: "),
+                    io:fwrite(integer_to_list(Pointerb)),
+                    io:fwrite("\n"),
                     %Stem1 = stem_verkle:get(TDBN, tree:cfg(amoveo)),
                     %NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
                     Stem1 = stem_verkle:get(Pointerb, tree:cfg(amoveo)),
