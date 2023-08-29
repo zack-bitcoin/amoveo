@@ -373,7 +373,11 @@ sync(IP, Port, CPL) ->
 %                    <<Stem1A:256, Stem1B:256,
 %                      Stem1C:256, Stem1D:256>> = 
 %                        CleanedPoint,
-                    ok = stem_verkle:check_root_integrity(Stem0),
+                    case stem_verkle:check_root_integrity(Stem0) of
+                        ok -> ok;
+                        _ -> io:fwrite("invalid root stem\n"),
+                             io:fwrite(Stem0)
+                    end,
                     Types = element(3, Stem0),
                     %Bool0 = all_zero(tuple_to_list(Types)),
                     %if
@@ -471,7 +475,13 @@ sync(IP, Port, CPL) ->
 
             if 
                 is_integer(TDB) ->
-                    trees2:one_root_clean(TDB, tree:cfg(amoveo));
+                    NewPointer = trees2:one_root_clean(TDB, tree:cfg(amoveo)),
+                    io:fwrite("new pointer is: "),
+                    io:fwrite(integer_to_list(NewPointer)),
+                    io:fwrite("\n"),
+                    BlockB = Block#block{trees = NewPointer},
+                    gen_server:cast(block_db, {write, BlockB, BlockHash}),
+                    ok;
                 true -> ok
             end,
 

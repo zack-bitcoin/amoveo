@@ -1,6 +1,6 @@
 almost got the germany server to sync.
-the block just before the checkpoint didn't get stored.
-everything else seems good.
+can't pull checkpoints from the server, they are corrupted.
+the root doesn't pass the stem_verkle:check_root_integrity/1.
 
 
 
