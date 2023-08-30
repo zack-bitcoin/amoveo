@@ -643,7 +643,12 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
                       fun(X, Acc) -> 
                               dict:store(block:hash(X), X, Acc) end, 
                       dict:new(), ComPage0);
-                true -> io:fwrite({ComPage0})
+                (dict == (element(1, ComPage0))) ->
+                    io:fwrite(dict:fetch_keys(ComPage0)),
+                    ok;
+                true -> 
+                    io:fwrite("reverse sync 2 failed to decode page\n"),
+                    io:fwrite({ComPage0})
             end,
     Page = dict:filter(%remove data that is already in block_db.
              fun(_, Value) ->
