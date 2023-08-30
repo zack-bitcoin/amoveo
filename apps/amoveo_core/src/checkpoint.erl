@@ -664,8 +664,8 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
         PageLength == 0 ->
             io:fwrite("empty page\n"),
             %io:fwrite(Page0),
-            1 = 2;
-            %ok;
+            %1 = 2;
+            ok;
         true -> ok
     end,
     CompressedPage = block_db:compress(Page),
