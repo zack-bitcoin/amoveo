@@ -652,16 +652,20 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
                     io:fwrite("reverse sync 2 failed to decode page\n"),
                     io:fwrite({ComPage0})
             end,
+    io:fwrite("decompressed the page\n"),
     Page = dict:filter(%remove data that is already in block_db.
              fun(_, Value) ->
                      Value#block.height < 
                          (Height - 1)
              end, Page0),
+    io:fwrite("filtered the page\n"),
     PageLength = length(dict:fetch_keys(Page)),
     if
         PageLength == 0 ->
-            io:fwrite(Page0),
+            io:fwrite("empty page\n"),
+            %io:fwrite(Page0),
             1 = 2;
+            %ok;
         true -> ok
     end,
     CompressedPage = block_db:compress(Page),
