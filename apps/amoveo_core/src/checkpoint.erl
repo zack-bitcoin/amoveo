@@ -663,6 +663,10 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     if
         PageLength == 0 ->
             io:fwrite("empty page\n"),
+            io:fwrite(integer_to_list(Height)),
+            io:fwrite(" "),
+            io:fwrite(integer_to_list(Block2#block.height)),
+            io:fwrite("\n"),
             %io:fwrite(Page0),
             %1 = 2;
             ok;
