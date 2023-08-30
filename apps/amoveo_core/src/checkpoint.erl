@@ -195,8 +195,8 @@ get_chunks2(Hash, Peer, N, Result) ->
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
     %IP = {159,223,85,216},%the pool
-    IP = {64, 227, 21, 70},%explorer
-    %IP = {159,65,126,146},%germany
+    %IP = {64, 227, 21, 70},%explorer
+    IP = {159,65,126,146},%germany
     %IP = {45, 55, 194, 109}, %ubuntu 20
     Port = 8080,
     spawn(fun() ->
@@ -282,7 +282,7 @@ sync(IP, Port, CPL) ->
             sync();
         _ ->
     %{_, CP1} = hd(lists:reverse(HCPL)),
-    {_, CP1} = hd(HCPL),
+    {_, CP1} = hd(lists:reverse(HCPL)),
 
     %CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
     %CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
@@ -523,8 +523,8 @@ sync(IP, Port, CPL) ->
     %reverse_sync2(Height, Peer, Block2, Roots),
     %reverse_sync(Peer),
             timer:sleep(1000),
-            make(true),
-            timer:sleep(1000),
+            %make(true),
+            %timer:sleep(1000),
             io:fwrite("checkpoint starting sync\n"),
             sync:start([{IP, Port}]),
             ok
