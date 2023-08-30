@@ -1,6 +1,10 @@
 the checkpoint always seems corrupted when we try to sync it.
 It seems like the corruption must be happening between when it gets packed and unpacked. because one_root_clean has more checks now, and they are passing on the server in germany.
 trees2:scan_verkle works for the top block too.
+* try looking up individual stems that are the same between each side. Try and figure out what exactly isn't duplicating correctly.
+
+
+
 
 trying to get checkpoints to sync two hops.
 currently experimenting with changing the trees pointer after syncing the checkpoint.

@@ -368,10 +368,12 @@ sync(IP, Port, CPL) ->
                     %end,
               timer:sleep(1000),
               tree:reload_ets(ID),
+              
                     timer:sleep(1000),
                     io:fwrite("checkpoint loading stem pointer: "),
-                    io:fwrite(integer_to_list(Pointer)),
-                    io:fwrite("\n"),
+                    io:fwrite(integer_to_list(Pointer) ++ " " ++ 
+                                  integer_to_list(bits:top(amoveo_v_stem))),
+              io:fwrite("\n"),
 
                     
                     Stem0 = stem_verkle:get(Pointer, CFG),
@@ -398,7 +400,7 @@ sync(IP, Port, CPL) ->
                     %io:fwrite({Stem0}),
               %StemHash = stem_verkle:hash(Stem0),
                     %tree:clean_ets(ID, Pointer),
-                    tree:clean_ets(ID, TDBN),
+                    %tree:clean_ets(ID, TDBN),
               %Stem = stem_verkle:get(Pointer, CFG),
                     %io:fwrite({stem_verkle:root(Stem) == ed:extended_zero(), stem_verkle:hash(Stem)}),
                     %try doing tree:root_hash of ed:extended_zero()
@@ -491,20 +493,27 @@ sync(IP, Port, CPL) ->
                     io:fwrite("checkpoint pointerb is: "),
                     io:fwrite(integer_to_list(Pointerb)),
                     io:fwrite("\n"),
-                    trees2:scan_verkle(TDBN, tree:cfg(amoveo)),
-                    trees2:scan_verkle(Pointerb, tree:cfg(amoveo)),
+                    trees2:scan_verkle(TDBN, tree:cfg(amoveo)),%invalid
+                    io:fwrite("scanned 1\n"),
+                    trees2:scan_verkle(Pointerb, tree:cfg(amoveo)),%invalid
+                    io:fwrite("scanned 2\n"),
                     %Stem1 = stem_verkle:get(TDBN, tree:cfg(amoveo)),
-                    %NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
                     Stem1 = stem_verkle:get(Pointerb, tree:cfg(amoveo)),
-                    NewPointer = trees2:one_root_clean(Pointerb, tree:cfg(amoveo)),
+                    io:fwrite("got stem 1\n"),
+                    NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
+                    io:fwrite("cleaned\n"),
+                    %NewPointer = trees2:one_root_clean(Pointerb, tree:cfg(amoveo)),
+                    %NewPointer = Pointerb,
                     Stem2 = stem_verkle:get(NewPointer, tree:cfg(amoveo)),
                     StemHashb = stem_verkle:hash(Stem1),
                     StemHashb = stem_verkle:hash(Stem2),
+                    io:fwrite("hashes are good\n"),
                     io:fwrite("new pointer is: "),
                     io:fwrite(integer_to_list(NewPointer)),
                     io:fwrite("\n"),
                     BlockB = NBlock3#block{trees = NewPointer},
                     gen_server:cast(block_db, {write, BlockB, CP1}),
+                    io:fwrite("successfully updated the block\n"),
                     ok;
                 true -> ok
             end,
@@ -513,11 +522,11 @@ sync(IP, Port, CPL) ->
     %timer:sleep(100),
     %reverse_sync2(Height, Peer, Block2, Roots),
     %reverse_sync(Peer),
-%    timer:sleep(5000),
-%            make(true),
-%    timer:sleep(2000),
-    io:fwrite("checkpoint starting sync\n"),
-            %sync:start([{IP, Port}]),
+            timer:sleep(1000),
+            make(true),
+            timer:sleep(1000),
+            io:fwrite("checkpoint starting sync\n"),
+            sync:start([{IP, Port}]),
             ok
     end.
     %ok.
