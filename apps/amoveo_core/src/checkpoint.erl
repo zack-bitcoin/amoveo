@@ -633,7 +633,9 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     io:fwrite("reverse_sync2\n"),
     H2 = max(0, Height-50),
     %{ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
+    io:fwrite("getting page\n"),
     {ok, ComPage0} = talker:talk({blocks, -1, 50, Height-1}, Peer),
+    io:fwrite("got page\n"),
     Page0 = if
                is_binary(ComPage0) -> 
                    block_db:uncompress(ComPage0);
