@@ -121,9 +121,9 @@ handle_cast({write, Block, Hash}, X) ->
     %most of the time, we just add the block to the dict.
     %if the dict has become large enough, then we should gather up a bunch of blocks to compress onto the hard drive, and replace each block in the dict with a pointer to the new file.
     {noreply, X3};
-handle_cast({load_page, U}, X) -> 
+handle_cast({load_page, U, Start, End}, X) -> 
     {Loc, Size} = write_page(U, X),
-    {Start, End} = height_range(U),
+    %{Start, End} = height_range(U),
     %io:fwrite("block db load page "),
     %io:fwrite(integer_to_list(Start)),
     %io:fwrite("\n"),
@@ -298,8 +298,11 @@ old_blocks2(Blocks, Size, Head, D) ->
     end.
 height_range(Blocks) ->%page of blocks
     K = dict:fetch_keys(Blocks),
-    false = (K == []),
-    hr2(K, Blocks, block:height(), 0).
+    case K of
+        [] -> error;
+        _ ->
+            hr2(K, Blocks, block:height(), 0)
+    end.
 hr2([], _, Start, End) -> {Start, End};
 hr2([H|T], Blocks, S, E) ->
     %B = fetch(H, Blocks),
@@ -452,9 +455,13 @@ read_by_height(Height) ->
         true -> block:get_by_height(Height)
     end.
 load_page(Decompressed) ->
-    gen_server:cast(?MODULE, 
-                    {load_page, 
-                     Decompressed}).
+    case height_range(Decompressed) of
+        error -> ok;
+        {Start, End} ->
+            gen_server:cast(?MODULE, 
+                            {load_page, 
+                             Decompressed, Start, End})
+    end.
 set_ram_height(N) ->
     gen_server:cast(?MODULE, {set_ram_height, N}).
 ram_height()  ->

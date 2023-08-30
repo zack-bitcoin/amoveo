@@ -1,97 +1,16 @@
-the checkpoint always seems corrupted when we try to sync it.
-It seems like the corruption must be happening between when it gets packed and unpacked. because one_root_clean has more checks now, and they are passing on the server in germany.
-trees2:scan_verkle works for the top block too.
-* try looking up individual stems that are the same between each side. Try and figure out what exactly isn't duplicating correctly.
+update the full nodes.
+* explorer.
+* pool.
+
+cancel the unused node
+* ubuntu20
 
 
+* update the checkpoint code to use the cleaner database, so that we only store the minimum necessary.
 
-
-trying to get checkpoints to sync two hops.
-currently experimenting with changing the trees pointer after syncing the checkpoint.
-* maybe checkpoints are corrupted if they are made while syncing.
-
-
-
-syncing the checkpoint works.
-second level syncing partially fails. it isn't cleaning the dead space from the verkle tree.
-
-
-
-when making checkpoints normally it works, if we try to force a checkpoint immediately after syncing it is failing.
-
-
-
-
-
-almost got the germany server to sync.
-can't pull checkpoints from the server, they are corrupted.
-the root doesn't pass the stem_verkle:check_root_integrity/1.
-
-
-
-
-
-if we just turn on a node and try to sync, it is failing to copy the cleaner stuff over. if we turn the node off and on at line 459 of page checkpoint.erl, then this problem goes away.
-before we do trees2:one_root_clean/2
-probably some things need to get saved to the hard disk first.
-
-
-
-
-ets tables store their names internally.
-you can't load a second table if you already have a table with that name.
-you can rename tables that are loaded.
-this is preventing us from copying all the *_bits.db files.
-So, for each of the *_bits gen server in the cleaner verkle database, we should loop over every bit in the database, and duplicate those bits to the main verkle database.
-
-
-remove unnecessary print statements in dump.
-
-
-
-trying to get the checkpoint to shrink.
-when we load the new bits file into the amoveo, it fails at the ets:file2tab(File) step.
-after that, the file ends up corrupted in a weird way. it is like it both exists and does not. seems like some thread is creating and destroying it rapidly.
-
-
-
-
-
-trying to get the checkpoint to load.
-we get the cleaner db working, but it isn't clear we are saving everything to the hard disk correctly.
-if we do dump:reload(accounts_cleaner), it seems to work correctly.
-but when we try dump:reload(accounts_dump), it leaves it in a broken state. bits:top(accounts_dump) timesout.
-
-When we put data into the cleaner, we can tell the bits module to restart from empty.
-when we copy back to the main db, the bits module needs to restart by reading data from the file. This seems to be where it is breaking.
-it seems to get caught in an infinite loop.
-
-
-
-
-
-if loading a checkpoint saves 2 blocks, why do we have only one after?
-
-
-
-trying to start with a checkpoint, and do trees2:one_root_clean/2
-looks like block:tree is stuck on 4. should update to new pointer after cleaning somehow.
-- but, the other block is storing a tuple there. Where does the pointer get stored??
-
-
-
-
-we got a second verkle tree working, and we can use it to clean all our database except for what can be proved from a single root.
-trees2:one_root_clean/2
-we should modify it for creating checkpoints, so the checkpoint is smaller.
-we should use it when syncing checkpoints, so we don't put anything extra in the database.
-
-
-
-tree_data:garbage is only for merkle. we should use tree:garbage to make the verkle analogue.
-we need to test prune_verkle to see if it even works. we need to write new better tests.
-
-when we sync forwards, it seems to do it in jumps. why isn't it one block at a time?
+* turn on the garbage collection for the verkle tree. so we get rid of old stems from before the fork_depth
+- tree:garbage
+- test prune_verkle to see if it even works. it needs better tests.
 
 
 
