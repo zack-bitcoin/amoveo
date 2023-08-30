@@ -349,11 +349,11 @@ sync(IP, Port, CPL) ->
               ID = amoveo,
                     %Pointer = NBlock#block.trees,
               Pointer = TDB,
+              %Pointer = TDBN,
 
               io:fwrite("pointer0 is: "), 
               io:fwrite(integer_to_list(Pointer)),
               io:fwrite("\n"),
-              
 
 
               CFG = tree:cfg(ID),
@@ -396,9 +396,10 @@ sync(IP, Port, CPL) ->
                     %end,
                     %true = Bool0, 
                     %io:fwrite({Stem0}),
-                    StemHash = stem_verkle:hash(Stem0),
-                    tree:clean_ets(ID, Pointer),
-                    Stem = stem_verkle:get(Pointer, CFG),
+              %StemHash = stem_verkle:hash(Stem0),
+                    %tree:clean_ets(ID, Pointer),
+                    tree:clean_ets(ID, TDBN),
+              %Stem = stem_verkle:get(Pointer, CFG),
                     %io:fwrite({stem_verkle:root(Stem) == ed:extended_zero(), stem_verkle:hash(Stem)}),
                     %try doing tree:root_hash of ed:extended_zero()
                     
@@ -490,6 +491,8 @@ sync(IP, Port, CPL) ->
                     io:fwrite("checkpoint pointerb is: "),
                     io:fwrite(integer_to_list(Pointerb)),
                     io:fwrite("\n"),
+                    trees2:scan_verkle(TDBN, tree:cfg(amoveo)),
+                    trees2:scan_verkle(Pointerb, tree:cfg(amoveo)),
                     %Stem1 = stem_verkle:get(TDBN, tree:cfg(amoveo)),
                     %NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
                     Stem1 = stem_verkle:get(Pointerb, tree:cfg(amoveo)),
