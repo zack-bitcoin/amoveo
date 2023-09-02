@@ -279,7 +279,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                         L0 = low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)),
                         L0
                 end,
-            io:fwrite("uncompressed the blocks\n"),
+            %io:fwrite("uncompressed the blocks\n"),
             S = length(L),
             io:fwrite("many blocks: "),
             io:fwrite(integer_to_list(S)),

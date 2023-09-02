@@ -463,10 +463,10 @@ sync(IP, Port, CPL) ->
     gen_server:cast(block_db, {write, NBlock3, CP1}),
     block_db:set_ram_height(Height),
     headers:absorb_with_block([Header]),
-    recent_blocks:add(
-      CP1, 
-      Header#header.accumulative_difficulty, 
-      Height),
+%    recent_blocks:add(
+%      CP1,
+%      Header#header.accumulative_difficulty, 
+%      Height),
     tx_pool_feeder:dump(NBlock3),
     potential_block:dump(),
             timer:sleep(1000),

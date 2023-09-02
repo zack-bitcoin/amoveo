@@ -1,7 +1,7 @@
 -module(trees2).
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
-         copy_bits/4, scan_verkle/2, scan_verkle/0,
+         copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -1099,15 +1099,31 @@ starts_same_depth([<<A>>|_], [<<B>>|_], C) ->
 
 
 
-prune(Trash, Keep) ->
-    CFG = tree:cfg(amoveo),
-    RemovedLeaves = 
-        prune_verkle:doit_stem(Trash, Keep, CFG),
+prune(Trash, Keep) when (is_integer(Trash) and (is_integer(Keep))) ->
+    if
+        (Trash == Keep) -> 
+            io:fwrite("trees2:prune. trash==keep.\n"),
+            ok;
+        true ->
+    %io:fwrite("trees2 prune\n"),
+    %io:fwrite("keep: "),
+    %io:fwrite(integer_to_list(Keep)),
+    %io:fwrite("\n"),
+    %io:fwrite("trash: "),
+    %io:fwrite(integer_to_list(Trash)),
+    %io:fwrite("\n"),
+            tree:quick_save(amoveo),
+    RemovedLeaves = tree:garbage(Keep, Trash, amoveo),
+%    io:fwrite("many to remove: "),
+%    io:fwrite(integer_to_list(length(RemovedLeaves))),
+%    io:fwrite("\n"),
     lists:map(fun(L = {leaf, _Key, _Value, Meta}) ->
                       delete_thing(Meta)
               end, RemovedLeaves),
-    ok.
+    ok
+    end.
 delete_thing(<<X, Loc:56>>) ->
+    %io:fwrite("trees2 delete_thing\n"),
     DBname = int2dump_name(X),
     dump:delete(Loc, DBname).
 

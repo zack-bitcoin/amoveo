@@ -1,22 +1,12 @@
-update the full nodes.
-* explorer.
-* pool.
-
-cancel the unused node
-* ubuntu20
-
-
-* update the checkpoint code to use the cleaner database, so that we only store the minimum necessary.
-
-* turn on the garbage collection for the verkle tree. so we get rid of old stems from before the fork_depth
-- tree:garbage
-- test prune_verkle to see if it even works. it needs better tests.
+update the nodes now that garbage collection is working.
 
 
 
 light node needs to handle orphaned blocks somehow.
 
 
+
+* update the checkpoint code to use the cleaner database, so that we only store the minimum necessary.
 
 
 

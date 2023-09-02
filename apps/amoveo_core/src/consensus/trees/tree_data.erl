@@ -48,7 +48,14 @@ internal(PruneBlock, KeepBlock, F) ->
     T1 = PruneBlock#block.trees,
     T2 = KeepBlock#block.trees,
     if
-        is_integer(T1) -> ok;
+        is_integer(T1) -> 
+            %io:fwrite("tree data internal. pruning block number: "),
+            %io:fwrite(integer_to_list(PruneBlock#block.height)),
+            %io:fwrite("\n"),
+            trees2:prune(T1, T2);
+        is_integer(T2) -> 
+            %io:fwrite("tree data internal verkle fork height\n"),
+            ok;
         true ->
             Trees = case element(1, T1) of%
                         trees -> TA;%

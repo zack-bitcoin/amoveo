@@ -82,7 +82,13 @@ remove_before([{Hash, TotalWork}|T], X) when TotalWork < X ->
 	%true ->
 	    H = KeepBlock#block.prev_hash,
 	    OldBlock = block:get_by_hash(H),
-	    tree_data:garbage(OldBlock, KeepBlock);
+            %io:fwrite("doing a garbage\n"),
+	    tree_data:garbage(OldBlock, KeepBlock),
+            %io:fwrite("attempt to scan after garbage\n"),
+            %trees2:scan_verkle(
+            %  KeepBlock#block.trees, tree:cfg(amoveo)),
+            %io:fwrite("scan succeeded\n"),
+            ok;
 	true -> ok
     end,
     remove_before(T, X);
