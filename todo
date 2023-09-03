@@ -1,8 +1,18 @@
-update the nodes now that garbage collection is working.
+the germany server has a file "amoveo_recover". it seems to contain a lot of the consensus state we lost. (maybe all of it!)
+to recover we need to:
+1) sync a node without the missing state. (turn off the scan).
+2) write code to read every possible data from the old files, and check to see if anything can be used to restore.
+3) turn the verkle scan back on, so this doesn't happen again.
+
+if the files are in the cleaner directory
+A = dump:get(X, accounts_cleaner).
+A2 = trees2:deserialize(1, A).
 
 
 
-light node needs to handle orphaned blocks somehow.
+looks like garbage collection disconnected a lot of consensus state from the verkle tree. the pointers are pointing to emptiness.
+Maybe we need to recover from an older checkpoint, or else we need to scan old checkpoint data and see what can be recovered.
+make it so trees2:scan_verkle2 passes.
 
 
 

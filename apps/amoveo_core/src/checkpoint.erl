@@ -73,6 +73,9 @@ handle_call({make, Force}, _, X) ->
     X2 = if
              (B and B2) ->
                  Hash = block:hash(Header),
+                 Block = block:get_by_hash(Hash),
+                 Pointer = Block#block.trees,
+                 trees2:scan_verkle(Pointer, tree:cfg(amoveo)),
                  spawn(fun() ->
                  F52 = forks:get(52),
                  T = amoveo_sup:trees(),
@@ -195,8 +198,8 @@ get_chunks2(Hash, Peer, N, Result) ->
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
     %IP = {159,223,85,216},%the pool
-    %IP = {64, 227, 21, 70},%explorer
-    IP = {159,65,126,146},%germany
+    IP = {64, 227, 21, 70},%explorer
+    %IP = {159,65,126,146},%germany
     %IP = {45, 55, 194, 109}, %ubuntu 20
     Port = 8080,
     spawn(fun() ->
@@ -281,8 +284,8 @@ sync(IP, Port, CPL) ->
             io:fwrite("this peer doesn't have a checkpoint at an early enough height to conform to the security configuration of this node. Attempting to find a different peer...\n"),
             sync();
         _ ->
-    %{_, CP1} = hd(lists:reverse(HCPL)),
-    {_, CP1} = hd(lists:reverse(HCPL)),
+            {_, CP1} = hd(lists:reverse(HCPL)),
+            %{_, CP1} = hd(HCPL),
 
     %CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
     %CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).

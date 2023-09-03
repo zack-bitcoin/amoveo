@@ -2,6 +2,7 @@
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
          copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
+         recover/1,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -1451,13 +1452,28 @@ scan_verkle2([0|PT], [0|TT], [<<0:256>>|HT], CFG) ->
     success = scan_verkle2(PT, TT, HT, CFG);
 scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], CFG) -> 
     %a leaf.
+    %io:fwrite("scanned a leaf\n"),
     L = leaf_verkle:get(Pointer, CFG),
+    #leaf{key = Key, value = LeafHash, meta = Meta} = L,
+    <<M1, Pointer2:(7*8)>> = Meta,
+    CS0 = dump:get(Pointer2, int2dump_name(M1)),
+    Hash3 = hash:doit(CS0),
+    CS = deserialize(M1, CS0),
     Hash2 = store_verkle:leaf_hash(L, CFG),
     if
         not(Hash == Hash2) -> 
-            io:fwrite("bad leaf hash\n"),
+            io:fwrite("trees2:scan_verkle2: bad leaf verkle data\n"),
             1=2;
-        true -> ok
+        not(LeafHash == Hash3) ->
+            io:fwrite("trees2:scan_verkle2 bad cs data\n"),
+            io:fwrite(integer_to_list(Pointer2)),
+            io:fwrite("\n"),
+            io:fwrite({M1, Pointer2, CS0, CS});
+            %1=2;
+            %ok;
+        true -> 
+            %io:fwrite("trees2 scan_verkle2: good \n"),
+            ok
     end,
     success = scan_verkle2(PT, TT, HT, CFG);
 scan_verkle2([Pointer|PT], [1|TT], [Hash|HT], CFG) -> 
@@ -1473,7 +1489,134 @@ scan_verkle2([Pointer|PT], [1|TT], [Hash|HT], CFG) ->
 scan_verkle2(_, _, _, _) -> 
     io:fwrite("scan verkle 2 impossible error\n"),
     1=2.
+   
+
+recover(0) ->
+    %we lost almost all the consensus state, so we are trying to recover it from some data from an old node's database.
+
+    os:cmd("cp -r ../../../../../german_backup/accounts_dump.db cleaner/data/accounts_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/contracts_dump.db cleaner/data/contracts_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/existence_dump.db cleaner/data/existence_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/markets_dump.db cleaner/data/markets_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/matched_dump.db cleaner/data/matched_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/oracles_dump.db cleaner/data/oracles_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/receipts_dump.db cleaner/data/receipts_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/sub_accs_dump.db cleaner/data/sub_accs_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/trades_dump.db cleaner/data/trades_cleaner.db"),
+    os:cmd("cp -r ../../../../../german_backup/unmatched_dump.db cleaner/data/unmatched_cleaner.db"),
     
+    os:cmd("cp -r ../../../../../german_backup/accounts_dump_rest.db cleaner/data/accounts_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/contracts_dump_rest.db cleaner/data/contracts_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/existence_dump_rest.db cleaner/data/existence_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/markets_dump_rest.db cleaner/data/markets_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/matched_dump_rest.db cleaner/data/matched_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/oracles_dump_rest.db cleaner/data/oracles_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/receipts_dump_rest.db cleaner/data/receipts_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/sub_accs_dump_rest.db cleaner/data/sub_accs_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/trades_dump_rest.db cleaner/data/trades_cleaner_rest.db"),
+    os:cmd("cp -r ../../../../../german_backup/unmatched_dump_rest.db cleaner/data/unmatched_cleaner_rest.db"),
+
+
+    IDs = [1,3,4,5,6,7,8,9,10],
+    lists:map(fun(ID_num) ->
+                      
+                      CleanName = int2cleaner_name(ID_num),
+                      Name = int2dump_name(ID_num),
+                      {Top} = binary_to_term(db:read("cleaner/data/" ++ atom_to_list(CleanName) ++ "_rest.db")),
+                      io:fwrite("recovering "),
+                      io:fwrite(atom_to_list(Name)),
+                      io:fwrite(" it has top: "),
+                      io:fwrite(integer_to_list(Top)),
+                      io:fwrite("\n"),
+                      %recover_range(1, bits:top(CleanName),
+                      Top2 = case Top of
+                                 1 -> 2000;
+                                 Top -> Top
+                             end,
+                      recover_range(1, Top2,
+                                    Name, CleanName, ID_num)
+              end, IDs),
+
+    ok.
+                                    
+recover_range(I, End, Name, _, _) when I > End -> 
+    io:fwrite("recover range finished "),
+    io:fwrite(atom_to_list(Name)),
+    io:fwrite("\n"),
+    ok;
+recover_range(I, End, Name, CleanName, ID_num) ->
+
+    CS = dump:get(I, CleanName),
+    D = deserialize(ID_num, CS),
+    K = trees2:key(D),
+    Loc = (block:top())#block.trees,
+    Leaf = get_leaf(K, Loc, tree:cfg(amoveo)),
+    if
+        (none == Leaf) -> ok;
+        true ->
+            K2 = leaf_verkle:raw_key(Leaf),
+            if
+                not(K2 == K) -> ok;
+                true ->
+
+    <<ID_num, V:56>> = leaf_verkle:meta(Leaf),
+    S = dump:get(V, int2dump_name(ID_num)),
+    %V1 = dump_get(ID_num, V),
+    %S = serialize(V1),
+    CFG = tree:cfg(amoveo),
+    
+    LeafHashShouldBe = leaf_verkle:value(Leaf),
+    ExistingLeafHash = hash:doit(S),
+    ReplacementLeafHash = hash:doit(CS),
+    if
+        ExistingLeafHash == LeafHashShouldBe ->
+            %io:fwrite("data is already good, so change nothing\n");
+            ok;
+        ReplacementLeafHash == LeafHashShouldBe ->
+            %store at pointer V in the matched dump.
+            %store CS. 
+            Word = size(CS),
+            file_manager:write(Name, V*Word, CS),
+            bits:set(Name, V),
+            io:fwrite("replace this bad data\n");
+        true ->
+            io:fwrite("this is bad data, and the potential replacement is also bad\n")
+    end
+    end
+    end,
+    recover_range(I+1, End, Name, CleanName, ID_num).
+    
+
+get_leaf(<<Key:256>>, Pointer, CFG) ->
+    Stem = stem_verkle:get(Pointer, CFG),
+    %io:fwrite({Key}),
+    Path = leaf_verkle:path_maker(Key, CFG),
+    get_leaf2(Stem, Path, CFG).
+get_leaf2(Stem, [<<P>>|Path], CFG) ->
+    Type = element(P+1, stem_verkle:types(Stem)),
+    Pointer = element(P+1, stem_verkle:pointers(Stem)),
+    case Type of
+        0 -> %io:fwrite("get leaf 2 impossible error\n"),
+             %io:fwrite({[<<P>>|Path], Stem}),
+             %1=2;
+            none;
+        2 -> %found the leaf
+            leaf_verkle:get(Pointer, CFG);
+        1 ->
+            NextStem = stem_verkle:get(Pointer, CFG),
+            get_leaf2(NextStem, Path, CFG)
+    end.
+            
+            
+            
+    
+
+all_zeros(<<>>) -> true;
+all_zeros(<<0, R/binary>>) -> 
+    all_zeros(R);
+all_zeros(_) -> false.
+
+ 
 
 test(0) ->
     %testing the raw verkle tree interface. only stores keys and values of 32 bytes.
