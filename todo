@@ -1,3 +1,13 @@
+we can't do trees2:scan_verkle so much. it wastes too much cpu and disk access.
+
+
+working on syncing a checkpoint from the server.
+in checkpoint.erl, the one_root_clean line is failing.
+ after verkle: block.roots == prev_block.trees_hash
+ the proofs are connected to block.roots.
+
+
+
 the germany server has a file "amoveo_recover". it seems to contain a lot of the consensus state we lost. (maybe all of it!)
 to recover we need to:
 1) sync a node without the missing state. (turn off the scan).

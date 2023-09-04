@@ -287,8 +287,6 @@ sync(IP, Port, CPL) ->
             {_, CP1} = hd(lists:reverse(HCPL)),
             %{_, CP1} = hd(HCPL),
 
-    %CP1 = hd(lists:reverse(CPL)),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
-    %CP1 = hd(CPL),%TODO, we should take the first checkpoint that is earlier than (top height) - (fork tolerance).
     Header = case headers:read(CP1) of
                  error ->
                      io:fwrite("we need to sync more headers first\n"),
@@ -302,7 +300,6 @@ sync(IP, Port, CPL) ->
         integer_to_list(Height) ++
         "\n" ++
         "hash is " ++
-    %io:fwrite(packer:pack(CP1)),
         base58:binary_to_base58(CP1) ++
         ", now loading checkpoint\n",
     io:fwrite(PrintString),
@@ -313,13 +310,9 @@ sync(IP, Port, CPL) ->
     {ok, NBlock} = talker:talk({block, Height}, Peer),
             io:fwrite("checkpoint sync get block 3\n"),
     TDB = Block#block.trees,
-    %io:fwrite({TDB}),
     TDBN = NBlock#block.trees,
-            io:fwrite("checkpoint sync get block 4\n"),
     true = check_header_link(TopHeader, Header),
-            io:fwrite("checkpoint sync get block 5\n"),
     Header = block:block_to_header(NBlock),
-            io:fwrite("checkpoint sync check block 1\n"),
     {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
     {NDict, NNewDict, NProofTree, CP1} = block:check0(NBlock),
     NBlock2 = NBlock#block{trees = {NDict, NNewDict, NProofTree, CP1}},
@@ -331,16 +324,10 @@ sync(IP, Port, CPL) ->
     Tarball = CR ++ "backup.tar.gz",
     file:write_file(Tarball, TarballData),
     Temp = CR ++ "backup_temp",
-    %S = "tar -C "++ CR ++" -xf " ++ Tarball,
             io:fwrite("unzipping the checkpoint\n"),
     S = "tar -xf " ++ Tarball ++ " -C " ++ Temp,
-    %S = "tar -xf " ++ Tarball ++ " " ++ Temp, %this version was working for multi-node tests on one computer.
     os:cmd("mkdir " ++ Temp),
     os:cmd(S),
-    %io:fwrite(S),
-    %io:fwrite("\n"),
-
-    Roots = 
       if
           is_integer(TDB) ->
               os:cmd("mv " ++ Temp ++ "/db/backup_temp/*.db " ++ CR ++ "data/."),
@@ -348,69 +335,21 @@ sync(IP, Port, CPL) ->
               os:cmd("rm "++ Tarball), %%
                     
               io:fwrite("verkle checkpoint\n"),
-                    %todo, load the table from the hard drive into ram.
               ID = amoveo,
-                    %Pointer = NBlock#block.trees,
-              Pointer = TDB,
-              %Pointer = TDBN,
-
-              io:fwrite("pointer0 is: "), 
-              io:fwrite(integer_to_list(Pointer)),
-              io:fwrite("\n"),
-
-
+              Pointer = TDBN,
               CFG = tree:cfg(ID),
-              %Pointer = trees2:one_root_clean(Pointer0, CFG),
-
-
-                    %Mode = verkle_trees_sup:mode(),
-                    %case Mode of
-                    %    ram ->
-                    %        tree:reload_ets(ID);
-                    %    hd -> tree:reload_ets(ID)
-                    %end,
               timer:sleep(1000),
               tree:reload_ets(ID),
-              
                     timer:sleep(1000),
-                    io:fwrite("checkpoint loading stem pointer: "),
-                    io:fwrite(integer_to_list(Pointer) ++ " " ++ 
-                                  integer_to_list(bits:top(amoveo_v_stem))),
-              io:fwrite("\n"),
-
-                    
                     Stem0 = stem_verkle:get(Pointer, CFG),
-%                    <<Stem0A:256, Stem0B:256,
-%                      Stem0C:256, Stem0D:256>> = 
-%                        element(2, Stem0),
-                    %io:fwrite({Stem0A, Stem0B, Stem0C, Stem0D}),
-%                    CleanedPoint = ed:e_mul(element(2, Stem0), <<8:256/little>>),
-%                    <<Stem1A:256, Stem1B:256,
-%                      Stem1C:256, Stem1D:256>> = 
-%                        CleanedPoint,
                     case stem_verkle:check_root_integrity(Stem0) of
                         ok -> ok;
                         _ -> io:fwrite("invalid root stem\n"),
                              io:fwrite(Stem0)
                     end,
                     Types = element(3, Stem0),
-                    %Bool0 = all_zero(tuple_to_list(Types)),
-                    %if
-                    %    not(Bool0) -> io:fwrite({Types, Stem0});
-                    %    true -> ok
-                    %end,
-                    %true = Bool0, 
-                    %io:fwrite({Stem0}),
-              %StemHash = stem_verkle:hash(Stem0),
-                    %tree:clean_ets(ID, Pointer),
-                    %tree:clean_ets(ID, TDBN),
-              %Stem = stem_verkle:get(Pointer, CFG),
-                    %io:fwrite({stem_verkle:root(Stem) == ed:extended_zero(), stem_verkle:hash(Stem)}),
-                    %try doing tree:root_hash of ed:extended_zero()
-                    
-              tree:root_hash(ID, Pointer);
-                    %todo, delete everything from the table besides what can be proved from this single root.
-                    %todo, return the root hash of the tree.
+              NRoots = tree:root_hash(ID, Pointer),
+              NRoots = NBlock2#block.trees_hash;
         true ->
                     io:fwrite("loading a merkle checkpoint.\n"),
                     %io:fwrite(Tarball),
@@ -456,46 +395,20 @@ sync(IP, Port, CPL) ->
                                       ok
                               end, TreeTypes),
                     true = full_tree_merkle(TDB, TreeTypes),
-                    MRoots
+              Roots = MRoots
             end,
-    %try syncing the blocks between here and the top.
-    block_hashes:add(CP1),
-    {true, NBlock3} = block:check2(Block, NBlock2),
-    %block_absorber:do_save(NBlock3, CP1),
+            block_hashes:add(CP1),
+            {true, NBlock3} = block:check2(Block, NBlock2),
     gen_server:cast(block_db, {write, Block, BlockHash}),
-    gen_server:cast(block_db, {write, NBlock3, CP1}),
+    gen_server:cast(block_db, {write, NBlock, CP1}),
     block_db:set_ram_height(Height),
     headers:absorb_with_block([Header]),
-%    recent_blocks:add(
-%      CP1,
-%      Header#header.accumulative_difficulty, 
-%      Height),
-    tx_pool_feeder:dump(NBlock3),
+    tx_pool_feeder:dump(NBlock),
     potential_block:dump(),
             timer:sleep(1000),
-
-
-            %turning the node on and off at this point seems to fix it. maybe some files get saved.
-            %tree:quick_save(amoveo),
-            %dump:quick_save(accounts_dump),
-            %dump:quick_save(contracts_dump),
-            %dump:quick_save(markets_dump),
-            %dump:quick_save(matched_dump),
-            %dump:quick_save(oracles_dump),
-            %dump:quick_save(receipts_dump),
-            %dump:quick_save(sub_accs_dump),
-            %dump:quick_save(trades_dump),
-            %dump:quick_save(unmatched_dump),
-            
-
-
             if 
                 is_integer(TDB) ->
-                    %NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
-                    Pointerb = NBlock3#block.trees,
-                    io:fwrite("checkpoint pointerb is: "),
-                    io:fwrite(integer_to_list(Pointerb)),
-                    io:fwrite("\n"),
+                    Pointerb = NBlock#block.trees,
 
                     dump:reload(accounts_dump),
                     dump:reload(contracts_dump),
@@ -507,27 +420,17 @@ sync(IP, Port, CPL) ->
                     dump:reload(trades_dump),
                     dump:reload(unmatched_dump),
 
-                    trees2:scan_verkle(TDBN, tree:cfg(amoveo)),
-                    io:fwrite("scanned 1\n"),
-                    %trees2:scan_verkle(Pointerb, tree:cfg(amoveo)),%invalid
-                    %io:fwrite("scanned 2\n"),
-                    %Stem1 = stem_verkle:get(TDBN, tree:cfg(amoveo)),
+                    trees2:scan_verkle(Pointerb, tree:cfg(amoveo)),
+                    io:fwrite("scanned 2\n"),
                     Stem1 = stem_verkle:get(Pointerb, tree:cfg(amoveo)),
-                    io:fwrite("got stem 1\n"),
-                    NewPointer = trees2:one_root_clean(TDBN, tree:cfg(amoveo)),
+                    NewPointer = trees2:one_root_clean(Pointerb, tree:cfg(amoveo)),
                     io:fwrite("cleaned\n"),
                     trees2:scan_verkle(NewPointer, tree:cfg(amoveo)),
                     io:fwrite("scan cleaned\n"),
-                    %NewPointer = trees2:one_root_clean(Pointerb, tree:cfg(amoveo)),
-                    %NewPointer = Pointerb,
                     Stem2 = stem_verkle:get(NewPointer, tree:cfg(amoveo)),
                     StemHashb = stem_verkle:hash(Stem1),
                     StemHashb = stem_verkle:hash(Stem2),
-                    io:fwrite("hashes are good\n"),
-                    io:fwrite("new pointer is: "),
-                    io:fwrite(integer_to_list(NewPointer)),
-                    io:fwrite("\n"),
-                    BlockB = NBlock3#block{trees = NewPointer},
+                    BlockB = NBlock#block{trees = NewPointer},
                     gen_server:cast(block_db, {write, BlockB, CP1}),
                     io:fwrite("successfully updated the block\n"),
                     ok;

@@ -1169,31 +1169,15 @@ merkle2verkle(
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
 one_root_clean(Pointer, CFG) ->
-    io:fwrite("one root clean 0\n"),
-    io:fwrite("pointer is: "),
-    io:fwrite(integer_to_list(Pointer)),
-    io:fwrite("\n"),
     Hash = scan_verkle(Pointer, CFG),
-    io:fwrite("one root clean 1\n"),
     NewPointer = one_root_maker(Pointer, CFG),
-    io:fwrite("one root clean 2\n"),
     CFG2 = CFG#cfg{id = cleaner},
-    Hash2 = scan_verkle(NewPointer, CFG2),
-    if
-        not(Hash == Hash2) ->
-            io:fwrite({stem_verkle:get(Pointer, CFG),
-                       stem_verkle:get(NewPointer, CFG2)});
-        true -> ok
-    end,
-    io:fwrite("one root clean 3\n"),
     recover_from_clean_version(NewPointer),
     Hash = scan_verkle(NewPointer, CFG),
-    io:fwrite("one root clean done\n"),
     NewPointer.
 
 one_root_maker(Pointer, CFG) ->
     %delete the contents of the files in the cleaner folder.
-    io:fwrite("one_root_clean: truncate\n"),
     %os:cmd("truncate -s 0 cleaner/data/*"),
     %os:cmd("rm cleaner/data/*"),
     os:cmd("rm -r cleaner/data"),
@@ -1468,11 +1452,10 @@ scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], CFG) ->
             io:fwrite("trees2:scan_verkle2 bad cs data\n"),
             io:fwrite(integer_to_list(Pointer2)),
             io:fwrite("\n"),
-            io:fwrite({M1, Pointer2, CS0, CS});
+            io:fwrite({M1, Pointer2, CS});
             %1=2;
             %ok;
         true -> 
-            %io:fwrite("trees2 scan_verkle2: good \n"),
             ok
     end,
     success = scan_verkle2(PT, TT, HT, CFG);

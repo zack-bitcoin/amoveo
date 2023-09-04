@@ -943,6 +943,9 @@ check0(Block) ->
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
+
+    %block.roots == prev_block.trees_hash
+
     Txs = Block#block.txs,
     RootSame = proofs_roots_match(Facts, Roots),
     if
