@@ -1178,7 +1178,7 @@ one_root_clean(Pointer, CFG) ->
     NewPointer = one_root_maker(Pointer, CFG),
     io:fwrite("one root clean 2\n"),
     CFG2 = CFG#cfg{id = cleaner},
-    Hash2 = scan_verkle(NewPointer, CFG2),
+    %Hash2 = scan_verkle(NewPointer, CFG2),
     if
         not(Hash == Hash2) ->
             io:fwrite({stem_verkle:get(Pointer, CFG),
