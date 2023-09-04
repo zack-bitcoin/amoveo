@@ -496,6 +496,18 @@ sync(IP, Port, CPL) ->
                     io:fwrite("checkpoint pointerb is: "),
                     io:fwrite(integer_to_list(Pointerb)),
                     io:fwrite("\n"),
+
+    dump:reload(accounts_dump),
+    dump:reload(contracts_dump),
+    dump:reload(markets_dump),
+    dump:reload(matched_dump),
+    dump:reload(oracles_dump),
+    dump:reload(receipts_dump),
+    dump:reload(sub_accs_dump),
+    dump:reload(trades_dump),
+    dump:reload(unmatched_dump),
+
+
                     trees2:scan_verkle(TDBN, tree:cfg(amoveo)),%invalid
                     io:fwrite("scanned 1\n"),
                     trees2:scan_verkle(Pointerb, tree:cfg(amoveo)),%invalid
