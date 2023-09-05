@@ -187,10 +187,10 @@ header_by_height_in_chain(N, Hash) when N > -1 ->
             header_by_height_in_chain(N, H#header.prev_hash)
     end.
     
-get_by_height(275600) ->
-    get_by_hash(<<11,104,157,185,180,112,175,116,238,1,203,165,194,162,
-  170,112,91,209,249,9,142,146,59,137,192,225,144,165,110,
-  199,5,185>>);
+%get_by_height(275600) ->
+%    get_by_hash(<<11,104,157,185,180,112,175,116,238,1,203,165,194,162,
+%  170,112,91,209,249,9,142,146,59,137,192,225,144,165,110,
+%  199,5,185>>);
 get_by_height(N) ->
     {ok, DBV} = application:get_env(amoveo_core, db_version),
     if

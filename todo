@@ -1,3 +1,19 @@
+trying to sync new nodes.
+1) we need to get the checkpoint from Explorer, because the pool has corrupted db, and Germany doesn't have any checkpoints.
+2) we can't sync in reverse from the explorer, it misses 275599. reverse syncing from germany fails. so we need to reverse sync from the pool. This halts at 275600.
+3) finally, we need to finish syncing backward from germany, because the explorer is missing a block.
+
+
+
+
+when you sync a checkpoint, it seems to not correctly store the block from the checkpoint height.
+also, it isn't storing height 275600, we need to manually store it.
+also, there is some stuff in block_db hard-coded for 275600, it would be cleaner to not need this.
+1) fix the problem where syncing is dropping a block. (maybe it is already fixed?)
+2) patch block 275600 into one of the pages of blocks.
+
+
+
 update the servers to use the new code, resync them.
 
 

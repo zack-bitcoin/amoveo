@@ -524,9 +524,13 @@ reverse_sync(Height, Peer) ->
     end,
     sync_kill:start(),
     io:fwrite("reverse sync/2 got block 0\n"),
-    {ok, Block} = talker:talk({block, Height-1}, Peer),%same as bottom.
+    io:fwrite(integer_to_list(Height)),
+    io:fwrite("\n"),
+    %{ok, Block} = talker:talk({block, Height-1}, Peer),%same as bottom.
+    {ok, Block} = talker:talk({block, Height}, Peer),%same as bottom.
     io:fwrite("reverse sync/2 got block 1\n"),
-    {ok, NBlock} = talker:talk({block, Height}, Peer),%one above bottom.
+    %{ok, NBlock} = talker:talk({block, Height}, Peer),%one above bottom.
+    {ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
     io:fwrite("reverse sync/2 got block 2\n"),
     Roots = NBlock#block.roots,
 
@@ -553,6 +557,7 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     H2 = max(0, Height-50),
     %{ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
     io:fwrite("getting page\n"),
+    io:fwrite(integer_to_list(Height)),
     {ok, ComPage0} = talker:talk({blocks, -1, 50, Height-1}, Peer),
     io:fwrite("got page\n"),
     Page0 = if
@@ -572,7 +577,8 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     Page = dict:filter(%remove data that is already in block_db.
              fun(_, Value) ->
                      Value#block.height < 
-                         (Height - 1)
+                         %(Height - 1)  %testing this...
+                         Height
              end, Page0),
     io:fwrite("filtered the page\n"),
     PageLength = length(dict:fetch_keys(Page)),
@@ -689,7 +695,12 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     NB0 = case dict:find(B#block.prev_hash, P) of
               error -> 
                   Blocks = sync:low_to_high(sync:dict_to_blocks(dict:fetch_keys(P), P)),
-                  io:fwrite({"checkpoint, can't find prev hash\n", B#block.height, (hd(Blocks))#block.height, (hd(lists:reverse(Blocks)))#block.height});
+                  io:fwrite({"checkpoint, can't find prev hash\n", 
+                             {height, B#block.height}, 
+                             {batch_starts, (hd(Blocks))#block.height}, 
+                             {batch_ends, (hd(lists:reverse(Blocks)))#block.height},
+                             {more, N},
+                             {keys, dict:fetch_keys(P)}});
               {ok, NB01} -> NB01
           end,
     F52 = forks:get(52),
