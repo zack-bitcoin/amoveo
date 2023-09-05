@@ -1,3 +1,12 @@
+once a new block is found, try syncing with SF.
+if that works, then resync the servers from sf so that they are all cleaned.
+(amoveo_core_prod@san-francisco)43> ext_handler:doit({blocks, -1, 50, 276000}).
+{ok,error}
+* todo. we updated the code to hopefully prevent missing blocks this way. so first resync SF according to the 3 steps, then see if we can sync from SF.
+
+
+
+
 trying to sync new nodes.
 1) we need to get the checkpoint from Explorer, because the pool has corrupted db, and Germany doesn't have any checkpoints.
 2) we can't sync in reverse from the explorer, it misses 275599. reverse syncing from germany fails. so we need to reverse sync from the pool. This halts at 275600.

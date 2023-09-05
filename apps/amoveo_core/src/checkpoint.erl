@@ -198,9 +198,9 @@ get_chunks2(Hash, Peer, N, Result) ->
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
     %IP = {159,223,85,216},%the pool
-    IP = {64, 227, 21, 70},%explorer
+    %IP = {64, 227, 21, 70},%explorer
     %IP = {159,65,126,146},%germany
-    %IP = {45, 55, 194, 109}, %ubuntu 20
+    IP = {64,227,100,178}, % san francisco
     Port = 8080,
     spawn(fun() ->
                   sync(IP, Port)
@@ -530,25 +530,15 @@ reverse_sync(Height, Peer) ->
     {ok, Block} = talker:talk({block, Height}, Peer),%same as bottom.
     io:fwrite("reverse sync/2 got block 1\n"),
     %{ok, NBlock} = talker:talk({block, Height}, Peer),%one above bottom.
-    {ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
     io:fwrite("reverse sync/2 got block 2\n"),
-    Roots = NBlock#block.roots,
-
-    if
-        true -> ok;
-        is_integer(Roots) ->
-            ok;
-        is_tuple(Roots) ->
-            ok;
-        true -> io:fwrite({Roots, NBlock})
-    end,
-        
 
     {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
     io:fwrite("reverse sync/2 check0\n"),
     Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
     %TDB = Block#block.trees,
     %Roots = block:make_roots(TDB),
+    {ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
+    Roots = NBlock#block.roots,
     reverse_sync2(Height, Peer, Block2, Roots).
 
 
@@ -578,7 +568,8 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
              fun(_, Value) ->
                      Value#block.height < 
                          %(Height - 1)  %testing this...
-                         Height
+                         %Height
+                         Height + 1
              end, Page0),
     io:fwrite("filtered the page\n"),
     PageLength = length(dict:fetch_keys(Page)),
@@ -991,7 +982,7 @@ backup_trees([H|T], CR) ->
 
 make() -> make(false).
 make(Force) ->
-    gen_server:call(?MODULE, {make, Force}).
+    gen_server:call(?MODULE, {make, Force}, 40000).
     
 clean() ->
     gen_server:cast(?MODULE, clean).

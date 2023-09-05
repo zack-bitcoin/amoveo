@@ -123,11 +123,11 @@ handle_cast({write, Block, Hash}, X) ->
     {noreply, X3};
 handle_cast({load_page, U, Start, End}, X) -> 
     %{Start, End} = height_range(U),
-    io:fwrite("block db load page "),
-    io:fwrite(integer_to_list(Start)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(End)),
-    io:fwrite("\n"),
+%    io:fwrite("block db load page "),
+%    io:fwrite(integer_to_list(Start)),
+%    io:fwrite(" "),
+%    io:fwrite(integer_to_list(End)),
+%    io:fwrite("\n"),
     {Loc, Size} = write_page(U, X),
     PageNumber = X#d.page_number,
     Pages2 = dict:store(PageNumber, {Loc, Size, Start, End}, X#d.pages),
