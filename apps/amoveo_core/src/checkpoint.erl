@@ -537,8 +537,9 @@ reverse_sync(Height, Peer) ->
     Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
     %TDB = Block#block.trees,
     %Roots = block:make_roots(TDB),
-    {ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
-    Roots = NBlock#block.roots,
+    %{ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
+    %Roots = NBlock#block.roots,%trees2:root_hash(NBlock#block.trees)
+    Roots = Block#block.trees_hash,
     reverse_sync2(Height, Peer, Block2, Roots).
 
 

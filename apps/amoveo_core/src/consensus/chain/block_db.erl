@@ -592,7 +592,7 @@ read_reverse(Many, Highest) ->
     %highest is the highest in the range of blocks that we want to return.
     % if we return a page, make sure highest is included.
     H = block:height(),
-    RH = ram_height(),
+    RH = ram_height(),%276000
     if
         %(Highest =< RH) -> 
         (Highest < RH) -> 
@@ -600,7 +600,7 @@ read_reverse(Many, Highest) ->
         true ->
             StartHeight = max(Highest - Many, RH),
             Block = block:get_by_height(Highest),
-            {ok, Z} = gen_server:call(?MODULE, {read, Highest-StartHeight, StartHeight, Block}),
+            {ok, Z} = gen_server:call(?MODULE, {read, 1+Highest-StartHeight, StartHeight, Block}),
             Z
     end.
             
