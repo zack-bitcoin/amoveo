@@ -16,6 +16,7 @@
          reverse_sync/2, 
          full_tree_merkle/0, full_tree_merkle/1,
          sync/1,
+         scan_blocks/0,
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
 %Eventually we will need a function that can recombine the chunks, and unencode the gzipped tar to restore from a checkpoint.
@@ -980,6 +981,39 @@ backup_trees([H|T], CR) ->
     cp(CR, H, ".db"),
     cp(CR, H, "_rest.db"),
     backup_trees(T, CR).
+
+
+scan_blocks() ->
+    H = block:height(),
+    H = api:height(),
+    0 = block:bottom(),
+    T = block:top(),
+    H = T#block.height,
+    Hash = T#block.prev_hash,
+    spawn(fun() ->
+                  scan_blocks2(Hash)
+          end).
+scan_blocks2(Hash) ->
+    go = sync_kill:status(),
+    Block = block:get_by_hash(Hash),
+    Height = Block#block.height,
+    case Height of
+        0 -> io:fwrite("scan_blocks: we have all the blocks.\n"),
+             success;
+        _ ->
+            H2 = Height rem 1000,
+            if
+                (H2 == 0) -> 
+                    io:fwrite("scan_blocks scanned to height: "),
+                    io:fwrite(integer_to_list(Height)),
+                    io:fwrite("\n");
+                true -> ok
+            end,
+            Hash2 = Block#block.prev_hash,
+            scan_blocks2(Hash2)
+    end.
+
+
 
 make() -> make(false).
 make(Force) ->
