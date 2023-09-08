@@ -36,7 +36,7 @@
                 txs,%LTS
                 prev_hashes = {prev_hashes},
                 proofs = [],%LTS
-                roots,%LTS  
+                roots,%LTS  %hash(roots) == prev_block.trees_hash
                 meta = <<>>, % we need to calculate locally.
 		market_cap = 0,%LTS
 		channels_veo = 0,%LTS
@@ -278,3 +278,5 @@
 % -record(oracle_bet, {id, true, false, bad}).%true, false, and bad are the 3 types of shares that can be purchased from an oracle%
 -record(orders, {aid, amount, pointer}).%
 -record(consensus_state, {empty = true, val, key, unhashed_key, type}).
+
+-record(job, {id, worker, boss, value, salary, balance, time}).

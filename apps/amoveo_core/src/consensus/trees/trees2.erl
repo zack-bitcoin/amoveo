@@ -50,6 +50,7 @@ type2int(contract) -> 7;
 type2int(trade) -> 8;
 type2int(market) -> 9;
 type2int(receipt) -> 10;
+type2int(job) -> 11;
 type2int(B) when is_binary(B) -> 5.
 
 int2type(1) -> acc;
@@ -60,7 +61,8 @@ int2type(6) -> sub_acc;
 int2type(7) -> contract;
 int2type(8) -> trade;
 int2type(9) -> market;
-int2type(10) -> receipt.
+int2type(10) -> receipt;
+int2type(11) -> job.
     
 
 int2dump_name(1) -> accounts_dump;
@@ -72,7 +74,8 @@ int2dump_name(6) -> sub_accs_dump;
 int2dump_name(7) -> contracts_dump;
 int2dump_name(8) -> trades_dump;
 int2dump_name(9) -> markets_dump;
-int2dump_name(10) -> receipts_dump.
+int2dump_name(10) -> receipts_dump;
+int2dump_name(11) -> jobs_dump.
 
 int2cleaner_name(1) -> accounts_cleaner;
 %int2cleaner_name(2) -> exists_cleaner;
@@ -83,7 +86,8 @@ int2cleaner_name(6) -> sub_accs_cleaner;
 int2cleaner_name(7) -> contracts_cleaner;
 int2cleaner_name(8) -> trades_cleaner;
 int2cleaner_name(9) -> markets_cleaner;
-int2cleaner_name(10) -> receipts_cleaner.
+int2cleaner_name(10) -> receipts_cleaner;
+int2cleaner_name(11) -> jobs_cleaner.
 
 
 
@@ -227,7 +231,10 @@ val2int(#unmatched{account = A, oracle = O}) ->
 val2int({unmatched_head, Pointer, Many, OID}) ->
     PS = constants:pubkey_size() * 8,
     K = {key, <<1:PS>>, OID},
-    unmatched:key_to_int(K).
+    unmatched:key_to_int(K);
+val2int(#job{id = ID}) ->
+    jobs:key_to_int(ID).
+
     
 
 
@@ -277,6 +284,9 @@ hash_key(markets, X)
   when is_binary(X) and (size(X) == 32) ->
     key(#market{id = X});
 hash_key(channels, ID) 
+  when is_binary(ID) and (size(ID) == 32) ->
+    ID;
+hash_key(jobs, ID) 
   when is_binary(ID) and (size(ID) == 32) ->
     ID;
 %hash_key(trades, X) 
@@ -373,8 +383,9 @@ key(#trade{value = V}) ->
 key(#market{id = X}) -> 
     hash:doit(<<X/binary, 7>>);%33 bytes
 key(#receipt{id = X}) -> 
-    hash:doit(<<X/binary, 8>>).%33 bytes
-
+    hash:doit(<<X/binary, 8>>);%33 bytes
+key(#job{id = X}) -> 
+    hash:doit(<<X/binary, 9>>).%33 bytes
 
 compress_pub(<<1:264>>) ->
     <<1:264>>;
@@ -534,8 +545,21 @@ serialize(
             nonce = N}) ->
     32 = size(T),
     P2 = compress_pub(P),
-    <<T/binary, P2/binary, N:32>>.
+    <<T/binary, P2/binary, N:32>>;
 %32 + 33 + 4 = 69
+serialize(#job{id = ID, worker = W0, boss = Boss0, value = V,
+               salary = S, balance = Balance, time = T}) ->
+    W = compress_pub(W0),
+    Boss  = compress_pub(Boss0),
+    32 = size(ID),
+    33 = size(W),
+    33 = size(Boss),
+    true = is_integer(V),
+    true = is_integer(S),
+    true = is_integer(Balance),
+    true = is_integer(T),
+    <<ID/binary, W/binary, Boss/binary, V:64, S:64, Balance:64, T:32>>.
+%32 + 33 + 33 + 8 + 8 + 8 + 4 = 126
 
 
 deserialize(1, 
@@ -595,6 +619,10 @@ deserialize(10, <<T:256, P:264, N:32>>) ->
     R#receipt{id = ID};
 %    #receipt{id = ID, tid = <<T:256>>, pubkey = P2, nonce = N};
 %deserialize(_, T) when is_tuple(T) -> T;
+deserialize(11, <<ID:256, W:264, Boss:264, V:64, S:64, Balance:64, T:32>>) ->
+    #job{id = <<ID:256>>, worker = decompress_pub(<<W:264>>),
+         boss = decompress_pub(<<Boss:264>>),
+         value = V, salary = S, balance = Balance, time = T};
 deserialize(N, B) ->
     io:fwrite({N, B, size(B)}),
     1=2,
@@ -1169,10 +1197,19 @@ merkle2verkle(
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
 one_root_clean(Pointer, CFG) ->
+    bits:top(jobs_cleaner),
     Hash = scan_verkle(Pointer, CFG),
+    io:fwrite("one root clean 0\n"),
+    bits:top(jobs_cleaner),
+    io:fwrite("one root clean 1\n"),
     NewPointer = one_root_maker(Pointer, CFG),
+    io:fwrite("one root clean 2\n"),
     CFG2 = CFG#cfg{id = cleaner},
+    bits:top(jobs_cleaner),
+    io:fwrite("one root clean 3\n"),
     recover_from_clean_version(NewPointer),
+    bits:top(jobs_cleaner),
+    io:fwrite("one root clean 4\n"),
     Hash = scan_verkle(NewPointer, CFG),
     NewPointer.
 
@@ -1198,6 +1235,11 @@ one_root_maker(Pointer, CFG) ->
     bits:reset(sub_accs_cleaner),
     bits:reset(trades_cleaner),
     bits:reset(unmatched_cleaner),
+    bits:reset(jobs_cleaner),
+
+    io:fwrite("one root maker 0\n"),
+    bits:top(jobs_cleaner),
+    io:fwrite("one root maker 1\n"),
 
     dump:reload(accounts_cleaner),
     dump:reload(contracts_cleaner),
@@ -1208,6 +1250,11 @@ one_root_maker(Pointer, CFG) ->
     dump:reload(sub_accs_cleaner),
     dump:reload(trades_cleaner),
     dump:reload(unmatched_cleaner),
+    dump:reload(jobs_cleaner),
+
+    io:fwrite("one root maker 2\n"),
+    bits:top(jobs_cleaner),
+    io:fwrite("one root maker 3\n"),
 
     tree:reload_ets(cleaner),
     timer:sleep(500),
@@ -1217,7 +1264,16 @@ one_root_maker(Pointer, CFG) ->
     NewPointer = one_root_clean_stem(Pointer, CFG, CFG2),
     %copy the clean version over the main version.
     io:fwrite("one_root_clean: back up the cleaner db to the hard disk\n"),
+
+    io:fwrite("one root maker 4\n"),
+    bits:top(jobs_cleaner),
+    io:fwrite("one root maker 5\n"),
+
     tree:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
+
+    io:fwrite("one root maker 6\n"),
+    bits:top(jobs_cleaner),
+    io:fwrite("one root maker 7\n"),
 
     NewPointer.
 
@@ -1228,17 +1284,26 @@ recover_from_clean_version(Pointer) ->
     io:fwrite("\n"),
     
 
+    bits:top(jobs_cleaner),
+    io:fwrite("trees2:recover_from_clean_version -1\n"),
 
     %TODO. we need to make sure it is on the hard disk in the cleaner folder before we start copying things.
 
-    IDs = [1,3,4,5,6,7,8,9,10],
+    IDs = [1,3,4,5,6,7,8,9,10,11],
 
     lists:map(fun(ID) -> dump:quick_save(
                            int2cleaner_name(ID)) end, 
               IDs),
+
+    bits:top(jobs_cleaner),
+    io:fwrite("trees2:recover_from_clean_version -2\n"),
+
     dump:quick_save(cleaner_v_leaf),
     dump:quick_save(cleaner_v_stem),
     timer:sleep(3000),
+
+    bits:top(jobs_cleaner),
+    io:fwrite("trees2:recover_from_clean_version 0\n"),
 
     os:cmd("cp -r cleaner/data/accounts_cleaner.db ../../../../db/data/accounts_dump.db"),
     os:cmd("cp -r cleaner/data/contracts_cleaner.db ../../../../db/data/contracts_dump.db"),
@@ -1250,6 +1315,10 @@ recover_from_clean_version(Pointer) ->
     os:cmd("cp -r cleaner/data/sub_acc_cleaner.db ../../../../db/data/sub_acc_dump.db"),
     os:cmd("cp -r cleaner/data/trades_cleaner.db ../../../../db/data/trades_dump.db"),
     os:cmd("cp -r cleaner/data/unmatched_cleaner.db ../../../../db/data/unmatched_dump.db"),
+    os:cmd("cp -r cleaner/data/jobs_cleaner.db ../../../../db/data/jobs_dump.db"),
+
+    bits:top(jobs_cleaner),
+    io:fwrite("trees2:recover_from_clean_version 1\n"),
 
     os:cmd("cp -r cleaner/data/accounts_cleaner_rest.db ../../../../db/data/accounts_dump_rest.db"),
     os:cmd("cp -r cleaner/data/contracts_cleaner_rest.db ../../../../db/data/contracts_dump_rest.db"),
@@ -1261,15 +1330,27 @@ recover_from_clean_version(Pointer) ->
     os:cmd("cp -r cleaner/data/sub_accs_cleaner_rest.db ../../../../db/data/sub_accs_dump_rest.db"),
     os:cmd("cp -r cleaner/data/trades_cleaner_rest.db ../../../../db/data/trades_dump_rest.db"),
     os:cmd("cp -r cleaner/data/unmatched_cleaner_rest.db ../../../../db/data/unmatched_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/jobs_cleaner_rest.db ../../../../db/data/jobs_dump_rest.db"),
 
+    bits:top(jobs_cleaner),
+    io:fwrite("trees2:recover_from_clean_version 2\n"),
 
     lists:map(fun(ID_num) ->
                       Name = int2dump_name(ID_num),
                       CleanName = int2cleaner_name(ID_num),
+                      io:fwrite("try copying bits "),
+                      io:fwrite(Name),
+                      io:fwrite("\n"),
+                      Top = bits:top(CleanName),%dies here on the jobs iteration.
+                      io:fwrite("reset bits\n"),
                       bits:reset(Name),
-                      Top = bits:top(CleanName),
+                      io:fwrite("reset bits 2\n"),
+                      bits:top(jobs_cleaner),
+                      io:fwrite("clean top\n"),
                       copy_bits(1, Top, CleanName, Name),
+                      io:fwrite("clean_bits/4\n"),
                       Top = bits:top(Name),
+                      io:fwrite("name top\n"),
                       bits:quick_save(Name),
                       io:fwrite("copying bits "),
                       io:fwrite(Name),
@@ -1277,6 +1358,9 @@ recover_from_clean_version(Pointer) ->
                       io:fwrite(integer_to_list(Top)),
                       io:fwrite("\n")
               end, IDs),
+
+    bits:top(jobs_cleaner),
+    io:fwrite("trees2:recover_from_clean_version 3\n"),
 
     bits:reset(amoveo_v_leaf),
     bits:reset(amoveo_v_stem),
@@ -1316,6 +1400,7 @@ recover_from_clean_version(Pointer) ->
     dump:reload(sub_accs_dump),
     dump:reload(trades_dump),
     dump:reload(unmatched_dump),
+    dump:reload(jobs_dump),
 
     %delete the contents of the cleaner folder to save space.
     %os:cmd("rm -rf cleaner/*.db"),

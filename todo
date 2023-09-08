@@ -1,44 +1,16 @@
-once a new block is found, try syncing with SF.
-if that works, then resync the servers from sf so that they are all cleaned.
-(amoveo_core_prod@san-francisco)43> ext_handler:doit({blocks, -1, 50, 276000}).
-{ok,error}
-* todo. we updated the code to hopefully prevent missing blocks this way. so first resync SF according to the 3 steps, then see if we can sync from SF.
+now that we have a job in the verkle tree, it is failing to get the checkpoint from the server.
+crashes during bits:quick_save, there is a comment.
+but the ets must be getting corrupted before that point for this error to happen.
 
 
 
 
-trying to sync new nodes.
-1) we need to get the checkpoint from Explorer, because the pool has corrupted db, and Germany doesn't have any checkpoints.
-2) we can't sync in reverse from the explorer, it misses 275599. reverse syncing from germany fails. so we need to reverse sync from the pool. This halts at 275600.
-3) finally, we need to finish syncing backward from germany, because the explorer is missing a block.
 
 
+test inserting a job in the verkle tree in a test.
 
 
-when you sync a checkpoint, it seems to not correctly store the block from the checkpoint height.
-also, it isn't storing height 275600, we need to manually store it.
-also, there is some stuff in block_db hard-coded for 275600, it would be cleaner to not need this.
-1) fix the problem where syncing is dropping a block. (maybe it is already fixed?)
-2) patch block 275600 into one of the pages of blocks.
-
-
-
-update the servers to use the new code, resync them.
-
-
-we can't do trees2:scan_verkle so much. it wastes too much cpu and disk access.
-
-
-* update the checkpoint code to use the cleaner database, so that we only store the minimum necessary.
-
-
-
-add employment contracts.
-It is a pretty simple mechanism. The database object is like:
-{job_id 32_bytes, worker_pub 32_bytes,
- boss_pub 32 bytes, price veos,
- tax_rate 8 bytes,
- balance veos, time block_height}
+add employment contracts txs.
 
 Every time there is a tx, we update the job.
 we update time.
@@ -66,8 +38,9 @@ and the transaction types are:
 * job_create - {worker, tax_rate, initial_balance} (signed by worker)
 * job_price - {job_id, new_price} (signed by boss) 
 * job_buy - {job_id, balance} (signed by who will be the new boss) old balance goes to old owner, balance is the new balance.
-* job_deposit {job_id, amount} (signed by boss) to send or withdraw money from a job.
-* job_tax - {job_id} (signed by both)
+* job_deposit {job_id, amount} (signed by boss) to send or withdraw money from a job. This money is used to pay the salary.
+* job_change_salary - {job_id, new_salary} (signed by both)
+* job_receive_salary - {job_id} (signed by worker) 
 
 
 
@@ -77,6 +50,42 @@ like 90% of the tax goes to the worker, and 10% is burned.
 If you don't deposit veo to pay the tax, eventually the balance gets low enough, and then the price starts dropping exponentially so that it never runs out of money. To act as a continuous auction.
 If you withdraw almost all the veo, then the price may be forced downwards, to accomodate this auction curve.
 At a given balance, the contract has a maximum price.
+
+
+
+
+
+
+
+
+remove that hardcoded block 275600 from the source code, verify we can sync without it.
+
+
+
+
+set it up to only do verkle proofs for the recent 30 days or so by default.
+
+
+
+we can't do trees2:scan_verkle so much. it wastes too much cpu and disk access.
+
+
+* update the checkpoint code to use the cleaner database, so that we only store the minimum necessary.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 links related to making maps in js.

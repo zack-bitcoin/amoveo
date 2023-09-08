@@ -92,7 +92,7 @@ handle_call({make, Force}, _, X) ->
                          ok;%makes a copy of the tree files.
                      true ->
                          tree:quick_save(amoveo),
-                         VerkleTrees = ["accounts", "contracts", "markets", "matched", "oracles", "receipts", "sub_accs", "trades", "unmatched"],
+                         VerkleTrees = ["accounts", "contracts", "markets", "matched", "oracles", "receipts", "sub_accs", "trades", "unmatched", "jobs"],
                          io:fwrite("quicksaving dumps\n"),
                          lists:map(fun(S) ->
                                            io:fwrite(S),
@@ -410,7 +410,7 @@ sync(IP, Port, CPL) ->
             if 
                 is_integer(TDB) ->
                     Pointerb = NBlock#block.trees,
-
+                    
                     dump:reload(accounts_dump),
                     dump:reload(contracts_dump),
                     dump:reload(markets_dump),
@@ -420,6 +420,7 @@ sync(IP, Port, CPL) ->
                     dump:reload(sub_accs_dump),
                     dump:reload(trades_dump),
                     dump:reload(unmatched_dump),
+                    %dump:reload(jobs_dump),
 
                     trees2:scan_verkle(Pointerb, tree:cfg(amoveo)),
                     io:fwrite("scanned 2\n"),

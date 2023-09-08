@@ -15,7 +15,8 @@ dumps() ->
      {contracts_dump, 153},
      {trades_dump, 36},
      {markets_dump, 124},
-     {receipts_dump, 69}
+     {receipts_dump, 69},
+     {jobs_dump, 126}
     ].
 dumps2() ->
     [
@@ -27,7 +28,8 @@ dumps2() ->
      {contracts_cleaner, 153},
      {trades_cleaner, 36},
      {markets_cleaner, 124},
-     {receipts_cleaner, 69}
+     {receipts_cleaner, 69},
+     {jobs_cleaner, 126}
 ].
     
 stop() -> 
