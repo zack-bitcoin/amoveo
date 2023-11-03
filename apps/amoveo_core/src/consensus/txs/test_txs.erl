@@ -4310,9 +4310,99 @@ test(many_accounts) ->
                             end)
               end, All),
     
-    success.
+    success;
+test(69) ->
+    %inserting and reading from the jobs part of the verkle tree.
+    {Pub,_NewPriv} = signing:new_key(),
+    %Pub = trees2:compress_pub(NewPub),
+    ID = <<255:8, 0:248>>,
+    Job = #job{id = ID, worker = <<0:264>>, boss = <<0:264>>, value = 1, salary = 1, balance = 1, time = 1},
 
-    %creating a shareable contract with subcurrencies.
+    SJ = trees2:serialize(Job),
+    SL = dump:put(SJ, jobs_dump),
+    SJ = dump:get(SL, jobs_dump),
+    
+
+
+    Acc = #acc{pubkey = Pub, balance = 1, nonce = 1, 
+               bets = 0, bets_hash = <<0:256>>},
+    Loc = 1,
+%    {_, Leaves1} = trees2:get_proof([{jobs, ID}, {accounts, Pub}], 
+%                                    Loc, fast),
+    Loc2 = trees2:store_things([Job, Acc], Loc),
+
+    [{{jobs,ID},#job{}}] = trees2:get([{jobs, ID}], Loc2),
+    success;
+test(70) ->
+    io:fwrite("job create and job salary receive tx types."),
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    MP = constants:master_pub(),
+    Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
+    Fee = constants:initial_fee()*100,
+    N64 = 18446744073709551616,
+    Salary = N64 div (50000), %about 100% annually.
+    Tx1 = job_create_tx:make_dict(Pub, 100000000, Salary, 10000000, Fee),
+    ID = job_create_tx:id(Tx1),
+    
+    Stx1 = keys:sign(Tx1),
+    %io:fwrite({Stx1}),
+    absorb(Stx1),
+    1 = many_txs(),
+
+    mine_blocks(4),
+
+    Tx2 = job_receive_salary_tx:make_dict(ID, Fee),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    1 = many_txs(),
+
+    mine_blocks(1),
+
+    {NewPub,NewPriv} = signing:new_key(),
+
+    Ctx = create_account_tx:make_dict(
+            NewPub, 1000000000, Fee, constants:master_pub()),
+    Sctx = keys:sign(Ctx),
+    absorb(Sctx),
+    1 = many_txs(),
+    mine_blocks(1),
+
+
+    Tx3 = job_buy_tx:make_dict(NewPub, ID, 50000000, Fee),
+    Stx3 = signing:sign_tx(Tx3, NewPub, NewPriv),
+    absorb(Stx3),
+    1 = many_txs(),
+
+    Tx4 = job_adjust_tx:make_dict(ID, 20000000, 70000000, Fee),
+    Stx4 = signing:sign_tx(Tx4, NewPub, NewPriv),
+    absorb(Stx4),
+    2 = many_txs(),
+    
+    %getting a raise.
+    Tx5 = job_team_adjust_tx:make_dict(ID, Salary * 3 div 2, 30000000,
+                                  70000000, Fee),
+    Stx5 = keys:sign(Tx5),
+    SStx5 = signing:sign_tx(Stx5, NewPub, NewPriv),
+    %absorb(Stx5),
+    %2 = many_txs(),
+    absorb(SStx5),
+    3 = many_txs(),
+
+
+    success.
+    
+
+
+
+%    {_, Leaves2} = trees2:get_proof([{jobs, ID}, {accounts, Pub}], 
+%                                    Loc2, fast),
+%    {%Leaves1, 
+%      Leaves2, Loc2}.
+    
+
 
 make_many(I, _, R) when I < 1 ->
     R;

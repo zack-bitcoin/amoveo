@@ -65,7 +65,12 @@ hard_coded(_, 40) -> 905;%market_swap_tx
 hard_coded(_, 41) -> 936;%market_trading_fee
 hard_coded(_, 42) -> 905;%swap_tx2
 hard_coded(_, 43) -> 905;%trade_cancel_tx
-hard_coded(_, 44) -> 905.%stablecoin_new_tx
+hard_coded(_, 44) -> 905;%stablecoin_new_tx
+hard_coded(_, 45) -> 905;%job_create_tx
+hard_coded(_, 46) -> 905;%job_receive_salary_tx
+hard_coded(_, 47) -> 905;%job_buy_tx
+hard_coded(_, 48) -> 905;%job_adjust_tx
+hard_coded(_, 49) -> 905.%job_team_adjust_tx
 
 
 
@@ -238,6 +243,11 @@ name2number(market_trading_fee) -> 41;
 name2number(swap_tx2) -> 42;
 name2number(trade_cancel_tx) -> 43;
 name2number(stablecoin_new_tx) -> 44;
+name2number(job_create_tx) -> 45;
+name2number(job_receive_salary_tx) -> 46;
+name2number(job_buy_tx) -> 47;
+name2number(job_adjust_tx) -> 48;
+name2number(job_team_adjust_tx) -> 49;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -286,6 +296,11 @@ number2name(41) -> market_trading_fee;
 number2name(42) -> swap_tx2;
 number2name(43) -> trade_cancel_tx;
 number2name(44) -> stablecoin_new_tx;
+number2name(45) -> job_create_tx;
+number2name(46) -> job_receive_salary_tx;
+number2name(47) -> job_buy_tx;
+number2name(48) -> job_adjust_tx;
+number2name(49) -> job_team_adjust_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

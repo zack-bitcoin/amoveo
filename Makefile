@@ -309,7 +309,7 @@ tests: killall
 	make multi-clean
 	make multi-go
 	@sleep 6
-	@python2 tests/checkpoint.py
+	@python2 tests/test_all.py
 	make multi-stop
 
 multi-quick: kill

@@ -2055,7 +2055,14 @@ sum_amounts_helper(matched, M, _Dict, OldDict, Key) ->
             1 -> T;
             2 -> F;
             3 -> B
-        end.
+        end;
+sum_amounts_helper(jobs, Job, _dict, _, _) ->
+    R = Job#job.balance,
+    if
+        not(is_integer(R)) -> io:fwrite(Job);
+        true -> R
+    end.
+
 remove_repeats(New, Old, Height) ->
     %todo. the old one has "proof" in it. we don't want to lose it in the new one.
     Keys = dict:fetch_keys(New),

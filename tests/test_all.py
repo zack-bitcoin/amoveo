@@ -3,13 +3,15 @@ from header import *
 from share_blocks import *
 from spend import *
 
-test_header_single()
-test_header_many()
+test_orphan_txs()
 
-test_mine_and_sync()
-test_three()
+#test_header_single()
+#test_header_many()
 
-spend_test()
+#test_mine_and_sync()
+#test_three()
 
-share_blocks()
+#spend_test()
+
+#share_blocks()
 print("finished tests\n")

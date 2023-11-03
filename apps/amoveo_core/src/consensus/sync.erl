@@ -38,9 +38,9 @@ handle_cast({main, Peer}, _) ->
 	    %io:fwrite("\n"),
 	    ok;
 	true ->
-	    %io:fwrite("syncing with this peer now "),
-	    %io:fwrite(packer:pack(Peer)),
-	    %io:fwrite("\n"),
+	    io:fwrite("syncing with this peer now "),
+	    io:fwrite(packer:pack(Peer)),
+	    io:fwrite("\n"),
 	    sync_peer(Peer),
 	    case application:get_env(amoveo_core, kind) of
 		{ok, "production"} ->
@@ -193,6 +193,12 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 	_ ->
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),
+            io:fwrite("headers length"),
+            io:fwrite(integer_to_list(L)),
+            io:fwrite("\n"),
+            io:fwrite("headers requested height start "),
+            io:fwrite(integer_to_list(N)),
+            io:fwrite("\n"),
 	    case CommonHash of
 		<<>> -> 
 		    if 
@@ -376,15 +382,14 @@ remove_self(L) ->%assumes that you only appear once or zero times in the list.
     Me = {MyIP, MyPort},
     remove_self2(L, Me).
 remove_self2([], _) -> [];
-remove_self2([{{192,168,0, _}, _}|T], Me) ->
+%remove_self2([{{192,168,0, _}, _}|T], Me) ->
+%    remove_self2(T, Me);
+remove_self2([{{127,0,0,1}, MyPort}|T], {MyIP, MyPort}) ->
+    Me = {MyIP, MyPort},
     remove_self2(T, Me);
-remove_self2([{{127,0,0,1}, _}|T], Me) ->
-    remove_self2(T, Me);
+remove_self2([Me|T], Me) -> T;
 remove_self2([H|T], Me) ->
-    if
-	H == Me -> T;
-	true -> [H|remove_self2(T, Me)]
-    end.
+    [H|remove_self2(T, Me)].
 shuffle([]) -> [];
 shuffle([X]) -> [X];
 shuffle(L) -> shuffle(L, length(L), []).
@@ -493,7 +498,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
             %BH = block_db:ram_height(),
             BH = block:height(),
             if
-                (RS and (BH < 2)) -> 
+                (RS and (BH < 1)) -> 
                     %io:fwrite("reverse sync prevents normal sync here.\n"),
                     %todo, download and sync from a checkpoint.
                     ok;

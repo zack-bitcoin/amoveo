@@ -736,9 +736,12 @@ channel_solo_close(Other) ->
     ok.
 channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
     tx_maker0(channel_solo_close:make_dict(keys:pubkey(), Fee, SPK, ScriptSig)).
+add_peer(0,0) ->
+    peers:remove_all();
 add_peer(IP, Port) ->
     peers:add({IP, Port}),
     0.
+
 %sync() -> sync(?IP, ?Port).
 %curl -d '["sync", 2, [x,x,x,x], 8080]' localhost:8081
 sync() -> 

@@ -288,7 +288,7 @@ hash_key(channels, ID)
     ID;
 hash_key(jobs, ID) 
   when is_binary(ID) and (size(ID) == 32) ->
-    ID;
+    key(#job{id = ID});
 %hash_key(trades, X) 
 %  when is_binary(X) and (size(X) == 32) ->
 %    X;
@@ -643,6 +643,7 @@ strip_tree_info([{Tree, X}|T], R, D) ->
     strip_tree_info(T, [K|R], D2);
 strip_tree_info([H|T], R, D) -> 
     io:fwrite("strip tree info 3\n"),
+    io:fwrite({H}),
     1=2,
     strip_tree_info(T, [H|R], D).
 
@@ -713,6 +714,9 @@ get_proof(Keys0, Loc, Type) ->
     {Keys3, TreesDict} = 
         strip_tree_info(Keys0, [], dict:new()),%this is where we lose the tree info. it also hashes the keys.
     Keys = remove_repeats(Keys3),%this is a N^2 algorithm, it might end up being the bottleneck eventually.
+    %io:fwrite("trees:get_proofs many 1 "),
+    %io:fwrite(integer_to_list(length(Keys))),
+    %io:fwrite("\n"),
     CFG = tree:cfg(amoveo),
     case Type of
         fast -> ok;
@@ -727,6 +731,12 @@ get_proof(Keys0, Loc, Type) ->
     %io:fwrite({Proof}),
     %order keys based on depth first scan of the tree from low to high.
     Keys30 = depth_order(Keys),
+%    io:fwrite("trees:get_proofs many 2 "),
+%    io:fwrite(integer_to_list(length(Keys30))),
+%    io:fwrite("\n dict size: "),
+%    io:fwrite(integer_to_list(length(dict:fetch_keys(MetasDict)))),
+%    io:fwrite("\n"),
+    %io:fwrite(MetasDict),
     %print_now(),
     %io:fwrite("key tree order \n"),
     if
@@ -757,6 +767,10 @@ get_proof(Keys0, Loc, Type) ->
                                   {EmptyTree, UK}
                           end
                   end, Keys30),
+%    io:fwrite("trees:get_proofs many 3 "),
+%    io:fwrite(integer_to_list(length(Leaves))),
+%    io:fwrite("\n"),
+    %io:fwrite({Keys, Keys30, Leaves, dict:fetch_keys(MetasDict)}),
 
     Proof2 = remove_leaves_proof(Proof),
 
@@ -1197,18 +1211,11 @@ merkle2verkle(
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
 one_root_clean(Pointer, CFG) ->
-    bits:top(jobs_cleaner),
     Hash = scan_verkle(Pointer, CFG),
-    io:fwrite("one root clean 0\n"),
-    bits:top(jobs_cleaner),
-    io:fwrite("one root clean 1\n"),
     NewPointer = one_root_maker(Pointer, CFG),
     io:fwrite("one root clean 2\n"),
     CFG2 = CFG#cfg{id = cleaner},
-    bits:top(jobs_cleaner),
-    io:fwrite("one root clean 3\n"),
     recover_from_clean_version(NewPointer),
-    bits:top(jobs_cleaner),
     io:fwrite("one root clean 4\n"),
     Hash = scan_verkle(NewPointer, CFG),
     NewPointer.
@@ -1237,10 +1244,6 @@ one_root_maker(Pointer, CFG) ->
     bits:reset(unmatched_cleaner),
     bits:reset(jobs_cleaner),
 
-    io:fwrite("one root maker 0\n"),
-    bits:top(jobs_cleaner),
-    io:fwrite("one root maker 1\n"),
-
     dump:reload(accounts_cleaner),
     dump:reload(contracts_cleaner),
     dump:reload(markets_cleaner),
@@ -1252,10 +1255,6 @@ one_root_maker(Pointer, CFG) ->
     dump:reload(unmatched_cleaner),
     dump:reload(jobs_cleaner),
 
-    io:fwrite("one root maker 2\n"),
-    bits:top(jobs_cleaner),
-    io:fwrite("one root maker 3\n"),
-
     tree:reload_ets(cleaner),
     timer:sleep(500),
     %build the clean version
@@ -1264,16 +1263,7 @@ one_root_maker(Pointer, CFG) ->
     NewPointer = one_root_clean_stem(Pointer, CFG, CFG2),
     %copy the clean version over the main version.
     io:fwrite("one_root_clean: back up the cleaner db to the hard disk\n"),
-
-    io:fwrite("one root maker 4\n"),
-    bits:top(jobs_cleaner),
-    io:fwrite("one root maker 5\n"),
-
     tree:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
-
-    io:fwrite("one root maker 6\n"),
-    bits:top(jobs_cleaner),
-    io:fwrite("one root maker 7\n"),
 
     NewPointer.
 
@@ -1282,10 +1272,7 @@ recover_from_clean_version(Pointer) ->
     io:fwrite("clean pointer: "),
     io:fwrite(integer_to_list(Pointer)),
     io:fwrite("\n"),
-    
 
-    bits:top(jobs_cleaner),
-    io:fwrite("trees2:recover_from_clean_version -1\n"),
 
     %TODO. we need to make sure it is on the hard disk in the cleaner folder before we start copying things.
 
@@ -1295,15 +1282,10 @@ recover_from_clean_version(Pointer) ->
                            int2cleaner_name(ID)) end, 
               IDs),
 
-    bits:top(jobs_cleaner),
-    io:fwrite("trees2:recover_from_clean_version -2\n"),
 
     dump:quick_save(cleaner_v_leaf),
     dump:quick_save(cleaner_v_stem),
     timer:sleep(3000),
-
-    bits:top(jobs_cleaner),
-    io:fwrite("trees2:recover_from_clean_version 0\n"),
 
     os:cmd("cp -r cleaner/data/accounts_cleaner.db ../../../../db/data/accounts_dump.db"),
     os:cmd("cp -r cleaner/data/contracts_cleaner.db ../../../../db/data/contracts_dump.db"),
@@ -1317,8 +1299,6 @@ recover_from_clean_version(Pointer) ->
     os:cmd("cp -r cleaner/data/unmatched_cleaner.db ../../../../db/data/unmatched_dump.db"),
     os:cmd("cp -r cleaner/data/jobs_cleaner.db ../../../../db/data/jobs_dump.db"),
 
-    bits:top(jobs_cleaner),
-    io:fwrite("trees2:recover_from_clean_version 1\n"),
 
     os:cmd("cp -r cleaner/data/accounts_cleaner_rest.db ../../../../db/data/accounts_dump_rest.db"),
     os:cmd("cp -r cleaner/data/contracts_cleaner_rest.db ../../../../db/data/contracts_dump_rest.db"),
@@ -1332,34 +1312,17 @@ recover_from_clean_version(Pointer) ->
     os:cmd("cp -r cleaner/data/unmatched_cleaner_rest.db ../../../../db/data/unmatched_dump_rest.db"),
     os:cmd("cp -r cleaner/data/jobs_cleaner_rest.db ../../../../db/data/jobs_dump_rest.db"),
 
-    bits:top(jobs_cleaner),
-    io:fwrite("trees2:recover_from_clean_version 2\n"),
 
     lists:map(fun(ID_num) ->
                       Name = int2dump_name(ID_num),
                       CleanName = int2cleaner_name(ID_num),
-                      io:fwrite("try copying bits "),
-                      io:fwrite(Name),
-                      io:fwrite("\n"),
                       Top = bits:top(CleanName),%dies here on the jobs iteration.
-                      io:fwrite("reset bits\n"),
                       bits:reset(Name),
-                      io:fwrite("reset bits 2\n"),
-                      bits:top(jobs_cleaner),
-                      io:fwrite("clean top\n"),
                       copy_bits(1, Top, CleanName, Name),
-                      io:fwrite("clean_bits/4\n"),
                       Top = bits:top(Name),
-                      io:fwrite("name top\n"),
-                      bits:quick_save(Name),
-                      io:fwrite("copying bits "),
-                      io:fwrite(Name),
-                      io:fwrite(" "),
-                      io:fwrite(integer_to_list(Top)),
-                      io:fwrite("\n")
+                      bits:quick_save(Name)
               end, IDs),
 
-    bits:top(jobs_cleaner),
     io:fwrite("trees2:recover_from_clean_version 3\n"),
 
     bits:reset(amoveo_v_leaf),

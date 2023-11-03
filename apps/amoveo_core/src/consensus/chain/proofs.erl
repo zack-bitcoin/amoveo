@@ -29,7 +29,8 @@ tree_to_int(contracts) -> 13;
 tree_to_int(trades) -> 14;
 tree_to_int(markets) -> 15;
 tree_to_int(receipts) -> 16;
-tree_to_int(stablecoins) -> 17.
+tree_to_int(stablecoins) -> 17;
+tree_to_int(jobs) -> 18.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -46,7 +47,8 @@ int_to_tree(13) -> contracts;
 int_to_tree(14) -> trades;
 int_to_tree(15) -> markets;
 int_to_tree(16) -> receipts;
-int_to_tree(17) -> stablecoins.
+int_to_tree(17) -> stablecoins;
+int_to_tree(18) -> jobs.
 
 leaf_type2tree(empty) -> empty;
 leaf_type2tree(accounts) -> accounts;
@@ -66,7 +68,9 @@ leaf_type2tree(trade) -> trades;
 leaf_type2tree(markets) -> markets;
 leaf_type2tree(market) -> markets;
 leaf_type2tree(receipts) -> receipts;
-leaf_type2tree(stablecoins) -> stablecoins.
+leaf_type2tree(stablecoins) -> stablecoins;
+leaf_type2tree(job) -> jobs;
+leaf_type2tree(jobs) -> jobs.
 
     
 
@@ -269,7 +273,8 @@ dict_key(C = #contract{}) ->
     contracts:make_id(C);
 dict_key(#trade{value = V}) -> V;
 dict_key(#market{id = X}) -> X;
-dict_key(#receipt{id = Z}) -> Z.
+dict_key(#receipt{id = Z}) -> Z;
+dict_key(#job{id = Z}) -> Z.
 
 hash(F) ->
     hash:doit(F).
@@ -968,7 +973,48 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {governance, ?n2i(developer_reward)},
                  {accounts, constants:master_pub()},
                  {accounts, coinbase_tx:from(Tx)}
-                ]
+                ];
+            job_create_tx ->
+                Worker = job_create_tx:worker(Tx),
+                Salt = job_create_tx:salt(Tx),
+                ID = jobs:make_id(Worker, Salt),
+                BPub = constants:decompressed_burn(),
+                [{accounts, Worker},
+                 {accounts, BPub},
+                 {jobs, ID}];
+            job_receive_salary_tx ->
+                BPub = constants:decompressed_burn(),
+                [{accounts, job_receive_salary_tx:worker(Tx)},
+                 {accounts, BPub},
+                 {jobs, job_receive_salary_tx:id(Tx)}];
+            job_buy_tx ->
+                 ID = job_buy_tx:id(Tx),
+                Job = trees:get(jobs, ID),
+                #job{worker = W, boss = B} = Job,
+                BPub = constants:decompressed_burn(),
+                [{accounts, job_buy_tx:pub(Tx)},
+                 {accounts, W},
+                 {accounts, B},
+                 {accounts, BPub},
+                 {jobs, ID}];
+            job_adjust_tx ->
+                ID = job_adjust_tx:id(Tx),
+                Job = trees:get(jobs, ID),
+                BPub = constants:decompressed_burn(),
+                #job{worker = W, boss = B} = Job,
+                [{accounts, W},
+                 {accounts, B},
+                 {accounts, BPub},
+                 {jobs, ID}];
+            job_team_adjust_tx ->
+                ID = job_team_adjust_tx:id(Tx),
+                Job = trees:get(jobs, ID),
+                BPub = constants:decompressed_burn(),
+                #job{worker = W, boss = B} = Job,
+                [{accounts, W},
+                 {accounts, B},
+                 {accounts, BPub},
+                 {jobs, ID}]
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
 		 %{governance, ?n2i(oracle_bet)},
@@ -1111,7 +1157,6 @@ test() ->
     Facts = prove(Querys2, Trees),
     Dict,
     
-    ETxs = "g2wAAAAEaARkAAZzaWduZWRoBmQAAmNhbQAAAEEEhVmGzXqC2hD+5Qy6OXlpK62kiYLi9rwx7CAK96HowS4OOgO+1CphnkV5hxSFj9AuOkIGteOq9O0WI3iWLQ2GOmEBYRRtAAAAQQRHXAXlfMl3JIv7Ni5NmiaAhuff/NsmnCCnWElvuaemWoQ2aCFJzogO/dHY9yrDUsIHaqtS+iD1OW3KuPrpBgoCYjuaygBtAAAAYE1FVUNJUUR5Q0p1Y2h6TlEzUXBkbTk4VjFkWGNxQklEUjVlNDFoRWtlMGRvUkVNd2hBSWdKbjcza3hISzhNUXZDVUttcGEzbzRSWkJYR3FoMXNWV2NZZXNyQ3NRVlo4PWpoBGQABnNpZ25lZGgGZAACY2FtAAAAQQSFWYbNeoLaEP7lDLo5eWkrraSJguL2vDHsIAr3oejBLg46A77UKmGeRXmHFIWP0C46Qga146r07RYjeJYtDYY6YQJhFG0AAABBBFRjuCgudSTRU79SVoCBvWi55+N1QethvQI6LKUCoEPHvIfedkQLxnuD2VJHqoLrULmXyexRWs2sOTwyLsdyL+FiO5rKAG0AAABgTUVVQ0lRRG1naWwvSkxGRVJaN05LUEpZMHZFQ21nZUlsNFdkdU5SbmlzWkw2R25ZVFFJZ1dBOExUazNENEVva3EvWUY4U3d4SnljR1Ixd2RLejlRMWpJUmpyeEFzSDQ9amgEZAAGc2lnbmVkaApkAAJuY20AAABBBIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0NhjptAAAAQQRUY7goLnUk0VO/UlaAgb1ouefjdUHrYb0COiylAqBDx7yH3nZEC8Z7g9lSR6qC61C5l8nsUVrNrDk8Mi7Hci/hYTJhA2IAACcQYgAAJxFhAmEEYQFtAAAAYE1FWUNJUUQ4U1hNeUYxQmRnbWRaRVdHbWFFR3JncXRxTXUvRGZJYmZVMnE1eE94ZUdnSWhBTTU3L21wcmFucDdiVTBSK2RoMS9wZjBOeHViVWJIU256UEFrcFY5b1gwNW0AAABgTUVVQ0lIeTdhenJyYmxIdzdSdEVmRVRMcU5ERTdCUUhmb1Rnd29CVHlZV0JKcHd0QWlFQWxPcnRhY1k1NVFSNUZUVUpoVFltbW5TWldtSGZ4cFUvbmExbjJsSVhJdm89aARkAAZzaWduZWRoCmQAAm5jbQAAAEEER1wF5XzJdySL+zYuTZomgIbn3/zbJpwgp1hJb7mnplqENmghSc6IDv3R2Pcqw1LCB2qrUvog9Tltyrj66QYKAm0AAABBBFRjuCgudSTRU79SVoCBvWi55+N1QethvQI6LKUCoEPHvIfedkQLxnuD2VJHqoLrULmXyexRWs2sOTwyLsdyL+FhMmEBYgAAJxBiAAAnEWECYQRhAm0AAABgTUVRQ0lCZHlWUUhxRlZyQWFGMTVsN0NmajlyckU5THI3RFFUWVJrc3c5d3dMek1nQWlBOGZrMXpIVVgwdlN6b0dVQ05JTGRmRER5Y2lNMnlWVldLb0pnTGNUbUZhdz09bQAAAGBNRVFDSUJvV3pJQU9oUExqTXJjN0tnV3ZFOUxhWmdXdllqYTY0Mk10YzE0S3RFdXNBaUFhRktDTmNhQUFSck9NUVNCUmZMKzdPV054aHduaWdwRUZBc1JaL0c3MmVBPT1q",
     %Txs = binary_to_term(base64:decode(ETxs)),
     {Pub30, Priv30} = signing:new_key(),
     {Pub4, _} = signing:new_key(),

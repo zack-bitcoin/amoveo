@@ -64,21 +64,11 @@ key2module(market_new_tx) -> market_new_tx;
 key2module(market_liquidity_tx) -> market_liquidity_tx;
 key2module(market_swap_tx) -> market_swap_tx;
 key2module(trade_cancel_tx) -> trade_cancel_tx;
+key2module(job_create_tx) -> job_create_tx;
+key2module(job_receive_salary_tx) -> job_receive_salary_tx;
+key2module(job_buy_tx) -> job_buy_tx;
+key2module(job_adjust_tx) -> job_adjust_tx;
+key2module(job_team_adjust_tx) -> job_team_adjust_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
-%case application:get_env(amoveo_core, kind) of
-%	{ok, "production"} -> ok;
-	    %Burn = base64:decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEFAx4lA9qJP3/x4hz1EkNIQAAAAAAAAA="),
-        %Burn = constants:burn_address(),
-	%    false = (From == Burn);
-	    %MP = constants:master_pub(),
-	    %if
-		%From == MP ->
-		%    BP = governance:dict_get_value(block_period, Dict),
-		%    HeightSwitch = (10 * constants:developer_lock_period()) div BP,
-		%    true = NewHeight > HeightSwitch;
-		%true -> ok
-	    %end;
-%	_ -> ok
-%    end.
     
