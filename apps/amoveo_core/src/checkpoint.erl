@@ -1018,7 +1018,7 @@ scan_blocks2(Hash) ->
 
 make() -> make(false).
 make(Force) ->
-    gen_server:call(?MODULE, {make, Force}, 40000).
+    gen_server:call(?MODULE, {make, Force}, 100000).
     
 clean() ->
     gen_server:cast(?MODULE, clean).
