@@ -105,23 +105,30 @@ absorb_internal(Block) ->
 
 		    case sync_mode:check() of
 			normal -> 
+                            %todo. after orphan tx restoring is done in the headers, remove it from here.
 			    push_block:add(Block2),
 			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
-			    Txs0 = (tx_pool:get())#tx_pool.txs,
+			    %Txs0 = (tx_pool:get())#tx_pool.txs,
 			    %TB = block:top(),
-			    TWBH0 = block:hash(headers:top_with_block()),
-			    TB = block:get_by_hash(TWBH0),
-			    Txs = if
-				      NextBlock == TWBH0 ->
-					  Txs0;
-				      true -> Txs0 ++ lists:reverse(tl(TB#block.txs))%if there is a small fork, re-broadcast the orphaned txs.
-				  end,
-			    %tx_pool:dump(Block2),
-			    OldTxs = tl(Block#block.txs),
-			    Keep = lists:filter(fun(T) -> not(tx_pool_feeder:is_in(signing:data(T), OldTxs)) end, Txs),%This n**2 algorithm is slow. We can make it n*log(n) by sorting both lists first, and then comparing them.
-			    tx_pool_feeder:absorb_dump(Block2, lists:reverse(Keep)),
+			    %TWBH0 = block:hash(headers:top_with_block()),
+			    %TB = block:get_by_hash(TWBH0),
+			   % Txs = if
+				%      NextBlock == TWBH0 ->
+				%	  Txs0;
+				%      true -> 
+                                %          io:fwrite("in block_absorber, doing an orphaning. \n txs: "),
+                                %          lists:reverse(tl(TB#block.txs)) ++ Txs0 %if there is a small fork, re-broadcast the orphaned txs.
+				%  end,
+			   % OldTxs = tl(Block#block.txs),
+                            
+			    %tx_pool_feeder:absorb_dump(Block2, lists:reverse(Keep)),
+			    tx_pool_feeder:absorb_dump(Block2, []),
 			    potential_block:dump(),
-			    %order_book:match();
+                            %spawn(fun() ->
+                            %              timer:sleep(2000),
+                                          %io:fwrite(Txs),
+                            %              tx_pool_feeder:absorb(Txs),
+                            %      end),
                             ok;
 			quick -> 
                             spawn(fun() ->

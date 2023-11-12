@@ -43,7 +43,7 @@ start_link() ->
 handle_call({read_ewah, Hash}, _From, State) ->
     Header = case version() of
                  1 -> dict:find(Hash, State#s.headers);
-                 2 -> case ets:lookup(?MODULE, Hash) of
+                 2 -> case internal_read(Hash) of
                           [] -> error;
                           [{K, V}] -> {ok, V}
                       end
@@ -57,7 +57,7 @@ handle_call({read, Hash}, _From, State) ->
                     {ok, {Header, _}} -> {ok, Header};
                     {ok, Header} -> {ok, Header}
                 end;
-            2 -> case ets:lookup(?MODULE, Hash) of
+            2 -> case internal_read(Hash) of
                      [] -> error;
                      [{Hash, {Header, _}}] -> {ok, Header};
                      [{Hash, Header}] -> {ok, Header}
@@ -73,11 +73,18 @@ handle_call({top_with_block}, _From, State) ->
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
 handle_call({add_with_block, Hash, Header}, _From, State) ->
+
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top_with_block,
     AF = Top#header.accumulative_difficulty,
     NewTop = case AD >= AF of
                  true -> 
+                     %if some blocks got orphaned, try to restore the txs from them.
+%                     spawn(fun() ->
+%                                   timer:sleep(10000),
+%                                   io:fwrite("headers is attempting to restore orphaned txs\n"),
+                     restore_orphaned_txs(Top, Header),
+%                           end),
 		     found_block_timer:add(),
 		     Header;
                  false -> Top
@@ -122,7 +129,7 @@ recent_header2(N, Header) ->
         Header#header.height =< N -> Header;
         true -> 
             PrevHash = Header#header.prev_hash,
-            {PrevHash, {PrevHeader, _}} = hd(ets:lookup(?MODULE, PrevHash)),
+            {PrevHash, {PrevHeader, _}} = hd(internal_read(PrevHash)),
             recent_header2(N, PrevHeader)
     end.
             
@@ -133,6 +140,7 @@ absorb_with_block([F|T]) when is_binary(F) ->
 absorb_with_block([F|T]) ->
     Hash = block:hash(F),
     %false = empty == block:get_by_hash(Hash),
+    true = is_record(F, header),
     ok = gen_server:call(?MODULE, {add_with_block, Hash, F}),
     absorb_with_block(T).
 absorb(X) -> 
@@ -506,7 +514,50 @@ version() ->
         undefined -> 1;
         {ok, M} -> M
     end.
-            
+
+restore_orphaned_txs(OldTop, NewTop) ->
+    restore_orphaned_txs_loop(
+      orphaned_blocks(OldTop, NewTop)).
+restore_orphaned_txs_loop([]) -> ok;
+restore_orphaned_txs_loop([BH|BlockHashes]) ->
+    Block = block:get_by_hash(BH),
+    io:fwrite("tx pool feeder receiving orphaned txs\n"),
+    %tx_pool_feeder:absorb(tl(Block#block.txs)),
+    lists:map(fun(Peer) ->
+                      spawn(fun() ->
+                                    sync:remote_peer({txs, tl(Block#block.txs)}, Peer)
+                            end)
+              end, first(5, sync:shuffle(peers:all()))),
+    restore_orphaned_txs_loop(BlockHashes).
+first(0, _) -> [];
+first(_, []) -> [];
+first(N, [H|T]) when (N > 0) -> 
+    [H|first(N-1, T)].
+orphaned_blocks(OldTop, NewTop) ->
+    OH = OldTop#header.height,
+    NH = NewTop#header.height,
+    OHash = block:hash(OldTop),
+    NHash = block:hash(NewTop),
+    if
+        OH < NH ->
+            [{_NKey, {NP, _}}] = internal_read(NewTop#header.prev_hash),
+            case is_record(NP, header) of
+                true -> ok;
+                false -> io:fwrite(NP)
+            end,
+            orphaned_blocks(OldTop, NP);
+        (OH == NH) and (OHash == NHash)->
+            %they are the same block, so nothing to do.
+            [];
+        (OH >= NH) ->
+            %OP = internal_read(OldTop#header.prev_hash),
+            [{_OKey, {OP, _}}] = internal_read(OldTop#header.prev_hash),
+            true = is_record(OP, header),
+            [OHash|
+             orphaned_blocks(OP, NewTop)]
+    end.
+internal_read(Hash) ->
+    ets:lookup(?MODULE, Hash).
     
     
 

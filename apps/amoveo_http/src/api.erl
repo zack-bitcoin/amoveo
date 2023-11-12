@@ -166,6 +166,9 @@ spend(ID0, Amount) ->
 	ID == K -> io:fwrite("you can't spend money to yourself\n");
 	true -> 
 	    B = trees:get(accounts, ID),
+            io:fwrite("spending to pubkey "),
+            io:fwrite(base64:encode(ID)),
+            io:fwrite("\n"),
             if 
                (B == empty) ->
                     create_account(ID, Amount);

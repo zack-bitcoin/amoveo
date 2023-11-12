@@ -1,6 +1,3 @@
-figure out why that transaction got dropped when doing a trade and a block was orphaned. fix it.
-
-
 
 if job_adjust or team_adjust aren't going to change certain values, it would be nice if we could leave it blank in the tx, instead of needing to put so many unused bytes of data on the block.
 
@@ -21,7 +18,6 @@ update the documentation for the 5 new tx types and the new element in the verkl
 remove that hardcoded block 275600 from the source code, verify we can sync without it.
 
 
-
 set it up to only do verkle proofs for the recent 30 days or so by default.
 
 
@@ -32,12 +28,8 @@ we can't do trees2:scan_verkle so much. it wastes too much cpu and disk access.
 * update the checkpoint code to use the cleaner database, so that we only store the minimum necessary.
 
 
-
-
-
-
-
-
+* new futarchy strategy. restore governance.
+-  this time we need a revertable betting tool, so one of the two versions gets reverted.
 
 
 
