@@ -1,3 +1,5 @@
+get the explorer working again.
+
 
 if job_adjust or team_adjust aren't going to change certain values, it would be nice if we could leave it blank in the tx, instead of needing to put so many unused bytes of data on the block.
 

@@ -182,6 +182,9 @@ absorb([Header | T], CommonHash) ->
 		      %check that there is enough pow for the difficulty written on the block
 			    case read(Header#header.prev_hash) of
 				error -> io:fwrite("don't have a parent for this header\n"),
+                                         io:fwrite("height: "),
+                                         io:fwrite(integer_to_list(Header#header.height)),
+                                         io:fwrite("\n"),
 					 1=2,
 					 error;
 				{ok, _} ->
