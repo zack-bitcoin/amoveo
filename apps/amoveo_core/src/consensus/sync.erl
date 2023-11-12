@@ -312,7 +312,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
                                             %new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
                                             new_get_blocks2(TheirBlockHeight, GH+1, Peer, 5)
                                     end,
-                                    50);
+                                    200);
                         true -> ok
                     end
             end,
@@ -478,7 +478,7 @@ sync_peer(Peer) ->
         true -> sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
-    %io:fwrite("sync_peer2\n"),
+    io:fwrite("sync_peer2\n"),
     TTHH = TheirTopHeader#header.height,
     MTHH = (headers:top())#header.height,
     if
@@ -493,20 +493,20 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
     end,
     if
         TheirBlockHeight > MyBlockHeight ->
-	    %io:fwrite("get blocks from them.\n"),
+	    io:fwrite("get blocks from them.\n"),
 	    CommonHeight = min(TopCommonHeader#header.height, block:height()),
             RS = reverse_syncing(),
             %BH = block_db:ram_height(),
             BH = block:height(),
             if
                 (RS and (BH < 1)) -> 
-                    %io:fwrite("reverse sync prevents normal sync here.\n"),
+                    io:fwrite("reverse sync prevents normal sync here.\n"),
                     %todo, download and sync from a checkpoint.
                     ok;
                 true -> 
-                    %io:fwrite("new get blocks start, common height is: "),
-                    %io:fwrite(integer_to_list(CommonHeight)),
-                    %io:fwrite("\n"),
+                    io:fwrite("new get blocks start, common height is: "),
+                    io:fwrite(integer_to_list(CommonHeight)),
+                    io:fwrite("\n"),
                     new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
             end;
 	%true ->

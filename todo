@@ -1,5 +1,11 @@
+trouble syncing. seems to get caught in an infinite loop while doing the checkpoint.
+
 get the explorer working again.
 
+
+
+
+in js/src/employment.js
 
 if job_adjust or team_adjust aren't going to change certain values, it would be nice if we could leave it blank in the tx, instead of needing to put so many unused bytes of data on the block.
 

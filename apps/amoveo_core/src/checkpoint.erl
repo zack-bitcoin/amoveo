@@ -591,19 +591,22 @@ reverse_sync2(Height, Peer, Block2, Roots) ->
     CompressedPage = block_db:compress(Page),
     load_pages(CompressedPage, Block2, Roots, Peer).
 load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
-    %io:fwrite("load pages\n"),
+    io:fwrite("load pages\n"),
     go = sync_kill:status(),
     Page = block_db:uncompress(CompressedPage),
     PageLength = length(dict:fetch_keys(Page)),
-    %io:fwrite("verify blocks\n"),
+    io:fwrite("page length: "),
+    io:fwrite(integer_to_list(PageLength)),
+    io:fwrite("\n"),
+    io:fwrite("load pages verify blocks\n"),
     {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, PageLength),
     {ok, BlockCacheSize} = application:get_env(
                   amoveo_core, block_cache),
     PageBytes = size(term_to_binary(Page)),
-    %io:fwrite("cut page\n"),
+    io:fwrite("load pages cut page\n"),
     Pages = cut_page(BottomBlock#block.prev_hash, BlockCacheSize, Page, dict:new(), []),
 
-    %io:fwrite("block_db load page\n"),
+    io:fwrite("load pages block_db load page\n"),
     lists:map(fun(Page) ->
                       block_db:load_page(Page)
               end, lists:reverse(Pages)),
@@ -659,11 +662,26 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     %io:fwrite("verify blocks first "),
     %io:fwrite(integer_to_list(Height)),
     %io:fwrite("\n"),
+    NB02 = dict:find(B#block.prev_hash, P),
     if
         (Height < 1) -> 
             Genesis = block:get_by_height(0),
             NewRoots = [],
             {true, Genesis, NewRoots};
+        (NB02 == error) ->
+            Blocks2 = sync:low_to_high(sync:dict_to_blocks(dict:fetch_keys(P), P)),
+            HeightNow = B#block.height,
+            BatchStarts2 = (hd(Blocks2))#block.height,
+            if
+                (HeightNow == BatchStarts2) ->
+                    {true, B, PrevRoots};
+                true ->
+                    io:fwrite({"checkpoint, can't find prev hash\n",
+                               {height, HeightNow},
+                               {batch_starts, BatchStarts2},
+                               {more, N},
+                               {keys, dict:fetch_keys(P)}})
+            end;
         true ->
     {ok, MTV} = application:get_env(
                   amoveo_core, minimum_to_verify),
@@ -689,6 +707,8 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     NB0 = case dict:find(B#block.prev_hash, P) of
               error -> 
                   Blocks = sync:low_to_high(sync:dict_to_blocks(dict:fetch_keys(P), P)),
+                  %HeightNow = B#block.height,
+                  BatchStarts = (hd(Blocks))#block.height,
                   io:fwrite({"checkpoint, can't find prev hash\n", 
                              {height, B#block.height}, 
                              {batch_starts, (hd(Blocks))#block.height}, 
