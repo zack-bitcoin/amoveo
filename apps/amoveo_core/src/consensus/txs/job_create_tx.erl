@@ -40,6 +40,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     N64 = 18446744073709551616,%2^64
     true = (Salary < N64),
     true = (Balance > -1),
+    true = jobs:min_balance_ratio_check(Value, Balance, Salary, NewHeight),
     Nonce = nonce_check:doit(
               NonceCheck, 
               Nonce0),

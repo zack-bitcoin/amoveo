@@ -4344,7 +4344,7 @@ test(70) ->
     Fee = constants:initial_fee()*100,
     N64 = 18446744073709551616,
     Salary = N64 div (50000), %about 100% annually.
-    Tx1 = job_create_tx:make_dict(Pub, 100000000, Salary, 10000000, Fee),
+    Tx1 = job_create_tx:make_dict(Pub, 10000000, Salary, 100000000, Fee),
     ID = job_create_tx:id(Tx1),
     
     Stx1 = keys:sign(Tx1),
