@@ -37,7 +37,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     NewPrice = Value * 2,
     true = jobs:min_balance_ratio_check(
              NewPrice, NewBalance, Salary, NewHeight),
-    
+   
     Nacc = accounts:dict_update(NewBoss, Dict2, -Fee-NewBalance-Value, 
                                 Nonce),
     Dict3 = accounts:dict_write(Nacc, Dict2),

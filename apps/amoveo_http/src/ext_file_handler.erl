@@ -231,6 +231,8 @@ handle(Req, State) ->
             <<"/block_explorer.js">> -> true;
             <<"/swap_offer_downloader.js">> -> true;
             <<"/dex_tools.js">> -> true;
+            <<"/employment.html">> -> true;
+            <<"/employment.js">> -> true;
             X -> 
                 io:fwrite("ext file handler unknown page: "),
                 io:fwrite(X),

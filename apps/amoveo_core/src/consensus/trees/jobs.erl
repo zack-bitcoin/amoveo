@@ -15,11 +15,14 @@ key_to_int(<<X:256>>) ->
     X.
 
 
+make_id(Worker, Salt) when is_integer(Salt) ->
+    make_id(Worker, <<Salt:256>>);
 make_id(<<Worker:520>>, Salt) ->
     W = trees2:compress_pub(<<Worker:520>>),
     make_id(W, Salt);
 make_id(<<Worker:264>>, <<Salt:256>>) ->
-    hash:doit(<<Worker:264, Salt:256>>).
+    B = <<Worker:264, Salt:256>>,
+    hash:doit(B).
 dict_get(ID, Dict, _) ->
     dict_get(ID, Dict).
 dict_get(ID, Dict) ->

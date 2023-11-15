@@ -77,6 +77,8 @@ doit({trades, ID}) ->
     {ok, api:tree_common(trades, ID)};
 doit({receipts, ID}) ->
     {ok, api:tree_common(receipts, ID)};
+doit({jobs, ID}) ->
+    {ok, api:tree_common(jobs, ID)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({version}) -> {ok, version:doit(block:height())};

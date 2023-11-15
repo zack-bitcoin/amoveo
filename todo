@@ -1,11 +1,15 @@
-trouble syncing. seems to get caught in an infinite loop while doing the checkpoint.
-
 get the explorer working again.
-
+- we got the node synced and backed up.
+- we need to figure out what is going wrong in the explorer.
 
 
 
 in js/src/employment.js
+
+set up a local node to do tests with. send money to an account in the light node.
+- test that you can buy contract
+- test team adjusting a contract
+--- in team adjust, we don't write the second account's pubkey in the tx in the spot where we usually would when 2 different accounts need to sign. This makes the javascript signature library break. Do we really want to do it this way?
 
 if job_adjust or team_adjust aren't going to change certain values, it would be nice if we could leave it blank in the tx, instead of needing to put so many unused bytes of data on the block.
 
