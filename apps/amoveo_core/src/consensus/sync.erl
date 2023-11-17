@@ -38,9 +38,9 @@ handle_cast({main, Peer}, _) ->
 	    %io:fwrite("\n"),
 	    ok;
 	true ->
-	    io:fwrite("syncing with this peer now "),
-	    io:fwrite(packer:pack(Peer)),
-	    io:fwrite("\n"),
+	    %io:fwrite("syncing with this peer now "),
+	    %io:fwrite(packer:pack(Peer)),
+	    %io:fwrite("\n"),
 	    sync_peer(Peer),
 	    case application:get_env(amoveo_core, kind) of
 		{ok, "production"} ->
@@ -194,12 +194,12 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 	_ ->
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),
-            io:fwrite("headers length"),
-            io:fwrite(integer_to_list(L)),
-            io:fwrite("\n"),
-            io:fwrite("headers requested height start "),
-            io:fwrite(integer_to_list(N)),
-            io:fwrite("\n"),
+            %io:fwrite("headers length"),
+            %io:fwrite(integer_to_list(L)),
+            %io:fwrite("\n"),
+            %io:fwrite("headers requested height start "),
+            %io:fwrite(integer_to_list(N)),
+            %io:fwrite("\n"),
 	    case CommonHash of
 		<<>> -> 
 		    if 
@@ -331,7 +331,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
             %io:fwrite(integer_to_list((hd(L))#block.height)),
             %io:fwrite("\n"),
             %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
-            %io:fwrite("adding blocks to block organizer\n"),
+            io:fwrite("adding blocks to block organizer\n"),
             block_organizer:add(L)
                 %split_add(S2, Cores, L)
     end.
@@ -478,7 +478,7 @@ sync_peer(Peer) ->
         true -> sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
-    io:fwrite("sync_peer2\n"),
+    %io:fwrite("sync_peer2\n"),
     TTHH = TheirTopHeader#header.height,
     MTHH = (headers:top())#header.height,
     if
@@ -514,7 +514,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
 	    spawn(fun() ->
 			  trade_txs(Peer)
 		  end),
-	    io:fwrite("already synced with this peer \n"),
+	    %io:fwrite("already synced with this peer \n"),
 	    ok;
 	true ->
             io:fwrite("we have more blocks than them, so we don't need to trade txs."),
