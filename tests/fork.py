@@ -33,6 +33,7 @@ def test_mine_and_sync():
     height3 = request(3, 'height', [1], 0.05)
     assertEqual(height1, height2)
     assertEqual(height1, height3)
+    #assertEqual(1, 2)
     #assertEqual(height1, "[\"ok\",4]")
     
 def test_three():

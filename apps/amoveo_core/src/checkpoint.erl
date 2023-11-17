@@ -199,7 +199,7 @@ get_chunks2(Hash, Peer, N, Result) ->
 sync_hardcoded() -> 
     block_db:set_ram_height(0),
     %IP = {159,223,85,216},%the pool
-    IP = {64, 227, 21, 70},%explorer
+    IP = {46,101,81,5},%explorer
     %IP = {159,65,126,146},%germany
     %IP = {64,227,100,178}, % san francisco
     Port = 8080,
