@@ -1,17 +1,17 @@
+update accounts explorer page to make links to jobs info.
+add a jobs explorer page to give into about a job.
+
+
 get the explorer working again.
+- launch new server with more ram.
+- install explorer.
+- update all links to go to the new explorer.
 - we got the node synced and backed up.
 - we need to figure out what is going wrong in the explorer.
 
 
+the mining pool should include txs from the mempool when it makes a potential block.
 
-
-update all nodes.
-
-change the activation date for hard update 53.
-
-activate hard update 53, for employment contracts.
-
-update all the nodes.
 
 
 
