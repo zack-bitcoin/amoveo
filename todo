@@ -1,6 +1,3 @@
-update accounts explorer page to make links to jobs info.
-add a jobs explorer page to give into about a job.
-
 
 get the explorer working again.
 - launch new server with more ram.
@@ -12,7 +9,7 @@ get the explorer working again.
 
 the mining pool should include txs from the mempool when it makes a potential block.
 
-
+futarchy hard update.
 
 
 remove that hardcoded block 275600 from the source code, verify we can sync without it.

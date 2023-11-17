@@ -14,7 +14,6 @@ handle_cast(check, BS) ->
     BS2 = BS#d{blocks = B2},
     {noreply, BS2}.
 handle_call({add, Height, Many, Blocks}, _From, BS) ->
-    %todo. crashes during this.
     BS2 = merge(Height, Many, Blocks, BS#d.blocks, [], BS#d.top),
     %io:fwrite(BS),
     B2 = helper(BS2#d.blocks), %crashes here.
@@ -91,10 +90,12 @@ add([]) -> 0;
 add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
     true = is_list(Blocks),
-    %io:fwrite("block organizer add\n"),
+    io:fwrite("block organizer add\n"),
     %io:fwrite(packer:pack(Blocks)),
     {Blocks2, AddReturn} = add1(Blocks, []),
-    {ok, Cores} = application:get_env(amoveo_core, block_threads),
+    io:fwrite("block organizer add1 finished\n"),
+    %{ok, Cores} = application:get_env(amoveo_core, block_threads),
+    Cores = 1,
     add3(lists:reverse(Blocks2), (length(Blocks2) div Cores) + 1),
     %spawn(fun() ->
     %              P = pid(),
@@ -104,7 +105,7 @@ add(Blocks) ->
     %                      erlang:garbage_collect(P);
     %                  true -> ok
     %              end
-    %      end),
+    %     end),
     %add4(lists:reverse(Blocks2)),
     AddReturn.
 add3([], _) -> ok;
@@ -116,6 +117,7 @@ add3(Blocks, Many)->
     add3(B, Many).
 %add3(Blocks) -> add4(Blocks).
 add4(Blocks) ->
+    io:fwrite("block organizer add 4\n"),
     spawn(fun() ->
                   Height = element(2, hd(Blocks)),
                   %Height2 = element(2, hd(lists:reverse(Blocks))),

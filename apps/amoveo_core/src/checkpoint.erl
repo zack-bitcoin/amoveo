@@ -285,8 +285,8 @@ sync(IP, Port, CPL) ->
             io:fwrite("this peer doesn't have a checkpoint at an early enough height to conform to the security configuration of this node. Attempting to find a different peer...\n"),
             sync();
         _ ->
-            {_, CP1} = hd(lists:reverse(HCPL)),
-            %{_, CP1} = hd(HCPL),
+            %{_, CP1} = hd(lists:reverse(HCPL)),
+            {_, CP1} = hd(HCPL),
 
     Header = case headers:read(CP1) of
                  error ->
