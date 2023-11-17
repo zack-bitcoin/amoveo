@@ -123,7 +123,7 @@ absorb_internal(Block) ->
                             
 			    %tx_pool_feeder:absorb_dump(Block2, lists:reverse(Keep)),
 			    tx_pool_feeder:absorb_dump(Block2, []),
-			    potential_block:dump(),
+			    potential_block:new(),
                             %spawn(fun() ->
                             %              timer:sleep(2000),
                                           %io:fwrite(Txs),

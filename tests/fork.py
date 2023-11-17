@@ -1,3 +1,4 @@
+
 from get_request import request
 
 def assertEqual(x, y):
@@ -8,25 +9,28 @@ def assertEqual(x, y):
 
 def test_mine_and_sync():
     print("fork test: mine and sync test")
-    request(2, "add_peer", [[127,0,0,1], 3010], 5)
+    request(1, 'mine_block', [1, 100000])
+    request(2, 'mine_block', [1, 100000])
+    request(3, 'mine_block', [1, 100000], 1)
     request(2, "add_peer", [[127,0,0,1], 3010])
     request(2, "add_peer", [[127,0,0,1], 3030])
-    request(1, "add_peer", [[127,0,0,1], 3020])
     request(1, "add_peer", [[127,0,0,1], 3030])
     request(1, "add_peer", [[127,0,0,1], 3020])
-    request(1, "add_peer", [[127,0,0,1], 3010])
+    request(3, "add_peer", [[127,0,0,1], 3010])
+    request(3, "add_peer", [[127,0,0,1], 3020])
     request(2, 'sync', [[127,0,0,1], 3010], 0.1)
     request(1, 'sync', [[127,0,0,1], 3020], 0.1)
     request(1, 'mine_block', [2, 100000], 1)
     request(2, 'sync', [[127,0,0,1], 3010], 1)
     request(2, 'mine_block', [12, 100000], 0)
-    request(1, 'mine_block', [11, 100000], 5)
-    request(2, 'sync', [[127,0,0,1], 3010], 0.5)
-    request(1, 'sync', [[127,0,0,1], 3030], 0.3)
-    request(3, 'sync', [[127,0,0,1], 3010], 0.3)
-    height1 = request(1, 'height', [], 0.05)
-    height2 = request(2, 'height', [], 0.05)
-    height3 = request(3, 'height', [], 0.05)
+    request(1, 'mine_block', [11, 100000], 10)
+#    request(2, 'sync', [[127,0,0,1], 3010], 0.5)
+#    request(1, 'sync', [[127,0,0,1], 3030], 0.3)
+#    request(3, 'sync', [[127,0,0,1], 3010], 0.3)
+#    request(3, 'sync', [[127,0,0,1], 3010], 10)
+    height1 = request(1, 'height', [1], 0.05)
+    height2 = request(2, 'height', [1], 0.05)
+    height3 = request(3, 'height', [1], 0.05)
     assertEqual(height1, height2)
     assertEqual(height1, height3)
     #assertEqual(height1, "[\"ok\",4]")
