@@ -3,10 +3,39 @@
          exp/1, ln/1, make_rat/2, e/0, pow/2,
          accuracy/0, speed/0, ln2/0]).
 
-%because of how rational numbers work, exp is only accurate if it is returning a value smaller than the ?limit
+%logrithm algorithm based on this page: https://love2d.org/forums/viewtopic.php?p=231486
+
+%because of how rational numbers work, exp is only accurate if it is returning a value much smaller than the ?limit
 % accuracy = exp(N) / ?limit
 %so ideally we shouldn't return a value bigger than 4000000. 4 million, which means we shouldn't have an input bigger than 15.2.
 % so use a scaling factor. Instead of calculating the total number of coins in the market, calculate something 1000x smaller than that.
+%tx fees are minimum 0.00151118 satoshis.
+
+%LMSR
+% money in market 
+%C = B*ln(e^(q1/B) + e^(q2/B))
+%
+%instantaneous price 
+%price = e^(q1/B) / (e^(q1/B) + e^(q2/B))
+
+%The thing about LMSR is that it only depends on the difference between Q1 and Q2 as far as what the prices are. Not their absolute values. Because we only want to calculate the difference between C1, and C2. not their absolute values.
+
+%for example, if Q1 is bigger, and someone is buying Q1b of the Q1 shares
+%C1 = B * ln(e^((Q1 -  Q2)/B) + e^(0/B))
+%C2 = B * ln(e^((Q1 + Q1b - Q2)/B) + e^(0/B))
+%C2 - C1 is how much you need to pay to buy Q1b shares
+% = B* (ln(e^((Q1+Q2b -Q2)/B) + 1) - ln(e^((Q1-Q2)/B) + 1)
+
+%If someone is buying Q2b of the Q2 shares
+%C1 = B * ln(e^((Q1 - Q2)/B) + 1)
+%C2 = B * ln(e^((Q1 - Q2)/B) + e^(Q2b/B))
+
+%as long as ((Q1 + Q1b - Q2)/B) is less than 15, then it is accurate.
+%if `(Q1 + Q1b - Q2) / B) > 15`, that means the price = `e^(q2/B) / (e^(Q1/B) + e^(Q2/B))` must be a very small value.
+%again, taking advantage of symmetry to rewrite the price equation
+% `e^(1/B) / (e^(1/B) + e^((Q1 - Q2 + 1)/B)
+%but, we alraedy decided that Q1 - Q2 + 1 < 15
+% so the price is `e^(1/B) / (e^(1/B) + e^15)`, which is around 3/1000000. practically zero.
 
 
 -record(rat, {t, b}).
@@ -256,14 +285,21 @@ log_table(15) ->
 
 ac(A, B) ->
     (A - B)*2 / (A + B).
-    
+   
+there_and_back(T, B) -> 
+    R = #rat{t = T, b = B},
+    ac(to_float(R), to_float(ln(exp(R)))).
 
 accuracy() -> 
     {exp,
-     {ac(math:exp(0.000002), 
+     {ac(math:exp(0.00000002), 
       to_float(
         exp(
-          make_rat(1, 500000))))},
+          make_rat(1, 50000000))))},
+     {ac(math:exp(1.000002), 
+      to_float(
+        exp(
+          make_rat(500001, 500000))))},
      {ac(math:exp(12.0),
       to_float(
         exp(
@@ -277,6 +313,10 @@ accuracy() ->
         exp(
           make_rat(100, 10))))},
      ln,
+     {ac(math:log(0.0000001),
+      to_float(
+        ln(
+          make_rat(1, 10000000))))},
      {ac(math:log(0.011),
       to_float(
         ln(
@@ -284,7 +324,11 @@ accuracy() ->
      {ac(math:log(321.5),
       to_float(
         ln(
-          make_rat(3215, 10))))}}.
+          make_rat(3215, 10))))},
+    there_and_back,
+    {there_and_back(1, 10000),
+     there_and_back(16, 1)
+    }}.
       
 range(N, N) -> [N];
 range(A, B) when (A < B) -> 
