@@ -1,15 +1,13 @@
 
-get the explorer working again.
-- launch new server with more ram.
-- install explorer.
-- update all links to go to the new explorer.
-- we got the node synced and backed up.
-- we need to figure out what is going wrong in the explorer.
-
 
 the mining pool should include txs from the mempool when it makes a potential block.
 
 futarchy hard update.
+
+a futarchy contract starts out as an oracle, and 2 constan
+
+
+
 
 
 remove that hardcoded block 275600 from the source code, verify we can sync without it.
