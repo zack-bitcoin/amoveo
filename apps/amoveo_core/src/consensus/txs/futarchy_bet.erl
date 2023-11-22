@@ -5,11 +5,14 @@
 
 %logrithm algorithm based on this page: https://love2d.org/forums/viewtopic.php?p=231486
 
-%because of how rational numbers work, exp is only accurate if it is returning a value much smaller than the ?limit
+%in this rational numbers system, the numerator and denominator of the rational each need to be between ?limit and -?limit.
+%so, if you try to represent numbers very near to ?limit, then the accuracy starts decreasing.
 % accuracy = exp(N) / ?limit
-%so ideally we shouldn't return a value bigger than 4000000. 4 million, which means we shouldn't have an input bigger than 15.2.
-% so use a scaling factor. Instead of calculating the total number of coins in the market, calculate something 1000x smaller than that.
+%so ideally we shouldn't return a value bigger than `1 200 000`. Which means we shouldn't have an input bigger than 14.
+% so use a scaling factor to move the numbers we care about into the region that is accurate. Instead of calculating the total number of coins in the market, calculate something 1000x smaller than that.
 %tx fees are minimum 0.00151118 satoshis.
+
+%This is going to be used to implement the LMSR, so this limitation is workable.
 
 %LMSR
 % money in market 
@@ -18,7 +21,7 @@
 %instantaneous price 
 %price = e^(q1/B) / (e^(q1/B) + e^(q2/B))
 
-%The thing about LMSR is that it only depends on the difference between Q1 and Q2 as far as what the prices are. Not their absolute values. Because we only want to calculate the difference between C1, and C2. not their absolute values.
+%The thing about LMSR prices is that it only depends on the difference between Q1 and Q2. Not their absolute values. Because we only want to calculate the difference between C1, and C2. not their absolute values.
 
 %for example, if Q1 is bigger, and someone is buying Q1b of the Q1 shares
 %C1 = B * ln(e^((Q1 -  Q2)/B) + e^(0/B))
@@ -30,13 +33,19 @@
 %C1 = B * ln(e^((Q1 - Q2)/B) + 1)
 %C2 = B * ln(e^((Q1 - Q2)/B) + e^(Q2b/B))
 
-%as long as ((Q1 + Q1b - Q2)/B) is less than 15, then it is accurate.
-%if `(Q1 + Q1b - Q2) / B) > 15`, that means the price = `e^(q2/B) / (e^(Q1/B) + e^(Q2/B))` must be a very small value.
-%again, taking advantage of symmetry to rewrite the price equation
+%as long as ((Q1 + Q1b - Q2)/B) is less than 14, then it is accurate to 0.1%.
+%if `(Q1 + Q1b - Q2) / B) > 14`, that means the odds = `e^(q2/B) / (e^(Q1/B) + e^(Q2/B))` must be a very small value.
+%again, taking advantage of symmetry to rewrite the odds equation
 % `e^(1/B) / (e^(1/B) + e^((Q1 - Q2 + 1)/B)
-%but, we alraedy decided that Q1 - Q2 + 1 < 15
-% so the price is `e^(1/B) / (e^(1/B) + e^15)`, which is around 3/1000000. practically zero.
+%now plugging in 14 for `(Q1 - Q2 + 1)/B`
+% so the price is `e^(1/B) / (e^(1/B) + e^14) ~= 1/(1+1202604)`, which is around `0.0000008` . practically zero. 
+%this implies betting odds of 1:1 200 000, which is very far from the 50:50 odds that we would want in order for the prediction market to be accurate.
+% So, we can just shut off the LMSR when it is outside of certain price bounds, like 1:1000, and provide zero liquidity out of those bounds. Limit orders could still be matched.
+%this would prevent rounding errors attacks.
 
+%if our price limit is 1:1000, that implies that the biggest difference between Q1 an Q2 is 6.9 * B.
+%so, the biggest number we need to take the log of is around 1000. and the biggest number we need to take the exponent of is 6.9.
+%within these bounds, the formula are accurate to around 1 in 100 000. 
 
 -record(rat, {t, b}).
 -define(limit, 4294967296). %2^32
@@ -60,7 +69,7 @@ simplify(R = #rat{t = T, b = B}) ->
          end,
     #rat{t = T2, b = B2} = R2,
     if
-        (T2 > ?limit) and (B2 > ?limit) ->
+        (T2 > ?limit) or (B2 > ?limit) ->
             L = max(T2 div ?limit, B2 div ?limit),
             #rat{t = T2 div L, b = B2 div L};
         true -> R2
@@ -118,22 +127,18 @@ half() ->
 ln2() ->
     #rat{t = 2506963077,b = 3616783199}.
 %    cf2f(0, [1, 2, 3, 1, 6, 3, 1, 1, 2, 1, 1, 1, 1, 3, 10, 1, 1, 1, 2, 1, 1, 1, 1, 3, 2, 3, 1, 13, 7, 4]).
-%    simplify(#rat{t = 18359126087,
-%                  b = 26486620160}).
 exp(#rat{t = T, b = B}) ->
     %e^(T / B) = 
     %e^(T div B) * e^((T rem B)/B)
     Xint = T div B,
     Xfract = #rat{t = T rem B, b = B},
-    %io:fwrite("xint is "),
-    %io:fwrite(integer_to_list(Xint)),
-    %io:fwrite("\n"),
     Rint = pow(e(), Xint),%e^(T div B)
     Xfract2 = mul(Xfract, Xfract),
     Xfract3 = mul(Xfract, Xfract2),
     Xfract4 = mul(Xfract2, Xfract2),
-%    Xfract5 = mul(Xfract2, Xfract3),
-%    Xfract6 = mul(Xfract3, Xfract3),
+    Xfract5 = mul(Xfract2, Xfract3),
+    Xfract6 = mul(Xfract3, Xfract3),
+    Xfract7 = mul(Xfract4, Xfract3),
     % for n=0,4 sum xfract^n / n!
     %maclaurin series for e^(Xfract)
     %https://en.wikipedia.org/wiki/Taylor_series
@@ -142,9 +147,10 @@ exp(#rat{t = T, b = B}) ->
                Xfract,
                mul(Xfract2, #rat{t = 1, b = 2}),
                mul(Xfract3, #rat{t = 1, b = 6}),
-               mul(Xfract4, #rat{t = 1, b = 24})%,
-               %mul(Xfract5, #rat{t = 1, b = 120}),
-               %mul(Xfract6, #rat{t = 1, b = 720})
+               mul(Xfract4, #rat{t = 1, b = 24}),
+               mul(Xfract5, #rat{t = 1, b = 120}),
+               mul(Xfract6, #rat{t = 1, b = 720}),
+               mul(Xfract7, #rat{t = 1, b = 5040})
                ]),
     mul(Rint, Rfract).
 %-define(powerTable, {%i + 2^(-i)
@@ -299,19 +305,19 @@ accuracy() ->
      {ac(math:exp(1.000002), 
       to_float(
         exp(
-          make_rat(500001, 500000))))},
-     {ac(math:exp(12.0),
+          make_rat(1000002, 1000000))))},
+     {ac(math:exp(6.9),
       to_float(
         exp(
-          make_rat(120, 10))))},
-     {ac(math:exp(16.0),
+          make_rat(69, 10))))},
+     {ac(math:exp(7.0),
       to_float(
         exp(
-          make_rat(160, 10))))},
-     {ac(math:exp(10.0),
+          make_rat(70, 10))))},
+     {ac(math:exp(6.6),
       to_float(
         exp(
-          make_rat(100, 10))))},
+          make_rat(66, 10))))},
      ln,
      {ac(math:log(0.0000001),
       to_float(
@@ -321,10 +327,10 @@ accuracy() ->
       to_float(
         ln(
           make_rat(11, 1000))))},
-     {ac(math:log(321.5),
+     {ac(math:log(1000),
       to_float(
         ln(
-          make_rat(3215, 10))))},
+          make_rat(10000, 10))))},
     there_and_back,
     {there_and_back(1, 10000),
      there_and_back(16, 1)
