@@ -4449,7 +4449,7 @@ test(72) ->
     headers:dump(),
     block:initialize_chain(),
     tx_pool:dump(),
-    mine_blocks(4),
+    mine_blocks(6),
     MP = constants:master_pub(),
     Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
     Fee = constants:initial_fee()*2,

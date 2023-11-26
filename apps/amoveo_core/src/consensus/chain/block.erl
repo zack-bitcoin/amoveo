@@ -2061,7 +2061,18 @@ sum_amounts_helper(jobs, Job, _dict, _, _) ->
     if
         not(is_integer(R)) -> io:fwrite(Job);
         true -> R
-    end.
+    end;
+sum_amounts_helper(futarchy, Futarchy, _dict, _, _) ->
+    #futarchy{
+               liquidity_true = Bt,
+               liquidity_false = Bf,
+               shares_true_yes = STY,
+               shares_true_no = STN,
+               shares_false_yes = SFY,
+               shares_false_no = SFN
+             } = Futarchy,
+    futarchy_batch:veo_in_market(Bt, STY, STN) +
+        futarchy_batch:veo_in_market(Bf, SFY, SFN).
 
 remove_repeats(New, Old, Height) ->
     %todo. the old one has "proof" in it. we don't want to lose it in the new one.

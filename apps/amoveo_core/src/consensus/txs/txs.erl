@@ -69,6 +69,7 @@ key2module(job_receive_salary_tx) -> job_receive_salary_tx;
 key2module(job_buy_tx) -> job_buy_tx;
 key2module(job_adjust_tx) -> job_adjust_tx;
 key2module(job_team_adjust_tx) -> job_team_adjust_tx;
+key2module(futarchy_new_tx) -> futarchy_new_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
     

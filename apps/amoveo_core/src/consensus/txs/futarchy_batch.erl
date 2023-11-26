@@ -1,7 +1,8 @@
 -module(futarchy_batch).
 -export([cf2f/2, log_table/1, to_float/1, 
          exp/1, ln/1, make_rat/2, e/0, pow/2,
-         accuracy/0, speed/0, ln2/0]).
+         accuracy/0, speed/0, ln2/0,
+         veo_in_market/3, change_in_market/5, unit/0]).
 
 
 %==========TLDR, limits of this software=======
@@ -58,14 +59,18 @@
 %within these bounds, the formula are accurate to around 0.00003, if you do ln(exp(X)) for example.
  %so, we would need tx fees to be bigger than this, to make it impossible to print money from the mechanism.
  % if the formula is counting in units of 1000 veo, then 0.00003 is 0.03 veo. 
-%the minimum bet size we can allow is 1/10000th of a unit.
+%also, the minimum bet size we can allow is 0.00003. 
 
 
 -record(rat, {t, b}).
 -define(limit, 4294967296). %2^32
 
+unit() -> 100.%we count in units of this many satoshis.
+%highest value we can represent is approximately 
+
 make_rat(T, B) -> simplify(#rat{t = T, b = B}).
 to_float(Z) -> Z#rat.t / Z#rat.b.
+to_int(Z) -> Z#rat.t div Z#rat.b.
 zero(X) -> X#rat.t == 0.
 positive(#rat{t = T, b = B}) -> (T*B) > 0.
 gcf(X, Y) when (abs(Y) > abs(X)) -> 
@@ -88,6 +93,8 @@ simplify(R = #rat{t = T, b = B}) ->
             #rat{t = T2 div L, b = B2 div L};
         true -> R2
     end.
+mul(X, R) when is_integer(X) ->
+    mul(R, #rat{t = X, b = 1});
 mul(#rat{t = T1, b = B1}, 
     #rat{t = T2, b = B2}) ->
     simplify(#rat{t = T1*T2, b = B1 * B2}).
@@ -99,11 +106,15 @@ sub(#rat{t = T1, b = B1},
     #rat{t = T2, b = B2}) -> 
     simplify(#rat{t = (T1*B2) - (T2*B1), 
                      b = B1*B2}).
+add(A, B) when is_integer(A) ->
+    add(B, #rat{t = A, b = 1});
 add(A, B) -> sub(A, negative(B)).
 add([A]) -> A;
 add([A, B|T]) -> 
     add([add(A, B)|T]).
 divide(A, B) -> mul(A, inverse(B)).
+inverse(X) when is_integer(X) ->
+    #rat{t = 1, b = X};
 inverse(#rat{t = T, b = B}) ->
     #rat{t = B, b = T}.
 negative(N = #rat{t = T}) ->
@@ -304,6 +315,65 @@ log_table(15) ->
 %    #rat{t = 2147542565,b = 70371748535741}.
     #rat{t = 65541,b = 2147695010}.
     %cf2f(0, [32768, 2, 98304, 1, 163841, 2, 25486, 9, 8192, 72, 400, 2, 24, 2, 4259, 2, 2]).
+
+change_in_market(Ba, Y0a, N0a, Y1a, N1a) ->
+    %C1 = B*ln(e^(Y0/B) + e^(N0/B)),
+    %C2 = B*ln(e^(Y1/B) + e^(N1/B)),
+    %R = C2 - C1
+    %R = B*(ln(e^(Y0/B) + e^(N0/B)) -
+    %       ln(e^(Y1/B) + e^(N1/B)))
+    %R = B*(ln((e^(Y0/B) + e^(N0/B)) /
+    %          (e^(Y1/B) + e^(N1/B))))
+    % let M = minimum(Y0, N0, Y1, N1)
+    %R = B*(ln((e^(Y0/B) + e^(N0/B)) * e^(-M/B)/
+    %          ((e^(Y1/B) + e^(N1/B)) * e^(-M/B))))
+    %R = B*(ln((e^((Y0 - M)/B) + e^((N0-M)/B)) /
+    %          ((e^((Y1 - M)/B) + e^((N1-M)/B)))))
+
+    B = Ba div unit(),
+    Y0 = Y0a div unit(),
+    N0 = N0a div unit(),
+    Y1 = Y1a div unit(),
+    N1 = N1a div unit(),
+    M = max(max(Y0, N0), max(Y1, N1)),
+    R=mul(B,ln(divide(
+                 add(exp(make_rat(Y1 - M, B)),
+                     exp(make_rat(N1 - M, B))),
+                 add(exp(make_rat(Y0 - M, B)),
+                     exp(make_rat(N0 - M, B)))))),
+    to_int(R) * unit().
+    
+veo_in_market(B0, Y0, N0) ->
+    %C = B * ln(e^(Y/B) + e^(N/B))
+    %this can be written like
+    %C = B * ln(e^(I0 + D0) + e^(I1 + D1))
+    %C = B * ln(e^(I0)*e^(D0) + e^(I1)*e^(D1))
+
+    B = B0 div unit(),
+    Y = Y0 div unit(),
+    N = N0 div unit(),
+
+    I0 = Y div B,
+    I1 = N div B,
+    D0 = #rat{t = Y rem B, b = B},
+    D1 = #rat{t = N rem B, b = B},
+    F = if
+            (I0 =< I1) ->
+      %Assuming I0 is =< I1.
+    %C = B * ln(e^(I0)(e^(D0) + e^(I1-I0)*e^(D1)))
+    %C = B*(I0 + ln(e^(D0) + e^(D1 + I1 - I0))
+                add(I0,
+                    ln(add(exp(D0),
+                           exp(add(I1 - I0,
+                                   D1)))));
+            true ->
+    %C = B*(I1 + ln(e^(D1) + e^(D0 + I0 - I1))
+                add(I1,
+                    ln(add(exp(D1),
+                           exp(add(I0 - I1,
+                                   D0)))))
+        end,
+    to_int(mul(B, F)) * unit().
 
 ac(A, B) ->
     (A - B)*2 / (A + B).

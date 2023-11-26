@@ -12,13 +12,15 @@ make_id(F = #futarchy{
           decision_oid = <<DOID:256>>,
           goal_oid = <<GOID:256>>,
           batch_period = BP,
-          liquidity_true = LT,
-          liquidity_false = LF
+          creator = Owner
+%          liquidity_true = LT,
+%          liquidity_false = LF
          }, _Height) ->
     CoinsSize = 64,
     HeightSize = 32,
+    <<OwnerN:264>> = trees2:compress_pub(Owner),
     B = <<DOID:256, GOID:256, BP:HeightSize, 
-          LT:CoinsSize, LF:CoinsSize>>,
+          OwnerN:264>>,
     ID = hash:doit(B),
     F#futarchy{fid = ID}.
 

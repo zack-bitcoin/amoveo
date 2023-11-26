@@ -2,7 +2,7 @@
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
          copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
-         recover/1,
+         recover/1, compress_pub/1,
          val2int/1]).
 
 -include("../../records.hrl").
