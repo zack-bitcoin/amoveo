@@ -65,6 +65,7 @@ init([]) ->
 } }.
 
 trie_data() ->
+    %this seems unused? now we use verkle_trees_sup.
     KL = constants:key_length(), 
     HS = constants:hash_size(),
     PS = constants:pubkey_size(),

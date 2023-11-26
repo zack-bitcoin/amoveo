@@ -280,3 +280,38 @@
 -record(consensus_state, {empty = true, val, key, unhashed_key, type}).
 
 -record(job, {id, worker, boss, value, salary, balance, time}).
+-record(futarchy,
+        {fid, %deterministically generated from other values.
+         decision_oid, %determines which market gets reverted. true/false
+         goal_oid, %determines who wins the bet in the non-reverted market. yes/no
+         true_orders = <<0:256>>, %linked list of orders in the order book, by price.
+         false_orders = <<0:256>>,
+         batch_period,
+         last_batch_height = 0,
+         liquidity_true = 0, %liquidity in the optional lmsr market.
+         liquidity_false = 0,
+         shares_true_yes = 0,%total shares purchased for the case where the decision is true, and the goal is yes.
+         shares_true_no = 0,
+         shares_false_yes = 0,
+         shares_false_no = 0,
+         active = 1}).
+-record(futarchy_unmatched,
+        {id,
+         owner,%who made this bet
+         futarchy_id,
+         decision,%the bet doesn't get reverted in which outcome of the decision oracle?
+         revert_amount,
+         limit_price,
+         salt, %256 bits chosen by user. used to generate the id.
+         next, %they are in a linked list sorted by price. This is the order book.
+         previous %by making it a double linked list, our proofs can be smaller. We don't need to prove the chain back to the futarchy market.
+         }).
+-record(futarchy_matched,
+        {id,
+         owner,%who made this bet
+         futarchy_id,
+         decision,%the bet doesn't get reverted in which outcome of the decision oracle?
+         revert_amount,
+         win_amount,% > or == the limit_price
+         salt 
+         }).

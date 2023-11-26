@@ -51,6 +51,9 @@ type2int(trade) -> 8;
 type2int(market) -> 9;
 type2int(receipt) -> 10;
 type2int(job) -> 11;
+type2int(futarchy) -> 12;
+type2int(futarchy_unmatched) -> 13;
+type2int(futarchy_matched) -> 14;
 type2int(B) when is_binary(B) -> 5.
 
 int2type(1) -> acc;
@@ -62,7 +65,10 @@ int2type(7) -> contract;
 int2type(8) -> trade;
 int2type(9) -> market;
 int2type(10) -> receipt;
-int2type(11) -> job.
+int2type(11) -> job;
+int2type(12) -> futarchy;
+int2type(13) -> futarchy_unmatched;
+int2type(14) -> futarchy_matched.
     
 
 int2dump_name(1) -> accounts_dump;
@@ -75,7 +81,10 @@ int2dump_name(7) -> contracts_dump;
 int2dump_name(8) -> trades_dump;
 int2dump_name(9) -> markets_dump;
 int2dump_name(10) -> receipts_dump;
-int2dump_name(11) -> jobs_dump.
+int2dump_name(11) -> jobs_dump;
+int2dump_name(12) -> futarchy_dump;
+int2dump_name(13) -> futarchy_unmatched_dump;
+int2dump_name(14) -> futarchy_matched_dump.
 
 int2cleaner_name(1) -> accounts_cleaner;
 %int2cleaner_name(2) -> exists_cleaner;
@@ -87,7 +96,10 @@ int2cleaner_name(7) -> contracts_cleaner;
 int2cleaner_name(8) -> trades_cleaner;
 int2cleaner_name(9) -> markets_cleaner;
 int2cleaner_name(10) -> receipts_cleaner;
-int2cleaner_name(11) -> jobs_cleaner.
+int2cleaner_name(11) -> jobs_cleaner;
+int2cleaner_name(12) -> futarchy_cleaner;
+int2cleaner_name(13) -> futarchy_unmatched_cleaner;
+int2cleaner_name(14) -> futarchy_matched_cleaner.
 
 
 
@@ -233,7 +245,15 @@ val2int({unmatched_head, Pointer, Many, OID}) ->
     K = {key, <<1:PS>>, OID},
     unmatched:key_to_int(K);
 val2int(#job{id = ID}) ->
-    jobs:key_to_int(ID).
+    jobs:key_to_int(ID);
+val2int(#futarchy{fid = ID}) ->
+    futarchy:key_to_id(ID);
+val2int(#futarchy_unmatched{id = ID}) ->
+    futarchy_unmatched:key_to_id(ID);
+val2int(#futarchy_matched{id = ID}) ->
+    futarchy_matched:key_to_id(ID).
+
+
 
     
 
@@ -289,6 +309,15 @@ hash_key(channels, ID)
 hash_key(jobs, ID) 
   when is_binary(ID) and (size(ID) == 32) ->
     key(#job{id = ID});
+hash_key(futarchy, ID) 
+  when is_binary(ID) and (size(ID) == 32) ->
+    key(#futarchy{fid = ID});
+hash_key(futarchy_matched, ID) 
+  when is_binary(ID) and (size(ID) == 32) ->
+    key(#futarchy_matched{id = ID});
+hash_key(futarchy_unmatched, ID) 
+  when is_binary(ID) and (size(ID) == 32) ->
+    key(#futarchy_unmatched{id = ID});
 %hash_key(trades, X) 
 %  when is_binary(X) and (size(X) == 32) ->
 %    X;
@@ -385,8 +414,13 @@ key(#market{id = X}) ->
 key(#receipt{id = X}) -> 
     hash:doit(<<X/binary, 8>>);%33 bytes
 key(#job{id = X}) -> 
-    hash:doit(<<X/binary, 9>>).%33 bytes
-
+    hash:doit(<<X/binary, 9>>);%33 bytes
+key(#futarchy{fid = X}) -> 
+    hash:doit(<<X/binary, 10>>);
+key(#futarchy_unmatched{id = X}) -> 
+    hash:doit(<<X/binary, 11>>);
+key(#futarchy_matched{id = X}) -> 
+    hash:doit(<<X/binary, 12>>).
 compress_pub(<<1:264>>) ->
     <<1:264>>;
 compress_pub(<<1:520>>) ->
@@ -558,9 +592,85 @@ serialize(#job{id = ID, worker = W0, boss = Boss0, value = V,
     true = is_integer(S),
     true = is_integer(Balance),
     true = is_integer(T),
-    <<ID/binary, W/binary, Boss/binary, V:64, S:64, Balance:64, T:32>>.
+    <<ID/binary, W/binary, Boss/binary, V:64, S:64, Balance:64, T:32>>;
 %32 + 33 + 33 + 8 + 8 + 8 + 4 = 126
+serialize(
+  #futarchy{fid = _FID, decision_oid = DOID, 
+            goal_oid = GOID, true_orders = TrueOrders,
+            false_orders = FalseOrders, 
+            batch_period = BP, last_batch_height = LBH,
+            liquidity_true = LT,
+            shares_true_yes = STY,
+            shares_true_no = STN,
+            liquidity_false = LF,
+            shares_false_yes = SFY,
+            shares_false_no = SFN,
+            active = Active}) ->
+    32 = size(DOID),
+    32 = size(GOID),
+    32 = size(TrueOrders),
+    32 = size(FalseOrders),
+    true = is_integer(BP),
+    true = is_integer(LBH),
+    true = is_integer(LT),
+    true = is_integer(STY),
+    true = is_integer(STN),
+    true = is_integer(LF),
+    true = is_integer(SFY),
+    true = is_integer(SFN),
+    AB = case Active of 
+             1 -> 1;
+             0 -> 0
+         end,
+    <<AB, BP:32, LBH:32, LT:64, STY:64, STN:64,
+      LF:64, SFY:64, SFN:64,
+      DOID/binary, GOID/binary,
+      TrueOrders/binary, FalseOrders/binary>>;
+%1, 32, 32, 32, 32, 4, 4, 8, 8, 8, 8, 8, 8,
+% 1 + 96 + 56 = 153
 
+serialize(#futarchy_unmatched{
+             owner = Pub, futarchy_id = FID,
+             decision = D, revert_amount = RA,
+             limit_price = LP, next = Next,
+             salt = Salt, previous = Prev}) ->
+    %32 = size(ID),
+    32 = size(FID),
+    32 = size(Salt),
+    DB = case D of
+             1 -> 1;
+             0 -> 0
+         end,
+    Pub2 = compress_pub(Pub),
+    true = is_integer(RA),
+    true = is_integer(LP),
+    32 = size(Next),
+    32 = size(Prev),
+    <<DB, RA:64, LP:64, Pub2/binary, 
+      FID/binary, Salt/binary,
+      Next/binary, Prev/binary>>;
+%1,8,8,33,32,32,32,32
+%128 + 9 + 9 + 32 = 178
+serialize(#futarchy_matched{
+             owner = Pub, futarchy_id = FID,
+             decision = D, revert_amount = RA,
+             win_amount = WA, salt = Salt
+            }) ->
+    32 = size(FID),
+    32 = size(Salt),
+    Pub2 = compress_pub(Pub),
+    case D of
+        1 -> 1;
+        0 -> 0
+    end,
+    true = is_integer(RA),
+    true = is_integer(WA),
+    <<D, WA:64, RA:64, FID/binary, Pub2/binary, Salt/binary>>.
+%1, 8, 8, 32, 33, 32
+%= 114
+                 
+    
+            
 
 deserialize(1, 
   <<Pub:(33*8), Balance:64, Nonce:32>>) ->
@@ -623,6 +733,56 @@ deserialize(11, <<ID:256, W:264, Boss:264, V:64, S:64, Balance:64, T:32>>) ->
     #job{id = <<ID:256>>, worker = decompress_pub(<<W:264>>),
          boss = decompress_pub(<<Boss:264>>),
          value = V, salary = S, balance = Balance, time = T};
+deserialize(12, <<Active, BP:32, LBH:32, LT:64, 
+                  STY:64, STN:64, LF:64, SFY:64, 
+                  SFN:64, DOID2:256, GOID2:256, 
+                  TrueOrders2:256, 
+                  FalseOrders2:256>>) ->
+    DOID = <<DOID2:256>>,
+    GOID = <<GOID2:256>>,
+    TrueOrders = <<TrueOrders2:256>>,
+    FalseOrders = <<FalseOrders2:256>>,
+    F1 = #futarchy{
+      decision_oid = DOID,
+      goal_oid = GOID,
+      true_orders = TrueOrders,
+      false_orders = FalseOrders,
+      batch_period = BP,
+      last_batch_height = LBH,
+      liquidity_true = LT,
+      shares_true_yes = STY,
+            shares_true_no = STN,
+            liquidity_false = LF,
+            shares_false_yes = SFY,
+            shares_false_no = SFN,
+            active = Active},
+    futarchy:make_id(F1, 0);
+deserialize(13, <<DB, RA:64, LP:64, Pub2:(33*8),
+                  FID2:256, Salt:256, 
+                  Next2:256, Prev2:256>>) ->
+    Pub = decompress_pub(<<Pub2:(33*8)>>),
+    D = case DB of
+            1 -> 1;
+            0 -> 0
+        end,
+    FU = #futarchy_unmatched{
+      owner = Pub, futarchy_id = <<FID2:256>>, 
+      decision = D, salt = <<Salt:256>>,
+      revert_amount = RA, limit_price = LP, 
+      next = <<Next2:256>>, previous = <<Prev2:256>>},
+    futarchy_unmatched:make_id(FU, 0);
+deserialize(14, <<DB, WA:64, RA:64, FID2:256, 
+                  Pub2:(33*8), Salt:256>>) ->
+    Pub = decompress_pub(<<Pub2:(33*8)>>),
+    case DB of
+        1 -> 1;
+        0 -> 0
+    end,
+    FM = #futarchy_matched{
+      owner = Pub, futarchy_id = <<FID2:256>>,
+      decision = DB, revert_amount = RA, 
+      win_amount = WA, salt = <<Salt:256>>},
+    futarchy_matched:make_id(FM, 0);
 deserialize(N, B) ->
     io:fwrite({N, B, size(B)}),
     1=2,
@@ -1243,6 +1403,9 @@ one_root_maker(Pointer, CFG) ->
     bits:reset(trades_cleaner),
     bits:reset(unmatched_cleaner),
     bits:reset(jobs_cleaner),
+    bits:reset(futarchy_cleaner),
+    bits:reset(futarchy_unmatched_cleaner),
+    bits:reset(futarchy_matched_cleaner),
 
     dump:reload(accounts_cleaner),
     dump:reload(contracts_cleaner),
@@ -1254,6 +1417,9 @@ one_root_maker(Pointer, CFG) ->
     dump:reload(trades_cleaner),
     dump:reload(unmatched_cleaner),
     dump:reload(jobs_cleaner),
+    dump:reload(futarchy_cleaner),
+    dump:reload(futarchy_unmatched_cleaner),
+    dump:reload(futarchy_matched_cleaner),
 
     tree:reload_ets(cleaner),
     timer:sleep(500),
@@ -1276,7 +1442,7 @@ recover_from_clean_version(Pointer) ->
 
     %TODO. we need to make sure it is on the hard disk in the cleaner folder before we start copying things.
 
-    IDs = [1,3,4,5,6,7,8,9,10,11],
+    IDs = [1,3,4,5,6,7,8,9,10,11,12,13,14],
 
     lists:map(fun(ID) -> dump:quick_save(
                            int2cleaner_name(ID)) end, 
@@ -1298,6 +1464,9 @@ recover_from_clean_version(Pointer) ->
     os:cmd("cp -r cleaner/data/trades_cleaner.db ../../../../db/data/trades_dump.db"),
     os:cmd("cp -r cleaner/data/unmatched_cleaner.db ../../../../db/data/unmatched_dump.db"),
     os:cmd("cp -r cleaner/data/jobs_cleaner.db ../../../../db/data/jobs_dump.db"),
+    os:cmd("cp -r cleaner/data/futarchy_cleaner.db ../../../../db/data/futarchy_dump.db"),
+    os:cmd("cp -r cleaner/data/futarchy_unmatched_cleaner.db ../../../../db/data/futarchy_unmatched_dump.db"),
+    os:cmd("cp -r cleaner/data/futarchy_matched_cleaner.db ../../../../db/data/futarchy_matched_dump.db"),
 
 
     os:cmd("cp -r cleaner/data/accounts_cleaner_rest.db ../../../../db/data/accounts_dump_rest.db"),
@@ -1311,6 +1480,9 @@ recover_from_clean_version(Pointer) ->
     os:cmd("cp -r cleaner/data/trades_cleaner_rest.db ../../../../db/data/trades_dump_rest.db"),
     os:cmd("cp -r cleaner/data/unmatched_cleaner_rest.db ../../../../db/data/unmatched_dump_rest.db"),
     os:cmd("cp -r cleaner/data/jobs_cleaner_rest.db ../../../../db/data/jobs_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/futarchy_cleaner_rest.db ../../../../db/data/futarchy_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/futarchy_unmatched_cleaner_rest.db ../../../../db/data/futarchy_unmatched_dump_rest.db"),
+    os:cmd("cp -r cleaner/data/futarchy_matched_cleaner_rest.db ../../../../db/data/futarchy_matched_dump_rest.db"),
 
 
     lists:map(fun(ID_num) ->
@@ -1364,6 +1536,9 @@ recover_from_clean_version(Pointer) ->
     dump:reload(trades_dump),
     dump:reload(unmatched_dump),
     dump:reload(jobs_dump),
+    dump:reload(futarchy_dump),
+    dump:reload(futarchy_unmatched_dump),
+    dump:reload(futarchy_matched_dump),
 
     %delete the contents of the cleaner folder to save space.
     %os:cmd("rm -rf cleaner/*.db"),

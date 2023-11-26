@@ -1,7 +1,19 @@
 -module(test_txs).
--export([test/0, test/1, contracts/0, mine_blocks/1, absorb/1, restart_chain/0, test_gt/1]).
+-export([test/0, test/1, contracts/0, jobs/0, 
+         mine_blocks/1, absorb/1, restart_chain/0, 
+         test_gt/1]).
 
 -include("../../records.hrl").
+
+jobs() ->
+    unlocked = keys:status(),
+    Pub = constants:master_pub(),
+    Pub = keys:pubkey(),
+    S = success,
+    S = test(69),%reading and writing jobs to the verkle tree.
+    S = test(70),%creating jobs, buying them, adjusting them, adjusting the salary, 
+    S.
+
 contracts() ->
     unlocked = keys:status(),
     Pub = constants:master_pub(),
@@ -39,7 +51,7 @@ contracts() ->
     S.
    
 test_gt(N) -> 
-    L = [1, 2, 11, 16, 36, 37, 38, 39, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 55, 56, 57, 58],
+    L = [1, 2, 11, 16, 36, 37, 38, 39, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 55, 56, 57, 58, 69, 70],
     L2 = lists:filter(fun(X) -> not(X < N) end, L),
     lists:map(fun(X) ->
                       success = test(X)
@@ -72,6 +84,7 @@ test() ->
     %S = test(17),%blocks filled with create account txs
     %S = test(28),%new channel tx2
     S = contracts(),
+    S = jobs(),
     S.
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx).
@@ -4353,6 +4366,7 @@ test(70) ->
     1 = many_txs(),
 
     mine_blocks(4),
+    0 = many_txs(),
 
     Tx2 = job_receive_salary_tx:make_dict(ID, Fee),
     Stx2 = keys:sign(Tx2),
@@ -4360,6 +4374,7 @@ test(70) ->
     1 = many_txs(),
 
     mine_blocks(1),
+    0 = many_txs(),
 
     {NewPub,NewPriv} = signing:new_key(),
 
@@ -4369,6 +4384,7 @@ test(70) ->
     absorb(Sctx),
     1 = many_txs(),
     mine_blocks(1),
+    0 = many_txs(),
 
 
     Tx3 = job_buy_tx:make_dict(NewPub, ID, 50000000, Fee),
@@ -4392,7 +4408,43 @@ test(70) ->
     3 = many_txs(),
 
 
+    success;
+test(71) ->
+    io:fwrite("read and write futarchy stuff to database."),
+
+    {Pub,_NewPriv} = signing:new_key(),
+
+    F0 = #futarchy{decision_oid = <<0:256>>, goal_oid = <<0:256>>, batch_period = 1},
+    F = futarchy:make_id(F0, 0),
+    FID = F#futarchy.fid,
+    
+    FU0 = #futarchy_unmatched{owner = Pub, futarchy_id = FID, decision = 0, revert_amount = 1234567, limit_price = 555444, next = <<0:256>>, previous = <<0:256>>, salt = <<0:256>>},
+    FU = futarchy_unmatched:make_id(FU0, 0),
+    FUID = FU#futarchy_unmatched.id,
+
+    FM0 = #futarchy_matched{owner = Pub, futarchy_id = FID, decision = 0, revert_amount = 1234567, win_amount = 10101010, salt = <<0:256>>},
+    FM = futarchy_matched:make_id(FM0, 0),
+    FMID = FM#futarchy_matched.id,
+
+    SF = trees2:serialize(F),
+    SFU = trees2:serialize(FU),
+    SFM = trees2:serialize(FM),
+
+
+    SFP = dump:put(SF, futarchy_dump),
+    SFUP = dump:put(SFU, futarchy_unmatched_dump),
+    SFMP = dump:put(SFM, futarchy_matched_dump),
+    SF = dump:get(SFP, futarchy_dump),
+    SFU = dump:get(SFUP, futarchy_unmatched_dump),
+    SFM = dump:get(SFMP, futarchy_matched_dump),
+
+
+    Loc2 = trees2:store_things([F, FU, FM], 1),
+
+    trees2:get([{futarchy, FID}, {futarchy_unmatched, FUID}, {futarchy_matched, FMID}], Loc2),
+
     success.
+
     
 
 

@@ -1,10 +1,12 @@
 
+futarchy hard update.
+- make tests for the trees. reading, writing, encoding, decoding.
+- implement the 7 new transaction types with tests.
+
+
 
 the mining pool should include txs from the mempool when it makes a potential block.
 
-futarchy hard update.
-
-a futarchy contract starts out as an oracle, and 2 constan
 
 
 

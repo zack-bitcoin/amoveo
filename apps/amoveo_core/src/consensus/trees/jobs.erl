@@ -79,7 +79,8 @@ update(ID, Dict, NewHeight) ->
     {Value2, Balance2, Payment} = 
         jobs:salary_update(Value, Salary, Balance, OldHeight, NewHeight),
     Job2 = Job#job{value = Value2, balance = Balance2, time = NewHeight},
-
+    
+    %need to charge a tax to prevent spam of fake jobs.
     BPayment = Payment * 625 div 10000,
     WPayment = Payment - BPayment,
 
