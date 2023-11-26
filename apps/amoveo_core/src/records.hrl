@@ -282,6 +282,7 @@
 -record(job, {id, worker, boss, value, salary, balance, time}).
 -record(futarchy,
         {fid, %deterministically generated from other values.
+        creator, %provides liquidity for the lmsr, and needs to receive extra money from the lmsr later.
          decision_oid, %determines which market gets reverted. true/false
          goal_oid, %determines who wins the bet in the non-reverted market. yes/no
          true_orders = <<0:256>>, %linked list of orders in the order book, by price.
@@ -315,3 +316,12 @@
          win_amount,% > or == the limit_price
          salt 
          }).
+-record(futarchy_new_tx,
+        {pubkey, nonce, fee,
+         decision_oid, %id of the decision oracle
+         goal_oid, %id of the goal oracle
+         futarchy_id,
+         period, %how long until the next fixed price batch can execute.
+         true_liquidity, %how much money to put into liquidity for a lmsr market for the case where the decision is True.
+         false_liquidity 
+        }).

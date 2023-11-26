@@ -1014,7 +1014,16 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 [{accounts, W},
                  {accounts, B},
                  {accounts, BPub},
-                 {jobs, ID}]
+                 {jobs, ID}];
+            futarchy_new_tx ->
+                #futarchy_new_tx{
+              futarchy_id = FID, decision_oid = DOID,
+              goal_oid = GOID, pubkey = Pubkey
+             } = Tx,
+                [{accounts, Pubkey},
+                 {futarchy, FID},
+                 {oracles, GOID},
+                 {oracles, DOID}]
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
 		 %{governance, ?n2i(oracle_bet)},

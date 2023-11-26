@@ -1,6 +1,5 @@
 
 futarchy hard update.
-- make tests for the trees. reading, writing, encoding, decoding.
 - implement the 7 new transaction types with tests.
 
 

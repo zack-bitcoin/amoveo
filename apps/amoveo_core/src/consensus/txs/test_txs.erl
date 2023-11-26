@@ -4414,7 +4414,7 @@ test(71) ->
 
     {Pub,_NewPriv} = signing:new_key(),
 
-    F0 = #futarchy{decision_oid = <<0:256>>, goal_oid = <<0:256>>, batch_period = 1},
+    F0 = #futarchy{decision_oid = <<0:256>>, goal_oid = <<0:256>>, batch_period = 1, creator = Pub},
     F = futarchy:make_id(F0, 0),
     FID = F#futarchy.fid,
     
@@ -4443,6 +4443,42 @@ test(71) ->
 
     trees2:get([{futarchy, FID}, {futarchy_unmatched, FUID}, {futarchy_matched, FMID}], Loc2),
 
+    success;
+test(72) ->
+    %testing the futarchy tx types.
+    headers:dump(),
+    block:initialize_chain(),
+    tx_pool:dump(),
+    mine_blocks(4),
+    MP = constants:master_pub(),
+    Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
+    Fee = constants:initial_fee()*2,
+
+    Tx1 = oracle_new_tx:make_dict(Pub, Fee, <<"Decision">>, block:height() + 1, 0, 0),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    DOID = oracle_new_tx:id(Tx1),
+    Tx2 = oracle_new_tx:make_dict(Pub, Fee, <<"Goal">>, block:height() + 1, 0, 0),
+    GOID = oracle_new_tx:id(Tx2),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    2 = many_txs(),
+    mine_blocks(1),
+
+    TrueLiquidity =  200000000,
+    FalseLiquidity = 100000000,
+    Period = 1,
+    Tx3 = futarchy_new_tx:make_dict(
+            Pub, DOID, GOID, Period, 
+            TrueLiquidity, FalseLiquidity, Fee, 
+            block:height()),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+    
     success.
 
     

@@ -108,7 +108,12 @@ tx_maker0(Tx, Timeout) ->
 		    ok;
 		Stx -> 
 		    ok = tx_pool_feeder:absorb(Stx, Timeout),
-		    hash:doit(Tx)
+                    lists:map(fun(X) ->
+                                      spawn(fun() ->
+                                                    sync:trade_txs(X)
+                                            end)
+                              end,
+                              hash:doit(Tx))
 	    end
     end.
 create_account(NewAddr, Amount) ->

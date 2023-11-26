@@ -70,7 +70,8 @@ hard_coded(_, 45) -> 905;%job_create_tx
 hard_coded(_, 46) -> 905;%job_receive_salary_tx
 hard_coded(_, 47) -> 905;%job_buy_tx
 hard_coded(_, 48) -> 905;%job_adjust_tx
-hard_coded(_, 49) -> 905.%job_team_adjust_tx
+hard_coded(_, 49) -> 905;%job_team_adjust_tx
+hard_coded(_, 50) -> 905.%futarchy_new_tx
 
 
 
@@ -248,6 +249,7 @@ name2number(job_receive_salary_tx) -> 46;
 name2number(job_buy_tx) -> 47;
 name2number(job_adjust_tx) -> 48;
 name2number(job_team_adjust_tx) -> 49;
+name2number(futarchy_new_tx) -> 50;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -301,6 +303,7 @@ number2name(46) -> job_receive_salary_tx;
 number2name(47) -> job_buy_tx;
 number2name(48) -> job_adjust_tx;
 number2name(49) -> job_team_adjust_tx;
+number2name(50) -> futarchy_new_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

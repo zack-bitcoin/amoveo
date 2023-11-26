@@ -17,7 +17,7 @@ dumps() ->
      {markets_dump, 124},
      {receipts_dump, 69},
      {jobs_dump, 126},
-     {futarchy_dump, 185},
+     {futarchy_dump, 218},
      {futarchy_unmatched_dump, 178},
      {futarchy_matched_dump, 114}
     ].
@@ -33,7 +33,7 @@ dumps2() ->
      {markets_cleaner, 124},
      {receipts_cleaner, 69},
      {jobs_cleaner, 126},
-     {futarchy_cleaner, 185},
+     {futarchy_cleaner, 218},
      {futarchy_unmatched_cleaner, 178},
      {futarchy_matched_cleaner, 114}
 ].
