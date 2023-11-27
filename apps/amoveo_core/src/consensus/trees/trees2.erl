@@ -595,7 +595,7 @@ serialize(#job{id = ID, worker = W0, boss = Boss0, value = V,
     <<ID/binary, W/binary, Boss/binary, V:64, S:64, Balance:64, T:32>>;
 %32 + 33 + 33 + 8 + 8 + 8 + 4 = 126
 serialize(#futarchy{
-             fid = _FID, decision_oid = DOID, 
+             fid = FID, decision_oid = DOID, 
              goal_oid = GOID, true_orders = TrueOrders,
              false_orders = FalseOrders, 
              batch_period = BP, 
@@ -613,6 +613,7 @@ serialize(#futarchy{
     32 = size(GOID),
     32 = size(TrueOrders),
     32 = size(FalseOrders),
+    32 = size(FID),
     true = is_integer(BP),
     true = is_integer(LBH),
     true = is_integer(LT),
@@ -629,9 +630,9 @@ serialize(#futarchy{
       LF:64, SFY:64, SFN:64,
       DOID/binary, GOID/binary,
       TrueOrders/binary, FalseOrders/binary,
-      Creator:264>>;
-%1, 32, 32, 32, 32, 4, 4, 8, 8, 8, 8, 8, 8, 33
-% 1 + 96 + 56 + 33 = 186
+      Creator:264, FID/binary>>;
+%1, 32, 32, 32, 32, 4, 4, 8, 8, 8, 8, 8, 8, 33, 32, 32
+% 1 + 96 + 56 + 33 + 32 + 32 = 250
 
 serialize(#futarchy_unmatched{
              owner = Pub, futarchy_id = FID,
@@ -741,13 +742,15 @@ deserialize(12, <<Active, BP:32, LBH:32, LT:64,
                   STY:64, STN:64, LF:64, SFY:64, 
                   SFN:64, DOID2:256, GOID2:256, 
                   TrueOrders2:256, 
-                  FalseOrders2:256, Creator:264>>) ->
+                  FalseOrders2:256, Creator:264,
+                  ID:256>>) ->
     DOID = <<DOID2:256>>,
     GOID = <<GOID2:256>>,
     TrueOrders = <<TrueOrders2:256>>,
     FalseOrders = <<FalseOrders2:256>>,
     Pub = decompress_pub(<<Creator:264>>),
     F1 = #futarchy{
+      fid = <<ID:256>>,
       creator = Pub,
       decision_oid = DOID,
       goal_oid = GOID,
@@ -757,12 +760,12 @@ deserialize(12, <<Active, BP:32, LBH:32, LT:64,
       last_batch_height = LBH,
       liquidity_true = LT,
       shares_true_yes = STY,
-            shares_true_no = STN,
-            liquidity_false = LF,
-            shares_false_yes = SFY,
-            shares_false_no = SFN,
-            active = Active},
-    futarchy:make_id(F1, 0);
+      shares_true_no = STN,
+      liquidity_false = LF,
+      shares_false_yes = SFY,
+      shares_false_no = SFN,
+      active = Active};
+%    futarchy:make_id(F1, 0);
 deserialize(13, <<DB, RA:64, LP:64, Pub2:(33*8),
                   FID2:256, Salt:256, 
                   Next2:256, Prev2:256>>) ->

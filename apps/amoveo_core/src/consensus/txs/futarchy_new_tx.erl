@@ -1,5 +1,5 @@
 -module(futarchy_new_tx).
--export([go/4, make_dict/8]).
+-export([go/4, make_dict/9]).
 
 -include("../../records.hrl").
 
@@ -10,18 +10,15 @@
 
 make_dict(Pubkey, DecisionOID, GoalOID, Period, 
           TrueLiquidity, FalseLiquidity, Fee, 
-          Height) ->
+          Height, Salt) ->
     <<_:256>> = DecisionOID,
     <<_:256>> = GoalOID,
     <<_:520>> = Pubkey,
+    <<_:256>> = Salt,
     true = is_integer(Period),
     true = Period > -1,
-    F0 = #futarchy{decision_oid = DecisionOID,
-                   creator = Pubkey,
-                   goal_oid = GoalOID,
-                   batch_period = Period},
     Account = trees:get(accounts, Pubkey),
-    F = futarchy:make_id(F0, Height),
+    FID = futarchy:make_id(Pubkey, Salt, Height),
     #futarchy_new_tx{pubkey = Pubkey,
                      nonce = Account#acc.nonce+1,
                      decision_oid = DecisionOID,
@@ -29,8 +26,8 @@ make_dict(Pubkey, DecisionOID, GoalOID, Period,
                      period = Period,
                      true_liquidity = TrueLiquidity,
                      false_liquidity = FalseLiquidity,
-                     futarchy_id = F#futarchy.fid, 
-                     fee = Fee}.
+                     futarchy_id = FID, 
+                     fee = Fee, salt = Salt}.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
     #futarchy_new_tx{
@@ -38,7 +35,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     goal_oid = GoalOID, period = Period, 
     true_liquidity = TrueLiquidity,
     false_liquidity = FalseLiquidity,
-    nonce = Nonce0,
+    nonce = Nonce0, salt = Salt,
     futarchy_id = FID, fee = Fee} = Tx,
     true = NewHeight > (forks:get(54)),
     true = is_integer(Period),
@@ -53,26 +50,30 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             -Fee - TrueLiquidity - FalseLiquidity, 
             Nonce),
     Dict2 = accounts:dict_write(Acc, Dict),
-   
+    FID = futarchy:make_id(Pubkey, Salt, NewHeight),
+    empty = futarchy:dict_get(FID, Dict, NewHeight),
+    #oracle{} = oracles:dict_get(DecisionOID, Dict2),
+    #oracle{} = oracles:dict_get(GoalOID, Dict2),
+  
+    %calculating Beta, from LMSR's definition.
     %C_0 = B*ln(e^(q1/B) + e^(q2/B)) when q1 = q2 = 0
     %C_0 = B*ln(2).
     %C_0 is the money they provide for initial liquidity.
     % so B is C_0 / ln(2).
- 
-    TLpL2 = TrueLiquidity * ?l2bottom div ?l2top,
-    FLpL2 = FalseLiquidity * ?l2bottom div ?l2top,
-    F0 = #futarchy{decision_oid = DecisionOID,
-                   creator = Pubkey,
-                   goal_oid = GoalOID,
-                   batch_period = Period,
-                   liquidity_true = TLpL2,%Beta, from lmsr's definition.
-                   liquidity_false = FLpL2},%
-    F = futarchy:make_id(F0, NewHeight),
-    FID = F#futarchy.fid,%check that the FID was calculated correctly.
-    DOracle = oracles:dict_get(DecisionOID, Dict2),
-    GOracle = oracles:dict_get(GoalOID, Dict2),
-    #oracle{} = DOracle,
-    #oracle{} = GOracle,
+
+    %beta for the market that gets reverted if we decide on False.
+    BT = TrueLiquidity * ?l2bottom div ?l2top,
+
+    %beta for the market that gets reverted if we decide on True
+    BF = FalseLiquidity * ?l2bottom div ?l2top,
+
+    F = #futarchy{decision_oid = DecisionOID,
+                  fid = FID,
+                  creator = Pubkey,
+                  goal_oid = GoalOID,
+                  batch_period = Period,
+                  liquidity_true = BT,
+                  liquidity_false = BF},
     futarchy:dict_write(F, Dict2).
     
     

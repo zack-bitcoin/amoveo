@@ -323,5 +323,6 @@
          futarchy_id,
          period, %how long until the next fixed price batch can execute.
          true_liquidity, %how much money to put into liquidity for a lmsr market for the case where the decision is True.
-         false_liquidity 
+         false_liquidity,
+         salt %32 bytes of randomness to help generate the futarchy_id
         }).

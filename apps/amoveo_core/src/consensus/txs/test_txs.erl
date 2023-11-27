@@ -4414,9 +4414,9 @@ test(71) ->
 
     {Pub,_NewPriv} = signing:new_key(),
 
-    F0 = #futarchy{decision_oid = <<0:256>>, goal_oid = <<0:256>>, batch_period = 1, creator = Pub},
-    F = futarchy:make_id(F0, 0),
-    FID = F#futarchy.fid,
+    Salt = <<0:256>>,
+    FID = futarchy:make_id(Pub, Salt, block:height()),
+    F = #futarchy{decision_oid = <<0:256>>, goal_oid = <<0:256>>, batch_period = 1, creator = Pub, fid = FID},
     
     FU0 = #futarchy_unmatched{owner = Pub, futarchy_id = FID, decision = 0, revert_amount = 1234567, limit_price = 555444, next = <<0:256>>, previous = <<0:256>>, salt = <<0:256>>},
     FU = futarchy_unmatched:make_id(FU0, 0),
@@ -4472,7 +4472,7 @@ test(72) ->
     Tx3 = futarchy_new_tx:make_dict(
             Pub, DOID, GOID, Period, 
             TrueLiquidity, FalseLiquidity, Fee, 
-            block:height()),
+            block:height(), <<22:256>>),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     1 = many_txs(),
