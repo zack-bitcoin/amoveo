@@ -8,13 +8,26 @@ key_to_int(<<X:256>>) -> X.
 make_id(FU = #futarchy_unmatched{
           owner = Pub,
           futarchy_id = FID,
-          salt = Salt
+          decision = Decision,
+          goal = Goal,
+          limit_price = LP,
+          revert_amount = Amount
          }, _Height) ->
     Pub2 = case size(Pub) of
                33 -> Pub;
                65 -> trees2:compress_pub(Pub)
            end,
-    B = <<Pub2/binary, FID/binary, Salt/binary>>,
+    true = is_integer(LP),
+    true = is_integer(Amount),
+    case Goal of
+        0 -> ok;
+        1 -> ok
+    end,
+    case Decision of
+        0 -> ok;
+        1 -> ok
+    end,
+    B = <<Pub2/binary, FID/binary, Decision, Goal, LP:64, Amount:64>>,
     ID = hash:doit(B),
     FU#futarchy_unmatched{id = ID}.
 

@@ -285,8 +285,10 @@
         creator, %provides liquidity for the lmsr, and needs to receive extra money from the lmsr later.
          decision_oid, %determines which market gets reverted. true/false
          goal_oid, %determines who wins the bet in the non-reverted market. yes/no
-         true_orders = <<0:256>>, %linked list of orders in the order book, by price.
-         false_orders = <<0:256>>,
+         true_yes_orders = <<0:256>>, %linked list of orders in the order book, by price.
+         true_no_orders = <<0:256>>, 
+         false_yes_orders = <<0:256>>,
+         false_no_orders = <<0:256>>,
          batch_period,
          last_batch_height = 0,
          liquidity_true = 0, %liquidity in the optional lmsr market.
@@ -301,11 +303,11 @@
          owner,%who made this bet
          futarchy_id,
          decision,%the bet doesn't get reverted in which outcome of the decision oracle?
+         goal,
          revert_amount,
          limit_price,
-         salt, %256 bits chosen by user. used to generate the id.
-         next, %they are in a linked list sorted by price. This is the order book.
-         previous %by making it a double linked list, our proofs can be smaller. We don't need to prove the chain back to the futarchy market.
+         ahead, %they are in a linked list sorted by price. This is the order book.
+         behind %by making it a double linked list, our proofs can be smaller. We don't need to prove the chain back to the futarchy market.
          }).
 -record(futarchy_matched,
         {id,
@@ -313,8 +315,7 @@
          futarchy_id,
          decision,%the bet doesn't get reverted in which outcome of the decision oracle?
          revert_amount,
-         win_amount,% > or == the limit_price
-         salt 
+         win_amount% > or == the limit_price
          }).
 -record(futarchy_new_tx,
         {pubkey, nonce, fee,
@@ -325,4 +326,12 @@
          true_liquidity, %how much money to put into liquidity for a lmsr market for the case where the decision is True.
          false_liquidity,
          salt %32 bytes of randomness to help generate the futarchy_id
+        }).
+-record(futarchy_bet_tx,
+        {pubkey, nonce, fee,
+        fid, %the id of the futarchy market
+        limit_price, %the highest price you are willing to pay.
+        amount, %the amount of veo you are risking.
+        decision, %your bet is not reverted if this decision is selected. true/false
+        goal %you win if the goal oracle finalizes in this state. true/false
         }).

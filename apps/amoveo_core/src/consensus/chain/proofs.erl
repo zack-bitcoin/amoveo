@@ -1025,7 +1025,24 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 [{accounts, Pubkey},
                  {futarchy, FID},
                  {oracles, GOID},
-                 {oracles, DOID}]
+                 {oracles, DOID}];
+            futachy_bet_tx ->
+                #futarchy_bet_tx{
+              fid = FID, pubkey = Pubkey
+             } = Tx,
+                {TIDAhead, TIDBehind} = 
+                    element(4, STx),
+                TA = case TIDAhead of
+                         <<0:256>> -> [];
+                         <<_:256>> -> [{futarchy_unmatched, TIDAhead}]
+                     end,
+                TB = case TIDBehind of
+                         <<0:256>> -> [];
+                         <<_:256>> -> [{futarchy_unmatched, TIDBehind}]
+                     end,
+                [{accounts, Pubkey},
+                 {futarchy, FID}
+                ] ++ TA ++ TB
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
 		 %{governance, ?n2i(oracle_bet)},

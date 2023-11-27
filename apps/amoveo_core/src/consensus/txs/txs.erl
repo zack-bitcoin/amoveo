@@ -30,7 +30,12 @@ digest_txs([STx|T], Dict, Height) ->
     true = Fee > 0,
     Key = element(1, Tx),
     M = key2module(Key),
-    NewDict = M:go(Tx, Dict, Height, true),
+    NewDict = case M of
+                  futarchy_bet_tx ->
+                      M:go(STx, Dict, Height, true);
+                  _ ->
+                      M:go(Tx, Dict, Height, true)
+              end,
     digest_txs(T, NewDict, Height).
 key2module(multi_tx) -> multi_tx;
 key2module(create_acc_tx) -> create_account_tx;
@@ -70,6 +75,7 @@ key2module(job_buy_tx) -> job_buy_tx;
 key2module(job_adjust_tx) -> job_adjust_tx;
 key2module(job_team_adjust_tx) -> job_team_adjust_tx;
 key2module(futarchy_new_tx) -> futarchy_new_tx;
+key2module(futarchy_bet_tx) -> futarchy_bet_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
     

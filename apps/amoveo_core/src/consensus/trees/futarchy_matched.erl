@@ -6,19 +6,15 @@
 -include("../../records.hrl").
 key_to_int(#futarchy_matched{id = <<X:256>>}) -> X;
 key_to_int(<<X:256>>) -> X.
-make_id(FU = #futarchy_matched{
-          owner = Pub,
-          futarchy_id = FID,
-          salt = Salt
-         }, _Height) ->
+make_id(Pub, Salt) ->
+    <<_:256>> = Salt,
     Pub2 = case size(Pub) of
                33 -> Pub;
                65 -> trees2:compress_pub(Pub)
            end,
-    B = <<0, Pub2/binary, FID/binary, Salt/binary>>,
-    ID = hash:doit(B),
-    FU#futarchy_matched{id = ID}.
-
+    B = <<0, Pub2/binary, Salt/binary>>,
+    hash:doit(B).
+    
 dict_get(ID, Dict, _) ->
     dict_get(ID, Dict).
 dict_get(ID, Dict) ->

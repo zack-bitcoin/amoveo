@@ -1,3 +1,12 @@
+the continued fraction estimator would be faster and more accurate if it just stopped when the numbers got too big, instead of calling simplify.
+in futarchy_batch_tx.erl
+
+
+working on the futarchy_bet_tx.
+In the second signature slot, we want the tx pool to wite the futarchy_bet_id of the bet that is in front of this bet in line, and the one that it behind it in line.
+ -- seems like putting it into the signature slot doesn't work, because futarchy_bet_tx:go doesn't have access to the signature.
+ we could edit txs:digest_txs to make it work.
+
 
 futarchy hard update.
 - implement the 7 new transaction types with tests.

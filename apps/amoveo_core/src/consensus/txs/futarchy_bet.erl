@@ -1,2 +1,0 @@
--module(futarchy_bet).
--export([]).

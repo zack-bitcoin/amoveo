@@ -4418,13 +4418,13 @@ test(71) ->
     FID = futarchy:make_id(Pub, Salt, block:height()),
     F = #futarchy{decision_oid = <<0:256>>, goal_oid = <<0:256>>, batch_period = 1, creator = Pub, fid = FID},
     
-    FU0 = #futarchy_unmatched{owner = Pub, futarchy_id = FID, decision = 0, revert_amount = 1234567, limit_price = 555444, next = <<0:256>>, previous = <<0:256>>, salt = <<0:256>>},
+    FU0 = #futarchy_unmatched{owner = Pub, futarchy_id = FID, decision = 0, goal = 0, revert_amount = 1234567, limit_price = 555444, ahead = <<0:256>>, behind = <<0:256>>},
     FU = futarchy_unmatched:make_id(FU0, 0),
     FUID = FU#futarchy_unmatched.id,
 
-    FM0 = #futarchy_matched{owner = Pub, futarchy_id = FID, decision = 0, revert_amount = 1234567, win_amount = 10101010, salt = <<0:256>>},
-    FM = futarchy_matched:make_id(FM0, 0),
-    FMID = FM#futarchy_matched.id,
+    Salt2 = <<2:256>>,
+    FMID = futarchy_matched:make_id(Pub, Salt2),
+    FM = #futarchy_matched{owner = Pub, futarchy_id = FID, decision = 0, revert_amount = 1234567, win_amount = 10101010, id = FMID},
 
     SF = trees2:serialize(F),
     SFU = trees2:serialize(FU),
