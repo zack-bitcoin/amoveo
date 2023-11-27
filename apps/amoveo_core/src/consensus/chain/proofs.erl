@@ -30,7 +30,8 @@ tree_to_int(trades) -> 14;
 tree_to_int(markets) -> 15;
 tree_to_int(receipts) -> 16;
 tree_to_int(stablecoins) -> 17;
-tree_to_int(jobs) -> 18.
+tree_to_int(jobs) -> 18;
+tree_to_int(futarchy) -> 19.
 
 int_to_tree(1) -> accounts;
 int_to_tree(2) -> channels;
@@ -48,7 +49,8 @@ int_to_tree(14) -> trades;
 int_to_tree(15) -> markets;
 int_to_tree(16) -> receipts;
 int_to_tree(17) -> stablecoins;
-int_to_tree(18) -> jobs.
+int_to_tree(18) -> jobs;
+int_to_tree(19) -> futarchy.
 
 leaf_type2tree(empty) -> empty;
 leaf_type2tree(accounts) -> accounts;
@@ -70,7 +72,7 @@ leaf_type2tree(market) -> markets;
 leaf_type2tree(receipts) -> receipts;
 leaf_type2tree(stablecoins) -> stablecoins;
 leaf_type2tree(job) -> jobs;
-leaf_type2tree(jobs) -> jobs.
+leaf_type2tree(futarchy) -> futarchy.
 
     
 

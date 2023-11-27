@@ -335,13 +335,15 @@ change_in_market(Ba, Y0a, N0a, Y1a, N1a) ->
     N0 = N0a div unit(),
     Y1 = Y1a div unit(),
     N1 = N1a div unit(),
-    M = max(max(Y0, N0), max(Y1, N1)),
-    R=mul(B,ln(divide(
-                 add(exp(make_rat(Y1 - M, B)),
-                     exp(make_rat(N1 - M, B))),
-                 add(exp(make_rat(Y0 - M, B)),
-                     exp(make_rat(N0 - M, B)))))),
-    to_int(R) * unit().
+    Ma = max(max(Y0, N0), max(Y1, N1)),
+    Mi = min(min(Y0, N0), min(Y1, N1)),
+    M = (Ma + Mi) div 2,
+    R=ln(divide(
+           add(exp(make_rat(Y1 - M, B)),
+               exp(make_rat(N1 - M, B))),
+           add(exp(make_rat(Y0 - M, B)),
+               exp(make_rat(N0 - M, B))))),
+    to_int(mul(R, B)) * unit().
     
 veo_in_market(B0, Y0, N0) ->
     %C = B * ln(e^(Y/B) + e^(N/B))
