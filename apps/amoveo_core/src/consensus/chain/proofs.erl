@@ -1026,9 +1026,11 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {futarchy, FID},
                  {oracles, GOID},
                  {oracles, DOID}];
-            futachy_bet_tx ->
+            futarchy_bet_tx ->
                 #futarchy_bet_tx{
-              fid = FID, pubkey = Pubkey
+              fid = FID, pubkey = Pubkey,
+              limit_price = LP, amount = Amount,
+              decision = Decision, goal = Goal
              } = Tx,
                 {TIDAhead, TIDBehind} = 
                     element(4, STx),
@@ -1040,8 +1042,19 @@ txs_to_querys2([STx|T], Trees, Height) ->
                          <<0:256>> -> [];
                          <<_:256>> -> [{futarchy_unmatched, TIDBehind}]
                      end,
+                NewFU0 = #futarchy_unmatched{
+                  owner = Pubkey,
+                  goal = Goal,
+                  decision = Decision,
+                  futarchy_id = FID,
+                  limit_price = LP,
+                  revert_amount = Amount
+                 },
+                NewFU = futarchy_unmatched:make_id(NewFU0, Height),
+                TID = NewFU#futarchy_unmatched.id,
                 [{accounts, Pubkey},
-                 {futarchy, FID}
+                 {futarchy, FID},
+                 {futarchy_unmatched, TID}
                 ] ++ TA ++ TB
 	end,
     L ++ txs_to_querys2(T, Trees, Height).

@@ -4466,18 +4466,32 @@ test(72) ->
     2 = many_txs(),
     mine_blocks(1),
 
-    TrueLiquidity =  200000000,
-    FalseLiquidity = 100000000,
+    VEO = 100000000,
+
+    TrueLiquidity =  2 * VEO,
+    FalseLiquidity = 1 * VEO,
     Period = 1,
+    Salt2 = <<22:256>>,
     Tx3 = futarchy_new_tx:make_dict(
             Pub, DOID, GOID, Period, 
             TrueLiquidity, FalseLiquidity, Fee, 
-            block:height(), <<22:256>>),
+            block:height(), Salt2),
+    FID = futarchy:make_id(Pub, Salt2, block:height()),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     1 = many_txs(),
     mine_blocks(1),
     0 = many_txs(),
+    
+    Decision = 1,
+    Goal = 1,
+    LimitPrice = round(math:pow(2, 16)),
+    Tx4 = futarchy_bet_tx:make_dict(
+            Pub, FID, Decision, Goal, 1*VEO,
+            LimitPrice, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
     
     success.
 

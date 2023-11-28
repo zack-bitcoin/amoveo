@@ -2072,7 +2072,14 @@ sum_amounts_helper(futarchy, Futarchy, _dict, _, _) ->
                shares_false_no = SFN
              } = Futarchy,
     futarchy_batch:veo_in_market(Bt, STY, STN) +
-        futarchy_batch:veo_in_market(Bf, SFY, SFN).
+        futarchy_batch:veo_in_market(Bf, SFY, SFN);
+sum_amounts_helper(futarchy_unmatched, FU, _dict, 
+                   _, _) ->
+    #futarchy_unmatched{
+                    revert_amount = RA
+                   } = FU,
+    RA.
+
 
 remove_repeats(New, Old, Height) ->
     %todo. the old one has "proof" in it. we don't want to lose it in the new one.

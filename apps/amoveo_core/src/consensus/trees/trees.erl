@@ -448,7 +448,6 @@ vget(TreeID, Key, _Dict, Loc) ->
     V.
 get(TreeID, Key) ->
     H = block:height(),
-    F52 = forks:get(52),
     TP = tx_pool:get(),
     Trees = TP#tx_pool.block_trees,
     Dict = TP#tx_pool.dict,

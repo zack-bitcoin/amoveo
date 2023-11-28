@@ -1,5 +1,5 @@
 -module(futarchy_bet_tx).
--export([go/4, make_dict/7]).
+-export([go/4, make_dict/7, set_orders/4, orders/3]).
 
 -include("../../records.hrl").
 
@@ -83,9 +83,9 @@ go({signed, Tx, _Sig, {TIDAhead, TIDBehind}},
       ahead = TIDAhead,
       behind = TIDBehind
      },
-    NewFU = futarchy_unmatched:make_id(NewFU0),
+    NewFU = futarchy_unmatched:make_id(NewFU0, NewHeight),
     TID = NewFU#futarchy_unmatched.id,
-    empty = futarchy_unmatched:dict_get(FID, Dict2),
+    empty = futarchy_unmatched:dict_get(TID, Dict2),
     Dict3 = futarchy_unmatched:dict_write(
               NewFU, Dict2),
     Dict4 = 

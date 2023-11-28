@@ -1,6 +1,7 @@
 -module(futarchy_unmatched).
 -export([key_to_int/1, make_id/2, dict_get/2,
-         dict_write/2, dict_write/3, dict_get/3
+         dict_write/2, dict_write/3, dict_get/3,
+         id_pair/2
         ]).
 -include("../../records.hrl").
 key_to_int(#futarchy_unmatched{id = <<X:256>>}) -> X;
@@ -42,7 +43,18 @@ dict_get(ID, Dict) ->
 dict_write(Job, Dict) ->
     dict_write(Job, 0, Dict).
 dict_write(Job, _Meta, Dict) ->
-    ID = Job#futarchy_unmatched.futarchy_id,
+    ID = Job#futarchy_unmatched.id,
     csc:update({?MODULE, ID}, Job, Dict).
 
-       
+      
+%given an order, we need to calculate where in the order book this order will be placed.
+%Return the id of the order ahead of it, and behind it, in the book. 
+id_pair(Price, 
+        Pointer %points to the next element in the linked list.
+       ) ->
+    case trees:get(futarchy_unmatched, Pointer) of
+        empty -> {<<0:256>>, <<0:256>>};
+        X ->
+            io:fwrite({Price, X}),
+            ok
+    end.
