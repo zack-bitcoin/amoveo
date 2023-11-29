@@ -1,8 +1,4 @@
-
-
-working on the futarchy_bet_tx.
-we need to put the tids into the sig slot when adding the tx to the tx_pool.
-add a test for the futarchy_bet_tx.
+futachy_batch_tx needs to be implemented and tested.
 
 
 futarchy hard update.

@@ -44,14 +44,32 @@ absorb_internal(SignedTx) ->
 	       _ -> 2000
 	   end,
     absorb_timeout(SignedTx, Wait).
-absorb_timeout(SignedTx, Wait) ->
+absorb_timeout(SignedTx0, Wait) ->
     %io:fwrite("tx pool feeder absorb timeout\n"),
     S = self(),
     H = block:height(),
-    Tx = signing:data(SignedTx),
+    Tx = signing:data(SignedTx0),
 %    F36 = forks:get(36),
 %    F38 = forks:get(38),
-    Txid = hash:doit(Tx),
+    SignedTx = 
+        case element(1, Tx) of
+            futarchy_bet_tx ->
+                #futarchy_bet_tx{
+              fid = FID,
+              limit_price = LP,
+              decision = Decision,
+              goal = Goal
+             } = Tx,
+                Futarchy = trees:get(futarchy, FID),
+                {TIDAhead, TIDBehind} = 
+                    futarchy_unmatched:id_pair(
+                      LP, futarchy_bet_tx:orders(
+                            Decision, Goal, 
+                            Futarchy)),
+                setelement(4, SignedTx0, {TIDAhead, TIDBehind});
+            _ -> SignedTx0
+        end,
+            %io:fwrite("now 3 "),%1500
     PrevHash = block:hash(headers:top_with_block()),
     spawn(fun() ->
                   %io:fwrite("tx pool feeder absorb timeout b\n"),
@@ -70,13 +88,13 @@ absorb_timeout(SignedTx, Wait) ->
     end.
 	    
 	    
-absorb_internal2(SignedTx0, PID) ->
+absorb_internal2(SignedTx, PID) ->
     %io:fwrite("now 2 "),%200
     %io:fwrite("absorb internal 2\n"),
     %io:fwrite(packer:pack(now())),
     %io:fwrite("\n"),
     %io:fwrite("tx pool feeder absorb timeout 2\n"),
-    Tx = signing:data(SignedTx0),
+    Tx = signing:data(SignedTx),
     F = tx_pool:get(),
     Txs = F#tx_pool.txs,
     %io:fwrite("absorb internal 4"),
@@ -85,28 +103,10 @@ absorb_internal2(SignedTx0, PID) ->
             io:fwrite("is in error\n"),
             PID ! error;
         false -> 
-	    true = signing:verify(SignedTx0),
+	    true = signing:verify(SignedTx),
 	    Fee = element(4, Tx),
 	    Type = element(1, Tx),
 
-            SignedTx = 
-                case element(1, Tx) of
-                    futarchy_bet_tx ->
-                        #futarchy_bet_tx{
-                      fid = FID,
-                      limit_price = LP,
-                      decision = Decision,
-                      goal = Goal
-                     } = Tx,
-                        Futarchy = trees:get(futarchy, FID),
-                        {TIDAhead, TIDBehind} = 
-                            futarchy_unmatched:id_pair(
-                              LP, futarchy_bet_tx:orders(
-                                    Decision, Goal, 
-                                    Futarchy)),
-                        setelement(4, SignedTx0, {TIDAhead, TIDBehind});
-                    _ -> SignedTx0
-                end,
             %io:fwrite("now 3 "),%1500
             %io:fwrite(packer:pack(now())),
             %io:fwrite("\n"),

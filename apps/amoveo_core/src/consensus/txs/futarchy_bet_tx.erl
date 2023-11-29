@@ -30,7 +30,7 @@ make_dict(Pubkey, FID, Decision, Goal,
 orders(1, 1, F) -> F#futarchy.true_yes_orders;
 orders(1, 0, F) -> F#futarchy.true_no_orders;
 orders(0, 1, F) -> F#futarchy.false_yes_orders;
-orders(1, 1, F) -> F#futarchy.false_no_orders.
+orders(0, 0, F) -> F#futarchy.false_no_orders.
 
 set_orders(1, 1, F, TID) ->
     F#futarchy{true_yes_orders = TID};
@@ -91,7 +91,7 @@ go({signed, Tx, _Sig, {TIDAhead, TIDBehind}},
     Dict4 = 
         case TIDAhead of
             <<0:256>> ->
-                <<0:256>> = orders(Decision, Goal, Futarchy),
+                %<<0:256>> = orders(Decision, Goal, Futarchy),
                 Futarchy2 = set_orders(Decision, Goal, Futarchy, TID),
                 futarchy:dict_write(Futarchy2, Dict3);
             <<_:256>> ->

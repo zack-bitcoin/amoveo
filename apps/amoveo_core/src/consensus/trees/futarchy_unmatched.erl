@@ -54,7 +54,29 @@ id_pair(Price,
        ) ->
     case trees:get(futarchy_unmatched, Pointer) of
         empty -> {<<0:256>>, <<0:256>>};
-        X ->
-            io:fwrite({Price, X}),
-            ok
+        FU ->
+            #futarchy_unmatched{ 
+          limit_price = L,
+          id = ID,
+          behind = Next
+         } = FU,
+            if
+                (Price > L) -> {<<0:256>>, <<ID/binary>>};
+                true -> id_pair2(Price, ID, Next)
+            end
     end.
+id_pair2(Price, Previous, Pointer) ->
+    case trees:get(futarchy_unmatched, Pointer) of
+        empty -> {Previous, <<0:256>>};
+        FU ->
+            #futarchy_unmatched{ 
+          limit_price = L,
+          id = ID,
+          behind = Next
+         } = FU,
+            if
+                (Price > L) -> {Previous, ID};
+                true -> id_pair2(Price, ID, Next)
+            end
+    end.
+                    

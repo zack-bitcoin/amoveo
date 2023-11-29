@@ -1032,6 +1032,10 @@ txs_to_querys2([STx|T], Trees, Height) ->
               limit_price = LP, amount = Amount,
               decision = Decision, goal = Goal
              } = Tx,
+                case element(4, STx) of
+                    [] -> io:fwrite(STx);
+                    _ -> ok
+                end,
                 {TIDAhead, TIDBehind} = 
                     element(4, STx),
                 TA = case TIDAhead of

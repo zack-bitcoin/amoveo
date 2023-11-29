@@ -4485,6 +4485,7 @@ test(72) ->
     
     Decision = 1,
     Goal = 1,
+    OtherGoal = 0,
     LimitPrice = round(math:pow(2, 16)),
     Tx4 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
@@ -4492,6 +4493,32 @@ test(72) ->
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
+
+    Tx5 = futarchy_bet_tx:make_dict(
+            Pub, FID, Decision, Goal, 1*VEO,
+            LimitPrice+5, Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    2 = many_txs(),
+    
+    Tx6 = futarchy_bet_tx:make_dict(
+            Pub, FID, Decision, Goal, 1*VEO,
+            LimitPrice+3, Fee),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    3 = many_txs(),
+
+    Tx7 = futarchy_bet_tx:make_dict(
+            Pub, FID, Decision, OtherGoal, 
+            round(2.5*VEO), LimitPrice+3, Fee),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    4 = many_txs(),
+
+    mine_blocks(1),
+    0 = many_txs(),
+    
+    
     
     success.
 
