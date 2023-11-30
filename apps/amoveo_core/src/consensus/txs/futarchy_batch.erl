@@ -94,14 +94,15 @@ go({signed, Tx, _Sig, {Price, _Trues, _Falses}},
     Price = ?e2_16 * PT div PB,
 
     %total cost to move the market like this
-    TotalCost = change_in_market(
+    TotalCost = lmsr:change_in_market(
                   LMSRBeta, Q1, Q2, Q1+MT, Q2+MF),
 
     TotalCost = (MT * Price div ?e2_16) +
-        (MF * (?e2_16 div Price) div ?e2_16)
+        %(MF * (?e2_16 * ?e2_16 div Price) div ?e2_16)
+        (MF * ?e2_16 div Price),
   
     %Veo = shares * price = MT * Price div ?e2^16.
-    match(Trues, Price, MT)
+    %match(Trues, Price, MT),
 
     %walk down both sides of the order book, match everything you can at this price, the very last bet might only be partially matched. include the trade from the lmsr as well.
     %if there are more than 50 trades to match, then just match the first 50, but don't update the batch height counter, so that another batch can be made immediately.
