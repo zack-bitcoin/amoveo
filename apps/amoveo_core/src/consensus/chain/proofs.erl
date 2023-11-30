@@ -72,6 +72,7 @@ leaf_type2tree(market) -> markets;
 leaf_type2tree(receipts) -> receipts;
 leaf_type2tree(stablecoins) -> stablecoins;
 leaf_type2tree(job) -> jobs;
+leaf_type2tree(jobs) -> jobs;
 leaf_type2tree(futarchy) -> futarchy.
 
     
