@@ -79,6 +79,12 @@ doit({receipts, ID}) ->
     {ok, api:tree_common(receipts, ID)};
 doit({jobs, ID}) ->
     {ok, api:tree_common(jobs, ID)};
+doit({futarchy, FID}) ->
+    {ok, api:tree_common(futarchy, FID)};
+doit({futarchy_unmatched, TID}) ->
+    {ok, api:tree_common(futarchy_unmatched, TID)};
+doit({futarchy_matched, TID}) ->
+    {ok, api:tree_common(futarchy_matched, TID)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
 doit({version}) -> {ok, version:doit(block:height())};

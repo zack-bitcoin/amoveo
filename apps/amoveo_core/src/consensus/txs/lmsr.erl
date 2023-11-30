@@ -1,19 +1,26 @@
 -module(lmsr).
 -export([cf2f/2, log_table/1, to_float/1, 
          exp/1, ln/1, make_rat/2, e/0, pow/2,
-         accuracy/1, speed/0, ln2/0,
+         accuracy/1, speed/0, ln2/0, 
+         inverse/1, add/2, price/3,
          veo_in_market/3, change_in_market/5]).
 
 %==========TLDR, limits of this software=======
 % don't match trades where the odds are steeper than 1:1000. only provide liquidity inside the bounds.
+%given a market with Q1 and Q2 shares, and a beta value of B you can look up the current amount of veo in that market like this: 
+% `veo_in_market(B, Q1, Q2).`
 %================================================
 
 %%%%%%%%%_____Long Docs_____%%%%%%%%%%%
 
 %logrithm algorithm based on this page: https://love2d.org/forums/viewtopic.php?p=231486
 
-%given a market with Q1 and Q2 shares, and a beta value of B you can look up the current amount of veo in that market like this: 
-% `veo_in_market(B, Q1, Q2).`
+%about the lmsr.
+%how much money is in an lmsr market that sold q1 of shares of type 1, and q2 of shares of type 2. B is a liquidity constant based on how much was paid to make the market.
+%`C = B * ln(e^(q1/B) + e^(q2/B))`
+
+%instantaneous price 
+%`P = e^(q1/B) / (e^(q1/B) + e^(q2/B))`
 
 
 
@@ -121,9 +128,8 @@ ln2() ->
 exp(#rat{t = T, b = B}) ->
     %e^(T / B) = 
     %e^(T div B) * e^((T rem B)/B)
-    Xint = T div B,
     Xfract = #rat{t = T rem B, b = B},
-    Rint = pow(e(), Xint),%e^(T div B)
+    Rint = pow(e(), T div B),%e^(T div B)
     Xfract2 = mul(Xfract, Xfract),
     Xfract3 = mul(Xfract, Xfract2),
     Xfract4 = mul(Xfract2, Xfract2),
@@ -322,8 +328,8 @@ log_table(21) ->
     %#rat{t = 2048,b = 4294969197}.
 %    cf2f(0, [2097152, 2, 6291456, 1, 10485761, 2, 1631118, 9, 524288, 72, 25631, 1, 5]).
 
-
-
+price(B, Q1, Q2) ->
+    inverse(add(exp(#rat{t = Q2 - Q1, b = B}), 1)).
     
 
 change_in_market(B, Y0, N0, Y1, N1) ->
@@ -355,7 +361,7 @@ change_in_market(B, Y0, N0, Y1, N1) ->
 
 %    F = ln(divide(add(1, exp(#rat{t= N1-Y1, b= B})),
 %                  add(1, exp(#rat{t= N0-Y0, b= B})))),
-%    Result3 = Y1 - Y0 + ((B * F#rat.t) div F#rat.b).
+%    Result3 = Y1 - Y0 + ((B * F#rat.t) div F#rat.b),
     
     Result.
     
@@ -377,6 +383,7 @@ there_and_back(T, B) ->
      {absolute, to_float(sub(R, ln(exp(R))))}}.
 
 accuracy(0) -> 
+    1=2,
     {exp,
      {ac(math:exp(0.00000002), 
       to_float(
