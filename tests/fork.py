@@ -97,9 +97,10 @@ def test_orphan_txs():
     #request(2, "spend", [pub2, 1], 1)
 
     print("orphan tx 2.2")
-    request(2, 'mine_block', [], 0.01)
-    request(1, 'mine_block', [], 0.01)
-    request(1, 'mine_block', [], 0.01)
+    request(2, 'mine_block', [], 0.1)
+    request(1, 'mine_block', [], 0.5)
+    assertEqual(1, 2)
+    request(1, 'mine_block', [], 0.1)
     height1 = request(1, 'height', [1], 0.05)
     height2 = request(2, 'height', [1], 0.05)
     #assertEqual(1, 2)

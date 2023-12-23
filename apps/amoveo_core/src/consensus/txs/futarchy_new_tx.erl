@@ -1,5 +1,5 @@
 -module(futarchy_new_tx).
--export([go/4, make_dict/9]).
+-export([go/4, make_dict/8]).
 
 -include("../../records.hrl").
 
@@ -10,24 +10,24 @@
 
 make_dict(Pubkey, DecisionOID, GoalOID, Period, 
           TrueLiquidity, FalseLiquidity, Fee, 
-          Height, Salt) ->
+          Height) ->
     <<_:256>> = DecisionOID,
     <<_:256>> = GoalOID,
     <<_:520>> = Pubkey,
-    <<_:256>> = Salt,
     true = is_integer(Period),
     true = Period > -1,
     Account = trees:get(accounts, Pubkey),
-    FID = futarchy:make_id(Pubkey, Salt, Height),
+    Nonce = Account#acc.nonce+1,
+    FID = futarchy:make_id(Pubkey, <<Nonce:256>>, Height),
     #futarchy_new_tx{pubkey = Pubkey,
-                     nonce = Account#acc.nonce+1,
+                     nonce = Nonce,
                      decision_oid = DecisionOID,
                      goal_oid = GoalOID,
                      period = Period,
                      true_liquidity = TrueLiquidity,
                      false_liquidity = FalseLiquidity,
                      futarchy_id = FID, 
-                     fee = Fee, salt = Salt}.
+                     fee = Fee}.
 
 go(Tx, Dict, NewHeight, NonceCheck) ->
     #futarchy_new_tx{
@@ -35,7 +35,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     goal_oid = GoalOID, period = Period, 
     true_liquidity = TrueLiquidity,
     false_liquidity = FalseLiquidity,
-    nonce = Nonce0, salt = Salt,
+    nonce = Nonce0, 
     futarchy_id = FID, fee = Fee} = Tx,
     true = NewHeight > (forks:get(54)),
     true = is_integer(Period),
@@ -50,7 +50,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             -Fee - TrueLiquidity - FalseLiquidity, 
             Nonce),
     Dict2 = accounts:dict_write(Acc, Dict),
-    FID = futarchy:make_id(Pubkey, Salt, NewHeight),
+    FID = futarchy:make_id(Pubkey, <<Nonce0:256>>, NewHeight),
     empty = futarchy:dict_get(FID, Dict, NewHeight),
     #oracle{} = oracles:dict_get(DecisionOID, Dict2),
     #oracle{} = oracles:dict_get(GoalOID, Dict2),

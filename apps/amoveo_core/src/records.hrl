@@ -290,14 +290,15 @@
          false_yes_orders = <<0:256>>,
          false_no_orders = <<0:256>>,
          batch_period,
-         last_batch_height = 0,
          liquidity_true = 0, %liquidity in the optional lmsr market.
          liquidity_false = 0,
          shares_true_yes = 0,%total shares purchased for the case where the decision is true, and the goal is yes.
          shares_true_no = 0,
          shares_false_yes = 0,
          shares_false_no = 0,
-         active = 1}).
+         active = 1,
+         many_trades = 0,
+         nonce = 0}).
 -record(futarchy_unmatched,
         {id,
          owner,%who made this bet
@@ -324,8 +325,7 @@
          futarchy_id,
          period, %how long until the next fixed price batch can execute.
          true_liquidity, %how much money to put into liquidity for a lmsr market for the case where the decision is True.
-         false_liquidity,
-         salt %32 bytes of randomness to help generate the futarchy_id
+         false_liquidity
         }).
 -record(futarchy_bet_tx,
         {pubkey, nonce, fee,
@@ -333,5 +333,6 @@
         limit_price, %the highest price you are willing to pay.
         amount, %the amount of veo you are risking.
         decision, %your bet is not reverted if this decision is selected. true/false
-        goal %you win if the goal oracle finalizes in this state. true/false
+        goal, %you win if the goal oracle finalizes in this state. true/false
+        futarchy_nonce
         }).

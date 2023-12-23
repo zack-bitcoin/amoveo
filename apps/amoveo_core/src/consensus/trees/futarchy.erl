@@ -2,7 +2,7 @@
 -export([key_to_int/1, make_id/3, dict_get/2,
          dict_write/2, dict_write/3, dict_get/3
         ]).
-%futarchy, {fid, decision_oid, goal_oid, true_orders, false_orders, batch_period, last_batch_height, liquidity_true, shares_true_yes, shares_true_no, liquidity_false, shares_false_yes, shares_false_no, active}
+%futarchy, {fid, decision_oid, goal_oid, true_orders, false_orders, liquidity_true, shares_true_yes, shares_true_no, liquidity_false, shares_false_yes, shares_false_no, active, many_trades}
 -include("../../records.hrl").
 
 

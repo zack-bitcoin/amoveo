@@ -1,10 +1,14 @@
 -module(futarchy_bet_tx).
--export([go/4, make_dict/7, set_orders/4, orders/3]).
+-export([go/4, make_dict/8, set_orders/4, orders/3]).
 
 -include("../../records.hrl").
 
+-define(e2_16, 65536). %this is "one" in a certain perspective. we can store rationals from 1/this to this/1.
+-define(e2_32, 4294967296). %the maximum number that can be expressed in thes system. is around 65536.
+
 make_dict(Pubkey, FID, Decision, Goal, 
-          Amount, LimitPrice, Fee) ->
+          Amount, LimitPrice, FutarchyNonce, 
+          Fee) ->
     Account = trees:get(accounts, Pubkey),
     <<_:256>> = FID,
     case Decision of
@@ -19,6 +23,7 @@ make_dict(Pubkey, FID, Decision, Goal,
     true = (Amount > 0),
     true = is_integer(LimitPrice),
     true = (LimitPrice > 0),
+    %the mining pool should update the meta data to store matched_tids for this bet.
     #futarchy_bet_tx{
              pubkey = Pubkey,
              nonce = Account#acc.nonce+1,
@@ -26,6 +31,7 @@ make_dict(Pubkey, FID, Decision, Goal,
              limit_price = LimitPrice,
              amount = Amount,
              decision = Decision,
+             futarchy_nonce = FutarchyNonce,
              goal = Goal}.
 orders(1, 1, F) -> F#futarchy.true_yes_orders;
 orders(1, 0, F) -> F#futarchy.true_no_orders;
@@ -41,13 +47,22 @@ set_orders(0, 1, F, TID) ->
 set_orders(0, 0, F, TID) ->
     F#futarchy{false_no_orders = TID}.
 
+go({signed, Tx, _Sig, {0, TIDAhead, TIDBehind}}, 
+   Dict, NewHeight, NonceCheck) ->
+    %This is the case where your trade is added to the order book.
+    ok;
+go({signed, Tx, _Sig, {1, TIDsMatched, TIDPartlyMatched}}, 
+   Dict, NewHeight, NonceCheck) ->
+    %This is the case where your trade is completely matched.
+    ok;
                    
-go({signed, Tx, _Sig, {TIDAhead, TIDBehind}}, 
+go({signed, Tx, _Sig, _}, 
    Dict, NewHeight, NonceCheck) ->
     #futarchy_bet_tx{
     pubkey = Pubkey, fid = FID, nonce = Nonce0,
     fee = Fee, limit_price = LimitPrice,
     amount = Amount, decision = Decision, 
+    futarchy_nonce = FutarchyNonce,
     goal = Goal} = Tx,
     true = NewHeight > (forks:get(54)),
     case Goal of
@@ -71,69 +86,102 @@ go({signed, Tx, _Sig, {TIDAhead, TIDBehind}},
             Nonce),
     Dict2 = accounts:dict_write(Acc, Dict),
     Futarchy = futarchy:dict_get(FID, Dict2),
-    #futarchy{active = 1, last_batch_height = LUH} =
+    #futarchy{active = 1, nonce = FutarchyNonce} =
         Futarchy,
-    NewFU0 = #futarchy_unmatched{
+
+    {Q1, Q2, LMSRBeta} = 
+        case Decision of
+            1 -> {Futarchy#futarchy.shares_true_yes,
+                  Futarchy#futarchy.shares_true_no,
+                  Futarchy#futarchy.liquidity_true};
+            0 -> {Futarchy#futarchy.shares_false_yes,
+                  Futarchy#futarchy.shares_false_no,
+                  Futarchy#futarchy.liquidity_false}
+        end,
+
+    {OurOrders, TheirOrders} = 
+        case {Decision, Goal} of
+            {1,1}->{Futarchy#futarchy.true_yes_orders, 
+                     Futarchy#futarchy.true_no_orders};
+            {1,0}->{Futarchy#futarchy.true_no_orders,
+                    Futarchy#futarchy.true_yes_orders};
+            {0,1}->{Futarchy#futarchy.false_yes_orders,
+                    Futarchy#futarchy.false_no_orders};
+            {0,0}->{Futarchy#futarchy.false_no_orders,
+                    Futarchy#futarchy.false_yes_orders}
+        end,
+    {Dict3, AmountMatched} = 
+        case match(TheirOrders, OurOrders, Amount, 
+                   LimitPrice, Goal, 
+                   Dict2, LMSRBeta, Q1, Q2, 
+                  Decision) of%this creates the matched trades and puts it in the Dict. It updates the futarchy with the new orders, and because of the more shares purchased.
+            {finished, DictA} ->
+                {DictA, Amount};
+            {more, Amount2, DictC} ->
+                %add an unmatched trade to OurOrders
+                NewFU0 = #futarchy_unmatched{
+                  owner = Pubkey,
+                  futarchy_id = FID,
+                  decision = Decision,
+                  goal = Goal,
+                  revert_amount = Amount-Amount2,
+                  limit_price = LimitPrice
+%                  ahead = TIDAhead,
+%                  behind = TIDBehind
+                 },
+%                {DictB, A
+                NewFU = futarchy_unmatched:make_id(NewFU0, NewHeight),
+                TID = NewFU#futarchy_unmatched.id,
+                empty = futarchy_unmatched:dict_get(TID, DictC),
+                {NewOrders, DictD} = insert(NewFU, OurOrders, DictC),
+                %todo. update futarchy to point to neworders.
+%                 DictD = futarchy_unmatched:dict_write(
+%                           NewFU, DictC),
+                 {DictD, Amount - Amount2}
+                     
+            
+        end,
+   %todo. add a matched trade for the new order that is being created.
+    FM = #futarchy_matched{
       owner = Pubkey,
       futarchy_id = FID,
       decision = Decision,
-      goal = Goal,
-      revert_amount = Amount,
-      limit_price = LimitPrice,
-      ahead = TIDAhead,
-      behind = TIDBehind
+      revert_amount = AmountMatched,
+      win_amount = ok
      },
-    NewFU = futarchy_unmatched:make_id(NewFU0, NewHeight),
-    TID = NewFU#futarchy_unmatched.id,
-    empty = futarchy_unmatched:dict_get(TID, Dict2),
-    Dict3 = futarchy_unmatched:dict_write(
-              NewFU, Dict2),
-    Dict4 = 
-        case TIDAhead of
-            <<0:256>> ->
-                %<<0:256>> = orders(Decision, Goal, Futarchy),
-                Futarchy2 = set_orders(Decision, Goal, Futarchy, TID),
-                futarchy:dict_write(Futarchy2, Dict3);
-            <<_:256>> ->
-                BetAhead = 
-                    futarchy_unmatched:dict_get(TIDAhead, Dict2),
-                #futarchy_unmatched{
-                   goal = Goal, decision = Decision, 
-                   limit_price = PriceA} = BetAhead,
-                TIDBehind = BetAhead#futarchy_unmatched.behind,
-                true = PriceA >= LimitPrice,
-                BetAhead2 = 
-                    BetAhead#futarchy_unmatched{
-                      behind = TID
-                     },
-                futarchy_unmatched:dict_write(
-                  BetAhead2, Dict3)
-        end,
 
-    Dict5 = 
-        case TIDBehind of
-            <<0:256>> -> Dict4;
-            <<_:256>> ->
-                BetBehind = 
-                    futarchy_unmatched:dict_get(
-                      TIDBehind, Dict2),
-                #futarchy_unmatched{
-                    goal = Goal, decision = Decision,
-                    limit_price = PriceB} = BetBehind,
-                TIDAhead = BetBehind#futarchy_unmatched.ahead,
-                true = LimitPrice > PriceB,
-                BetBehind2 = 
-                    BetBehind#futarchy_unmatched{
-                      ahead = TID
-                     },
-                futarchy_unmatched:dict_write(
-                  BetBehind2, Dict4)
-        end,
-    Dict6 = case LUH of
-                0 ->
-                    Futarchy3 = futarchy:dict_get(FID, Dict5),
-                    Futarchy4 = Futarchy3#futarchy{last_batch_height = NewHeight},
-                    futarchy:dict_write(Futarchy4, Dict5);
-                _ -> Dict5
+    %increment the futarchy nonce.
+    
+    ok.
+
+insert(_, _, _) ->
+    ok.
+
+match(TheirOrders, OurOrders, Amount, Price0, Goal,
+      Dict, Beta, Q1, Q2, Decision) ->
+    Price = case Decision of
+                1 -> Price0;
+                0 -> ?e2_16 - Price0
             end,
-    Dict6.
+    FU =futarchy_unmatched:dict_get(TheirOrders, Dict),
+    #futarchy_unmatched{id = FUID,
+                        limit_price = LP,
+                        ahead = <<0:256>>,
+                        behind = NFUID} = FU,
+    %todo. figure out what the current lmsr price is. we need to keep pulling liquidity out of the lmsr as we match more trades.
+    C = Price * LP div ?e2_16,
+    if
+        (C > ?e2_16) ->
+            %todo we match at least some orders.
+            ok;
+        true ->
+            %we don't match any orders
+            {more, Amount, Dict}
+    end.
+                    
+
+
+
+
+
+

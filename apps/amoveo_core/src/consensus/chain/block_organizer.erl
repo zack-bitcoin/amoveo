@@ -90,10 +90,10 @@ add([]) -> 0;
 add(Blocks) when not is_list(Blocks) -> 0;
 add(Blocks) ->
     true = is_list(Blocks),
-    io:fwrite("block organizer add\n"),
+    %io:fwrite("block organizer add\n"),
     %io:fwrite(packer:pack(Blocks)),
     {Blocks2, AddReturn} = add1(Blocks, []),
-    io:fwrite("block organizer add1 finished\n"),
+    %io:fwrite("block organizer add1 finished\n"),
     %{ok, Cores} = application:get_env(amoveo_core, block_threads),
     Cores = 1,
     add3(lists:reverse(Blocks2), (length(Blocks2) div Cores) + 1),
@@ -117,7 +117,7 @@ add3(Blocks, Many)->
     add3(B, Many).
 %add3(Blocks) -> add4(Blocks).
 add4(Blocks) ->
-    io:fwrite("block organizer add 4\n"),
+    %io:fwrite("block organizer add 4\n"),
     spawn(fun() ->
                   Height = element(2, hd(Blocks)),
                   %Height2 = element(2, hd(lists:reverse(Blocks))),

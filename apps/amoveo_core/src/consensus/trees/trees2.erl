@@ -602,7 +602,6 @@ serialize(#futarchy{
              false_yes_orders = FalseYesOrders, 
              false_no_orders = FalseNoOrders, 
              batch_period = BP, 
-             last_batch_height = LBH,
              liquidity_true = LT,
              shares_true_yes = STY,
              shares_true_no = STN,
@@ -610,7 +609,7 @@ serialize(#futarchy{
              shares_false_yes = SFY,
              shares_false_no = SFN,
              creator = Pub,
-             active = Active}) ->
+             active = Active, many_trades = MT}) ->
     <<Creator:264>> = compress_pub(Pub),
     32 = size(DOID),
     32 = size(GOID),
@@ -620,7 +619,6 @@ serialize(#futarchy{
     32 = size(FalseNoOrders),
     32 = size(FID),
     true = is_integer(BP),
-    true = is_integer(LBH),
     true = is_integer(LT),
     true = is_integer(STY),
     true = is_integer(STN),
@@ -631,7 +629,7 @@ serialize(#futarchy{
              1 -> 1;
              0 -> 0
          end,
-    <<AB, BP:32, LBH:32, LT:64, STY:64, STN:64,
+    <<AB, BP:32, MT:32, LT:64, STY:64, STN:64,
       LF:64, SFY:64, SFN:64,
       DOID/binary, GOID/binary,
       TrueYesOrders/binary, TrueNoOrders/binary, 
@@ -748,7 +746,7 @@ deserialize(11, <<ID:256, W:264, Boss:264, V:64, S:64, Balance:64, T:32>>) ->
     #job{id = <<ID:256>>, worker = decompress_pub(<<W:264>>),
          boss = decompress_pub(<<Boss:264>>),
          value = V, salary = S, balance = Balance, time = T};
-deserialize(12, <<Active, BP:32, LBH:32, LT:64, 
+deserialize(12, <<Active, BP:32, MT:32, LT:64, 
                   STY:64, STN:64, LF:64, SFY:64, 
                   SFN:64, DOID2:256, GOID2:256, 
                   TrueYesOrders2:256, 
@@ -774,14 +772,14 @@ deserialize(12, <<Active, BP:32, LBH:32, LT:64,
       false_yes_orders = FalseYesOrders,
       false_no_orders = FalseNoOrders,
       batch_period = BP,
-      last_batch_height = LBH,
       liquidity_true = LT,
       shares_true_yes = STY,
       shares_true_no = STN,
       liquidity_false = LF,
       shares_false_yes = SFY,
       shares_false_no = SFN,
-      active = Active};
+      active = Active,
+      many_trades = MT};
 %    futarchy:make_id(F1, 0);
 deserialize(13, <<D, G, RA:64, LP:64, Pub2:(33*8),
                   FID2:256,

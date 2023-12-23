@@ -1,8 +1,13 @@
-fix the frozen mining pool.
+don't let blocks get dropped.
+
+
+
 
 make sure that we are doing everything we need to for the 3 new verkle tree elements. Like, copying databases when doing checkpoints.
 
-futachy_batch_tx needs to be implemented and tested.
+
+How important is it to reference a state root of the futarchy market when making your trade? what if we just have a nonce? How bad can attackers attack? would it be better to reference the previous trade before yours somehow?
+
 
 
 futarchy hard update.

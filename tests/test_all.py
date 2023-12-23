@@ -3,12 +3,12 @@ from header import *
 from share_blocks import *
 from spend import *
 
-#test_orphan_txs()
+test_orphan_txs()
 
 #test_header_single()
 #test_header_many()
 
-test_mine_and_sync()
+#test_mine_and_sync()
 #test_three()
 
 #spend_test()

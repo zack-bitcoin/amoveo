@@ -108,12 +108,10 @@ tx_maker0(Tx, Timeout) ->
 		    ok;
 		Stx -> 
 		    ok = tx_pool_feeder:absorb(Stx, Timeout),
-                    lists:map(fun(X) ->
-                                      spawn(fun() ->
-                                                    sync:trade_txs(X)
-                                            end)
-                              end,
-                              hash:doit(Tx))
+                    spawn(fun() ->
+                                  sync:trade_txs(Stx)
+                          end),
+                    hash:doit(Tx)
 	    end
     end.
 create_account(NewAddr, Amount) ->
@@ -187,6 +185,7 @@ spend(ID0, Amount, Fee) ->
     case keys:status() of
         locked -> {error, "need to decrypt private key"};
         unlocked ->
+            io:fwrite("signing tx\n"),
             tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey()))
     end.
 delete_account(ID0) ->
