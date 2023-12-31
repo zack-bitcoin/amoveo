@@ -1,19 +1,19 @@
 -module(futarchy_matched).
--export([key_to_int/1, make_id/2, dict_get/2,
+-export([key_to_int/1, dict_get/2,
          dict_write/2, dict_write/3, dict_get/3
         ]).
 
 -include("../../records.hrl").
 key_to_int(#futarchy_matched{id = <<X:256>>}) -> X;
 key_to_int(<<X:256>>) -> X.
-make_id(Pub, Salt) ->
-    <<_:256>> = Salt,
-    Pub2 = case size(Pub) of
-               33 -> Pub;
-               65 -> trees2:compress_pub(Pub)
-           end,
-    B = <<0, Pub2/binary, Salt/binary>>,
-    hash:doit(B).
+%make_id(Pub, Salt) ->
+%    <<_:256>> = Salt,
+%    Pub2 = case size(Pub) of
+%               33 -> Pub;
+%               65 -> trees2:compress_pub(Pub)
+%           end,
+%    B = <<0, Pub2/binary, Salt/binary>>,
+%    hash:doit(B).
     
 dict_get(ID, Dict, _) ->
     dict_get(ID, Dict).

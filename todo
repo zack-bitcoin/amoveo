@@ -1,12 +1,20 @@
-don't let blocks get dropped.
+test lmsr:max_buy, then use it in tx_pool_feeder, and possibly also in futarchy_bet_tx.
+
+there is a todo in tx_pool_feeder
+
+get test_txs:test(72) working.
+write test 73.
 
 
 
+
+working on tx_pool_feeder
 
 make sure that we are doing everything we need to for the 3 new verkle tree elements. Like, copying databases when doing checkpoints.
 
 
 How important is it to reference a state root of the futarchy market when making your trade? what if we just have a nonce? How bad can attackers attack? would it be better to reference the previous trade before yours somehow?
+new_hash = hash(old_hash + trade_hash).
 
 
 

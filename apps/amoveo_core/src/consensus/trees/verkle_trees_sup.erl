@@ -17,9 +17,9 @@ dumps() ->
      {markets_dump, 124},
      {receipts_dump, 69},
      {jobs_dump, 126},
-     {futarchy_dump, 314},
+     {futarchy_dump, 346},
      {futarchy_unmatched_dump, 147},
-     {futarchy_matched_dump, 114}
+     {futarchy_matched_dump, 115}
     ].
 dumps2() ->
     [
@@ -33,9 +33,9 @@ dumps2() ->
      {markets_cleaner, 124},
      {receipts_cleaner, 69},
      {jobs_cleaner, 126},
-     {futarchy_cleaner, 314},
+     {futarchy_cleaner, 346},
      {futarchy_unmatched_cleaner, 147},
-     {futarchy_matched_cleaner, 114}
+     {futarchy_matched_cleaner, 115}
 ].
     
 stop() -> 

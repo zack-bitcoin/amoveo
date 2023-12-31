@@ -2071,8 +2071,8 @@ sum_amounts_helper(futarchy, Futarchy, _dict, _, _) ->
                shares_false_yes = SFY,
                shares_false_no = SFN
              } = Futarchy,
-    futarchy_batch:veo_in_market(Bt, STY, STN) +
-        futarchy_batch:veo_in_market(Bf, SFY, SFN);
+    lmsr:veo_in_market(Bt, STY, STN) +
+        lmsr:veo_in_market(Bf, SFY, SFN);
 sum_amounts_helper(futarchy_unmatched, FU, _dict, 
                    _, _) ->
     #futarchy_unmatched{

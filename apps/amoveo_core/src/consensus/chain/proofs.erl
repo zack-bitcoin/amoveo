@@ -1045,16 +1045,32 @@ txs_to_querys2([STx|T], Trees, Height) ->
                     [] -> io:fwrite(STx);
                     _ -> ok
                 end,
-                {TIDAhead, TIDBehind} = 
-                    element(4, STx),
-                TA = case TIDAhead of
-                         <<0:256>> -> [];
-                         <<_:256>> -> [{futarchy_unmatched, TIDAhead}]
-                     end,
-                TB = case TIDBehind of
-                         <<0:256>> -> [];
-                         <<_:256>> -> [{futarchy_unmatched, TIDBehind}]
-                     end,
+                TIDCases = 
+                    case element(4, STx) of
+                        {0, TIDAhead, TIDBehind} ->
+                            %added an order to the book.
+                            TA = case TIDAhead of
+                                     <<0:256>> -> [];
+                                     <<_:256>> -> 
+                                         [{futarchy_unmatched, TIDAhead}]
+                                 end,
+                            TB = case TIDBehind of
+                                     <<0:256>> -> [];
+                                     <<_:256>> -> 
+                                         [{futarchy_unmatched, TIDBehind}]
+                                 end,
+                            TA ++ TB;
+                        {1, TIDsMatched, TIDPartlyMatched, _, _} ->
+                            %matched orders from the book.
+                            lists:map(fun(X) ->
+                                         {futarchy_unmatched, X}
+                                      end, [TIDPartlyMatched|
+                                            TIDsMatched]);
+                        {2,  TIDsMatched, TIDBehind, NewTopTID, _, _} ->
+                            %partially matched
+                            lists:map(fun(X) -> {futarchy_unmatched, X}
+                                      end, [NewTopTID, TIDBehind|TIDsMatched])
+                    end,
                 NewFU0 = #futarchy_unmatched{
                   owner = Pubkey,
                   goal = Goal,
@@ -1068,7 +1084,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 [{accounts, Pubkey},
                  {futarchy, FID},
                  {futarchy_unmatched, TID}
-                ] ++ TA ++ TB
+                ] ++ TIDCases
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
 		 %{governance, ?n2i(oracle_bet)},

@@ -285,6 +285,7 @@
         creator, %provides liquidity for the lmsr, and needs to receive extra money from the lmsr later.
          decision_oid, %determines which market gets reverted. true/false
          goal_oid, %determines who wins the bet in the non-reverted market. yes/no
+         root_hash = <<0:256>>, %update every time there is a trade.
          true_yes_orders = <<0:256>>, %linked list of orders in the order book, by price.
          true_no_orders = <<0:256>>, 
          false_yes_orders = <<0:256>>,
@@ -297,8 +298,7 @@
          shares_false_yes = 0,
          shares_false_no = 0,
          active = 1,
-         many_trades = 0,
-         nonce = 0}).
+         many_trades = 0}).
 -record(futarchy_unmatched,
         {id,
          owner,%who made this bet
@@ -315,6 +315,7 @@
          owner,%who made this bet
          futarchy_id,
          decision,%the bet doesn't get reverted in which outcome of the decision oracle?
+         goal,%which outcome are you betting on.
          revert_amount,
          win_amount% > or == the limit_price
          }).
@@ -334,5 +335,5 @@
         amount, %the amount of veo you are risking.
         decision, %your bet is not reverted if this decision is selected. true/false
         goal, %you win if the goal oracle finalizes in this state. true/false
-        futarchy_nonce
+        futarchy_hash %root hash of market state before this trade is executed.
         }).

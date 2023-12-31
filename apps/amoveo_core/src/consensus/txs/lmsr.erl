@@ -3,7 +3,10 @@
          exp/1, ln/1, make_rat/2, e/0, pow/2,
          accuracy/1, speed/0, ln2/0, 
          inverse/1, add/2, price/3,
-         veo_in_market/3, change_in_market/5]).
+         veo_in_market/3, change_in_market/5,
+         q2/3, q2b/3, ac/2, max_buy/4,
+         test_max_buy/1,
+         test_price_q2/0]).
 
 %==========TLDR, limits of this software=======
 % don't match trades where the odds are steeper than 1:1000. only provide liquidity inside the bounds.
@@ -37,7 +40,7 @@ make_rat(T, B) -> simplify(#rat{t = T, b = B}).
 to_float(Z) -> Z#rat.t / Z#rat.b.
 to_int(Z) -> Z#rat.t div Z#rat.b.
 zero(X) -> X#rat.t == 0.
-positive(#rat{t = T, b = B}) -> (T*B) > 0.
+is_positive(#rat{t = T, b = B}) -> (T*B) > 0.
 gcf(X, Y) when (abs(Y) > abs(X)) -> 
     gcf(Y, X);
 gcf(X, 0) -> X;
@@ -92,6 +95,12 @@ negative(X) when is_integer(X) -> -X.
 less_than(#rat{t = T1, b = B1},
           #rat{t = T2, b = B2}) ->
     (T1 * B2) < (T2 * B1).
+bigger(X, Y) ->
+    B = less_than(X, Y),
+    if
+        B -> Y;
+        true -> X
+    end.
 equal(#rat{t = T1, b = B1},
       #rat{t = T2, b = B2}) ->
     (T1 * B2) == (T2 * B1).
@@ -192,9 +201,12 @@ frexp_gt(R) ->
             {R, 0}
     end.
 
+frexp(#rat{t = 0}) ->
+    io:fwrite("log(0) is undefined"),
+    1=2;
 frexp(R = #rat{}) ->
-    %-> {M, X} s.t. 1 >= |M| >= 0.5 and M*(2^X) == T/B
-    NP = not(positive(R)),
+    %-> {M, X} s.t. 1 >= |M| >= 0.5 and M*(2^X) == R
+    NP = not(is_positive(R)),
     if
         NP -> 
             {M1, X1} = frexp(negative(R)),
@@ -219,6 +231,10 @@ frexp(R = #rat{}) ->
 
 %accurate to 3 decimal points for inputs less than 20 million.
 % 6 decimal points for inputs less than 9 million.
+% accurate to 3 decimals for input bigger than 1.01
+ln({rat, _, 0}) ->
+    1=2,
+    log_infinity_fail;
 ln(R = #rat{}) ->           
     {M, X} = frexp(R),
     X2 = X - 1,
@@ -328,8 +344,119 @@ log_table(21) ->
     %#rat{t = 2048,b = 4294969197}.
 %    cf2f(0, [2097152, 2, 6291456, 1, 10485761, 2, 1631118, 9, 524288, 72, 25631, 1, 5]).
 
-price(B, Q1, Q2) ->
+price(B, Q1, Q2) -> 
+    %result is in shares/veo. a value from 0 to 1.
+    %1/(1 + e^((Q2 - Q1)/B))
     inverse(add(exp(#rat{t = Q2 - Q1, b = B}), 1)).
+
+q2({rat, 0, _}, _B, _Q1) ->
+    impossible;
+q2(P, B, Q1) ->
+%given a price, Q1, and B, solve for Q2.
+%so like, if the current price is P, and we want to match a trade at some higher price Q, you could use this function to see how much liquidity the market maker is going to give you as you move the price from P to Q.
+    %the pure logrithm version fails when Q1 is much bigger than B. 
+    %pure log version: Q1 + B*ln((1/P) - 1) = Q2
+    %so we use a slide-rule trick to move what we are looking for into the more accurate range of our measuring stick.
+    %Q2b = q2b(P, B, {rat, 0, 1}),
+    %to_int(Q2b) + Q1.
+
+    %another issue is that if Q2 is bigger than ?limit, it isn't possible for this library to return that value. So lets scale big values as well.
+    StartSize = max(B, Q1),
+    %MaxSize = 1024,
+    MaxSize = 1,
+    %StartSize = 50000,
+    %Scale = bigger({rat, 1, 1}, {rat, MaxSize, StartSize}),
+%    Bb = B * MaxSize div StartSize,
+%    Bb = mul(B, Scale),
+    Bb = simplify({rat, B * MaxSize, StartSize}),
+
+    %io:fwrite({P, B, Scale}),
+    Q2bb = q2b(P, Bb, {rat, 0, 1}),
+    #rat{t = Q2bbt, b = Q2bbb} = Q2bb,
+    Q2b = (Q2bbt * StartSize) div (Q2bbb * MaxSize),
+%    Q2b = to_int(Q2bb) * StartSize div MaxSize,
+    Q2b + Q1.
+    
+%    to_int(Q2b) + Q1.
+q2b(P, B, Q1) ->
+    %todo maybe we should use floating point here for speed?
+
+    %derivation:
+    %P = 1/(1 + e^((Q2 - Q1)/B))
+    %1/P = (1 + e^((Q2 - Q1)/B))
+    %ln((1/P) - 1) = (Q2 - Q1)/B
+    %Q1 + B*ln((1/P) - 1) = Q2
+
+    %sanity check on bounds.
+    true = is_positive(P),
+    true = less_than(P, {rat, 1, 1}),
+
+    add(Q1, mul(B, ln(sub(inverse(P), 1)))).
+    
+  
+%if you have X veo, how many shares of Y can you buy? 
+max_buy(B, Y0, N0, X) -> 
+    %C1 = B*ln(e^(Y0/B) + e^(N0/B)),
+    %C1 + X = B*ln(e^((Y0+?)/B) + e^(N0/B)),
+
+    %X + B*ln(e^(Y0/B) + e^(N0/B)) 
+    %=  B*ln(e^((Y0+?)/B) + e^(N0/B)),
+
+    % X/B + ln(e^(Y0/B) + e^(N0/B))
+    %=  ln(e^((Y0+?)/B) + e^(N0/B))
+
+    % e^(X/B)*(e^(Y0/B) + e^(N0/B))
+    %= e^((Y0+?)/B) + e^(N0/B)
+
+    % e^(X/B)*e^(Y0/B) + (e^(X/B) - 1)*(e^(N0/B))
+    %= e^((Y0+?)/B) 
+
+    % ln(e^(X/B)*e^(Y0/B) + (e^(X/B) - 1)*(e^(N0/B)))
+    %= (Y0+?)/B
+    
+    %this is the version we are using.
+    % B*ln(e^(X/B)*e^(Y0/B) + (e^(X/B) - 1)*(e^(N0/B))) - Y0
+    %= ?
+
+    % B*ln(e^((X+Y0)/B) + (e^(X/B) - 1)*(e^(N0/B))) - Y0
+    %= ?
+
+    %= B*ln(e^((X+Y0)/B)(1 + (e^(X/B) - 1)*(e^(N0/B))*(e^((-X-Y0)/B)))) - Y0
+    %= B*(((X+Y0)/B) + ln((1 + (e^(X/B) - 1)*(e^(N0/B))*(e^(-X-Y0))))) - Y0
+    %= B*(((X+Y0)/B) + ln((1 + (e^(X/B) - 1)*(e^(N0-X-Y0/B))))) - Y0
+    %= B*(((X+Y0)/B) + ln((1 + (e^((N0-Y0)/B) - e^((N0-X-Y0)/B))))) - Y0
+
+    %this version could be a little faster.
+    %= X + B*(ln(1 + e^((N0-Y0)/B) - e^((N0-X-Y0)/B)))
+
+
+    EXB = exp({rat, X, B}),
+    EYB = exp({rat, Y0, B}),
+    ENB = exp({rat, N0, B}),
+   
+    M1 = mul(EXB, EYB),
+    S1 = sub(EXB, 1),
+    M2 = mul(S1, ENB),
+    A1 = add(M1, M2),
+    io:fwrite("max buy 0\n"),
+    %io:fwrite({EXB, EYB, ENB, M1, S1, M2, A1}),
+%    io:fwrite(A1),%{rat, 1, 0}
+    L1 = ln(A1),
+%    io:fwrite({L1, to_int(L1)}),
+    io:fwrite("max buy 1\n"),
+    M3 = B * L1#rat.t div L1#rat.b,
+%    M3 = B * to_int(L1),
+    M3 - Y0.
+    %M3 = mul(B, L1),
+%    io:fwrite({L1, B, M3, Y0}),
+%%sub(M3, Y0).
+ 
+   % sub(mul(B, ln(add(mul(EXB, EYB),
+   %               mul(sub(EXB, 1), ENB)))),
+   %     Y0).
+    
+    
+
     
 
 change_in_market(B, Y0, N0, Y1, N1) ->
@@ -365,14 +492,16 @@ change_in_market(B, Y0, N0, Y1, N1) ->
     
     Result.
     
-veo_in_market(B, Y, N) ->
+veo_in_market(B, Y, N) when (is_integer(Y) and is_integer(N)) ->
     %C = B * ln(e^(Y/B) + e^(N/B))
     % = B * (ln((Y/B)*(1 + e^((N-Y)/B))))
     % = B * (Y/B + ln(1 + e^((N-Y)/B)))
     % Y + B*ln(1 + e^((N-Y/B)))
     F = ln(add(1, exp(#rat{t = N-Y, b = B}))),
-    Y + (B * F#rat.t div F#rat.b).
-
+    Y + (B * F#rat.t div F#rat.b);
+veo_in_market(B, Y, N) ->
+    F = ln(add(1, exp(divide(sub(N, Y), B)))),
+    to_int(Y) + (B * F#rat.t div F#rat.b).
 
 ac(A, B) ->
     (A - B)*2 / (A + B).
@@ -476,4 +605,34 @@ speed() ->
     {{ln, 1000000/(timer:now_diff(T2, T1)/Many)},
      {exp, 1000000/(timer:now_diff(T3, T2)/Many)},
     per_second}.
+
+
+test_price_q2() ->
+    Q1 =  1000000000,
+    B =   1000000000,
+    Q2 =  6000000000,
+    P = price(B, Q1, Q2),
+    Q2b = q2(P, B, Q1),
+    {Q2b, Q2, to_float(inverse(P))}.
+
+test_max_buy(0) ->
+    B = 12345,
+    Y = 0,
+    N = 5555,
+    X = 12300,
+    S = max_buy(B, Y, N, X),
+    X2 = change_in_market(B, Y, N, to_int(add(Y, S)), N),
+    {X, X2, to_int(S)};
+test_max_buy(1) ->
+    B = 500000000000,
+    Y = 0,
+    N = B*1,
+    X = B*2,
+    io:fwrite("max buy 1 0\n"),
+    S = max_buy(B, Y, N, X),%big integer.
+    io:fwrite("max buy 1 1\n"),
+    Y2 = Y+S,
+    X2 = change_in_market(B, Y, N, Y2, N),
+    io:fwrite("max buy 1 2\n"),
+    {X, X2, S}.
 

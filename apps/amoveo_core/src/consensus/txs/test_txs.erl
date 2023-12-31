@@ -4475,8 +4475,9 @@ test(72) ->
     Tx3 = futarchy_new_tx:make_dict(
             Pub, DOID, GOID, Period, 
             TrueLiquidity, FalseLiquidity, Fee, 
-            block:height(), Salt2),
-    FID = futarchy:make_id(Pub, Salt2, block:height()),
+            block:height()),
+    Tx3Nonce = Tx3#futarchy_new_tx.nonce,
+    FID = futarchy:make_id(Pub, <<Tx3Nonce:256>>, block:height()),
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     1 = many_txs(),
@@ -4487,30 +4488,34 @@ test(72) ->
     Goal = 1,
     OtherGoal = 0,
     LimitPrice = round(math:pow(2, 16)),
+    FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
     Tx4 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
-            LimitPrice, Fee),
+            LimitPrice, FutarchyHash1, Fee),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
 
+    FutarchyHash2 = ok,
     Tx5 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
-            LimitPrice+5, Fee),
+            LimitPrice+5, FutarchyHash2, Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     2 = many_txs(),
     
+    FutarchyHash3 = ok,
     Tx6 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
-            LimitPrice+3, Fee),
+            LimitPrice+3, FutarchyHash3, Fee),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
     3 = many_txs(),
 
+    FutarchyHash4 = ok,
     Tx7 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, OtherGoal, 
-            round(2.5*VEO), LimitPrice+3, Fee),
+            round(2.5*VEO), LimitPrice+3, FutarchyHash4, Fee),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
     4 = many_txs(),
@@ -4520,9 +4525,20 @@ test(72) ->
     
     
     
-    success.
+    success;
+test(73) ->
+    %testing all cases of futarchy_bet_tx
 
-    
+    %an unmatched futarchy bet.
+
+    % fully matched, ran out of liquidity in the lmsr step.
+
+    % fully matched, ran out of liquidity while matching a trade.
+
+    % price went out of range during the lmsr step, so partially unmatched
+
+
+    success.
 
 
 

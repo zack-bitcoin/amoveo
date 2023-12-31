@@ -596,6 +596,7 @@ serialize(#job{id = ID, worker = W0, boss = Boss0, value = V,
 %32 + 33 + 33 + 8 + 8 + 8 + 4 = 126
 serialize(#futarchy{
              fid = FID, decision_oid = DOID, 
+             root_hash = RootHash,
              goal_oid = GOID, 
              true_yes_orders = TrueYesOrders,
              true_no_orders = TrueNoOrders,
@@ -611,6 +612,7 @@ serialize(#futarchy{
              creator = Pub,
              active = Active, many_trades = MT}) ->
     <<Creator:264>> = compress_pub(Pub),
+    <<_:256>> = RootHash,
     32 = size(DOID),
     32 = size(GOID),
     32 = size(TrueYesOrders),
@@ -629,14 +631,14 @@ serialize(#futarchy{
              1 -> 1;
              0 -> 0
          end,
-    <<AB, BP:32, MT:32, LT:64, STY:64, STN:64,
+    <<AB, BP:32, MT:32, RootHash/binary, LT:64, STY:64, STN:64,
       LF:64, SFY:64, SFN:64,
       DOID/binary, GOID/binary,
       TrueYesOrders/binary, TrueNoOrders/binary, 
       FalseYesOrders/binary, FalseNoOrders/binary,
       Creator:264, FID/binary>>;
-%1, 32, 32, 32, 32, 4, 4, 8, 8, 8, 8, 8, 8, 33, 32, 32, 64
-% 1 + 96 + 56 + 33 + 32 + 32 = 314
+%1, 32, 32, 32, 32, 4, 4, 8, 8, 8, 8, 8, 8, 33, 32, 32, 64, 32
+% 1 + 96 + 56 + 33 + 32 + 32 = 346
 
 serialize(#futarchy_unmatched{
              owner = Pub, futarchy_id = FID,
@@ -666,7 +668,7 @@ serialize(#futarchy_unmatched{
 %128 + 9 + 9 + 32 = 147
 serialize(#futarchy_matched{
              owner = Pub, futarchy_id = FID,
-             decision = D, revert_amount = RA,
+             decision = D, goal = G, revert_amount = RA,
              win_amount = WA, id = ID
             }) ->
     32 = size(FID),
@@ -678,9 +680,9 @@ serialize(#futarchy_matched{
     end,
     true = is_integer(RA),
     true = is_integer(WA),
-    <<D, WA:64, RA:64, FID/binary, Pub2/binary, ID/binary>>.
-%1, 8, 8, 32, 33, 32
-%= 114
+    <<D, G, WA:64, RA:64, FID/binary, Pub2/binary, ID/binary>>.
+%1, 1, 8, 8, 32, 33, 32
+%= 115
                  
     
             
@@ -746,7 +748,7 @@ deserialize(11, <<ID:256, W:264, Boss:264, V:64, S:64, Balance:64, T:32>>) ->
     #job{id = <<ID:256>>, worker = decompress_pub(<<W:264>>),
          boss = decompress_pub(<<Boss:264>>),
          value = V, salary = S, balance = Balance, time = T};
-deserialize(12, <<Active, BP:32, MT:32, LT:64, 
+deserialize(12, <<Active, BP:32, MT:32, RH:256, LT:64, 
                   STY:64, STN:64, LF:64, SFY:64, 
                   SFN:64, DOID2:256, GOID2:256, 
                   TrueYesOrders2:256, 
@@ -764,6 +766,7 @@ deserialize(12, <<Active, BP:32, MT:32, LT:64,
     Pub = decompress_pub(<<Creator:264>>),
     F1 = #futarchy{
       fid = <<ID:256>>,
+      root_hash = <<RH:256>>,
       creator = Pub,
       decision_oid = DOID,
       goal_oid = GOID,
@@ -794,17 +797,21 @@ deserialize(13, <<D, G, RA:64, LP:64, Pub2:(33*8),
       behind = <<Behind2:256>>
      },
     futarchy_unmatched:make_id(FU, 0);
-deserialize(14, <<DB, WA:64, RA:64, FID2:256, 
+deserialize(14, <<DB, DG, WA:64, RA:64, FID2:256, 
                   Pub2:(33*8), ID:256>>) ->
     Pub = decompress_pub(<<Pub2:(33*8)>>),
     case DB of
-        1 -> 1;
-        0 -> 0
+        1 -> ok;
+        0 -> ok
+    end,
+    case DG of
+        1 -> ok;
+        0 -> ok
     end,
     FM = #futarchy_matched{
       id = <<ID:256>>,
       owner = Pub, futarchy_id = <<FID2:256>>,
-      decision = DB, revert_amount = RA, 
+      decision = DB, goal = DG, revert_amount = RA, 
       win_amount = WA};
 deserialize(N, B) ->
     io:fwrite({N, B, size(B)}),

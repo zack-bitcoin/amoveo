@@ -61,13 +61,13 @@ id_pair(Price,
           behind = Next
          } = FU,
             if
-                (Price > L) -> {<<0:256>>, <<ID/binary>>};
+                (Price > L) -> {<<0:256>>, <<ID/binary>>};%you are at the front of the line.
                 true -> id_pair2(Price, ID, Next)
             end
     end.
 id_pair2(Price, Previous, Pointer) ->
     case trees:get(futarchy_unmatched, Pointer) of
-        empty -> {Previous, <<0:256>>};
+        empty -> {Previous, <<0:256>>};%you are at the back of the line.
         FU ->
             #futarchy_unmatched{ 
           limit_price = L,
