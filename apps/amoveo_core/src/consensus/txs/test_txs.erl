@@ -4423,8 +4423,10 @@ test(71) ->
     FUID = FU#futarchy_unmatched.id,
 
     Salt2 = <<2:256>>,
-    FMID = futarchy_matched:make_id(Pub, Salt2),
-    FM = #futarchy_matched{owner = Pub, futarchy_id = FID, decision = 0, revert_amount = 1234567, win_amount = 10101010, id = FMID},
+%    FMID = futarchy_matched:make_id(Pub, Salt2),
+    %FMID = hash:doit(<<FID/binary, Pubkey/binary, 1:32>>),
+    FMID = <<1:256>>,
+    FM = #futarchy_matched{owner = Pub, futarchy_id = FID, decision = 0, revert_amount = 1234567, win_amount = 10101010, id = FMID, goal = 0},
 
     SF = trees2:serialize(F),
     SFU = trees2:serialize(FU),
@@ -4492,6 +4494,7 @@ test(72) ->
     Tx4 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
             LimitPrice, FutarchyHash1, Fee),
+    %io:fwrite(Tx4),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),

@@ -26,7 +26,7 @@ dict_get(ID, Dict) ->
 dict_write(Job, Dict) ->
     dict_write(Job, 0, Dict).
 dict_write(Job, _Meta, Dict) ->
-    ID = Job#futarchy_matched.futarchy_id,
+    ID = Job#futarchy_matched.id,
     csc:update({?MODULE, ID}, Job, Dict).
 
        

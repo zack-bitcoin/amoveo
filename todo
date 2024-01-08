@@ -1,6 +1,5 @@
-test lmsr:max_buy, then use it in tx_pool_feeder, and possibly also in futarchy_bet_tx.
+working on futarchy_bet_tx. the case where the bet finishes matching with the lmsr liquidity, not one of the bets from the order book. the total balance of the block isnt being conserved.
 
-there is a todo in tx_pool_feeder
 
 get test_txs:test(72) working.
 write test 73.

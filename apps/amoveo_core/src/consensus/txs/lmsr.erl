@@ -72,6 +72,8 @@ mul([A]) -> A;
 mul([A,B|T]) -> 
     mul([mul(A, B)|T]).
 square(X) -> mul(X, X).
+mul_to_int(I, {rat, T, B}) ->
+    I * T div B.
 sub(A, B) -> add(A, negative(B)).
 add(A, B) when is_integer(B) ->
     add(A, #rat{t = B, b = 1});
@@ -428,35 +430,20 @@ max_buy(B, Y0, N0, X) ->
 
     %this version could be a little faster.
     %= X + B*(ln(1 + e^((N0-Y0)/B) - e^((N0-X-Y0)/B)))
-
+    %= X + B*(ln(e^((N0-Y0)/B)*(e^((Y0-N0)/B) + 1 - e^(-X/B)))
+    %= X + N0 - Y0 + B*(ln(e^((Y0-N0)/B) + 1 - e^(-X/B))
 
     EXB = exp({rat, X, B}),
     EYB = exp({rat, Y0, B}),
     ENB = exp({rat, N0, B}),
-   
-    M1 = mul(EXB, EYB),
-    S1 = sub(EXB, 1),
-    M2 = mul(S1, ENB),
-    A1 = add(M1, M2),
-    io:fwrite("max buy 0\n"),
-    %io:fwrite({EXB, EYB, ENB, M1, S1, M2, A1}),
-%    io:fwrite(A1),%{rat, 1, 0}
-    L1 = ln(A1),
-%    io:fwrite({L1, to_int(L1)}),
-    io:fwrite("max buy 1\n"),
-    M3 = B * L1#rat.t div L1#rat.b,
-%    M3 = B * to_int(L1),
-    M3 - Y0.
-    %M3 = mul(B, L1),
-%    io:fwrite({L1, B, M3, Y0}),
-%%sub(M3, Y0).
- 
-   % sub(mul(B, ln(add(mul(EXB, EYB),
-   %               mul(sub(EXB, 1), ENB)))),
-   %     Y0).
-    
-    
 
+    mul_to_int(
+      B, ln(add(mul(EXB, EYB),
+                mul(sub(EXB, 1), 
+                    ENB)))) 
+        - Y0.
+
+   
     
 
 change_in_market(B, Y0, N0, Y1, N1) ->
@@ -498,10 +485,10 @@ veo_in_market(B, Y, N) when (is_integer(Y) and is_integer(N)) ->
     % = B * (Y/B + ln(1 + e^((N-Y)/B)))
     % Y + B*ln(1 + e^((N-Y/B)))
     F = ln(add(1, exp(#rat{t = N-Y, b = B}))),
-    Y + (B * F#rat.t div F#rat.b);
+    Y + mul_to_int(B, F);
 veo_in_market(B, Y, N) ->
     F = ln(add(1, exp(divide(sub(N, Y), B)))),
-    to_int(Y) + (B * F#rat.t div F#rat.b).
+    to_int(Y) + mul_to_int(B, F).
 
 ac(A, B) ->
     (A - B)*2 / (A + B).
@@ -622,7 +609,7 @@ test_max_buy(0) ->
     X = 12300,
     S = max_buy(B, Y, N, X),
     X2 = change_in_market(B, Y, N, to_int(add(Y, S)), N),
-    {X, X2, to_int(S)};
+    {X, X2, S};
 test_max_buy(1) ->
     B = 500000000000,
     Y = 0,

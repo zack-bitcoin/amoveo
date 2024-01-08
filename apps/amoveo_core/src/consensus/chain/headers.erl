@@ -234,7 +234,8 @@ read_ewah(Hash) -> gen_server:call(?MODULE, {read_ewah, Hash}).
 top() -> gen_server:call(?MODULE, {top}).
 top_with_block() -> gen_server:call(?MODULE, {top_with_block}).
 dump() -> gen_server:call(?MODULE, {dump}).
-make_header(PH, 0, Time, Version, TreesHash, TxsProofHash, Nonce, Difficulty, Period) ->
+make_header(PH, 0, Time, Version, TreesHash,
+            TxsProofHash, Nonce, Difficulty, Period) ->
     #header{prev_hash = PH,
 	    height = 0, 
 	    time = Time, 

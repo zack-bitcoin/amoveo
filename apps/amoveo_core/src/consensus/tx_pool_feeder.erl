@@ -89,8 +89,6 @@ tx_pool_inclusion_note(futarchy_bet_tx, SignedTx0) ->
             {0, 0} -> {FNO, FYO, FNS, FYS, LF}
         end,
  
-    %todo, what if OurOrders or TheirOrders is empty. <<0:256>>
-    %todo, check if our order is completely unmatched, because it isn't even first in the order book.
     TheirTop = TheirOrders,
    Note = 
         case OurOrders of
@@ -124,11 +122,11 @@ inclusion_futarchy_bet2(
   Pubkey, Nonce, Goal, <<0:256>>, Amount, OurShares, TheirShares, 
   LimitPrice, B, AccTIDs) -> 
            %we ran out of money in the lmsr step
-            %todo, we should be calculating Q based on available funds to make the purchase, not the limit price. repeat of above
-    Q2 = lmsr:q2(LimitPrice, B, TheirShares),
-    {QF, QS} = case {Goal} of
-                   {1} -> {OurShares, Q2};
-                   {0} -> {Q2, OurShares}
+           %we be calculating Q based on available funds to make the purchase, not the limit price. repeat of above
+    QD = lmsr:max_buy(B, TheirShares, OurShares, Amount),
+    {QF, QS} = case Goal of
+                   1 -> {OurShares, TheirShares + QD};
+                   0 -> {TheirShares + QD, OurShares}
                end,
     {1, lists:reverse(AccTIDs), <<0:256>>, QF, QS};
 inclusion_futarchy_bet2(
@@ -163,14 +161,16 @@ inclusion_futarchy_bet2(
     if
         LMSRProvides > Amount ->
            %we ran out of money in the lmsr step
-            %todo, we should be calculating Q based on available funds to make the purchase, not the limit price.
-            Q2b = lmsr:q2(LimitPrice, B, TheirShares),
-            {QFb, QSb} = 
-                case {Goal} of
-                    {1} -> {OurShares, Q2b};
-                    {0} -> {Q2b, OurShares}
+            %we be calculating Q based on available funds to make the purchase, not the limit price.
+
+            QD = lmsr:max_buy(B, TheirShares, OurShares, Amount),
+            TheirSharesA = TheirShares + QD,
+            {QFa, QSa} = 
+                case Goal of
+                    1 -> {OurShares, TheirSharesA};
+                    0 -> {TheirSharesA, OurShares}
                 end,
-            {1, lists:reverse(AccTIDs), OID, QF, QS};
+            {1, lists:reverse(AccTIDs), OID, QFa, QSa};
         true ->
             Amount2 = Amount - LMSRProvides,
             PM = futarchy_bet_tx:prices_match(LimitPrice, LP),
@@ -192,8 +192,10 @@ inclusion_futarchy_bet2(
                               [OID|AccTIDs])
                     end;
                 true ->
-            %the price went out of range during the lmsr step, so match to that point, and then stop.
-            %todo, we should be calculating Q based on available funds to make the purchase, not the limit price. repeat of above x2
+                    1=2,
+                    %this case was already handled, so it should not happen.
+                    Q2z = lmsr:max(B, TheirShares, OurShares, Amount),
+
                     Q2z = lmsr:q2(LimitPrice, B, TheirShares),
                     FMID = hash:doit(<<FID/binary, Pubkey/binary, Nonce:32>>),%futarchy matched id.
                     

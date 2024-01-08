@@ -1039,7 +1039,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 #futarchy_bet_tx{
               fid = FID, pubkey = Pubkey,
               limit_price = LP, amount = Amount,
-              decision = Decision, goal = Goal
+              decision = Decision, goal = Goal, nonce = Nonce
              } = Tx,
                 case element(4, STx) of
                     [] -> io:fwrite(STx);
@@ -1062,10 +1062,14 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             TA ++ TB;
                         {1, TIDsMatched, TIDPartlyMatched, _, _} ->
                             %matched orders from the book.
+                            %todo, need the FMID of the new matched location. hash:doit(<<FID/binary, Pubkey/binary, nonce0:32>>
+                            FMID = futarchy_bet_tx:futarchy_matched_id_maker(
+                                     FID, Pubkey, Nonce),
                             lists:map(fun(X) ->
                                          {futarchy_unmatched, X}
                                       end, [TIDPartlyMatched|
-                                            TIDsMatched]);
+                                            TIDsMatched]) ++ 
+                                [{futarchy_matched, FMID}];
                         {2,  TIDsMatched, TIDBehind, NewTopTID, _, _} ->
                             %partially matched
                             lists:map(fun(X) -> {futarchy_unmatched, X}
