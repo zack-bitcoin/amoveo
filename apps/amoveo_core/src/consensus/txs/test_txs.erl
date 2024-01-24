@@ -93,6 +93,7 @@ block_trees(X) ->
 restart_chain() ->
     headers:dump(),
     block:initialize_chain(),
+    tx_reserve:dump(),
     tx_pool:dump().
 test(1) ->
     io:fwrite(" create_account tx test \n"),
@@ -150,6 +151,7 @@ test(1) ->
     potential_block:new(),
 
     Txs = (tx_pool:get())#tx_pool.txs,
+%    1=2,
     mine_blocks(1),
 
 
@@ -4491,6 +4493,7 @@ test(72) ->
     OtherGoal = 0,
     LimitPrice = round(math:pow(2, 16)),
     FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
+    %todo. this bet should get added to the order book, but instead it is being matched. this means it fails twice. first make it invalid at the verification level, then fix it so it doesn't happen at the proving level.
     Tx4 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
             LimitPrice, FutarchyHash1, Fee),
@@ -4498,8 +4501,11 @@ test(72) ->
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
+    
+    io:fwrite({trees:get(futarchy, FID)}),
+    1 = 2,
 
-    FutarchyHash2 = ok,
+    FutarchyHash2 = (trees:get(futarchy, FID))#futarchy.root_hash,
     Tx5 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
             LimitPrice+5, FutarchyHash2, Fee),

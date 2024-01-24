@@ -20,7 +20,7 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
                mining_pool_refresher, 
                %checkpoint, soft_fork, 
                soft_fork, 
-               verkle_trees_sup, header_cache
+               verkle_trees_sup, header_cache, tx_reserve
               ]).
 child_killer([]) -> [];
 child_killer([H|T]) -> 

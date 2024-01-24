@@ -92,8 +92,14 @@ go({signed, Tx, _Sig, Proved},
             Nonce),
     Dict2 = accounts:dict_write(Acc, Dict),
     Futarchy = futarchy:dict_get(FID, Dict2),
-    #futarchy{active = 1, root_hash = RootHash} =
+    #futarchy{active = Active, root_hash = RootHash2} =
         Futarchy,
+    Active = 1,
+    if
+        not(RootHash2 == RootHash) ->
+            io:fwrite({RootHash, RootHash2});
+        true -> ok
+    end,
 
     Q1 = q1(Decision, Futarchy),
     Q2 = q2(Decision, Futarchy),
@@ -182,7 +188,7 @@ go({signed, Tx, _Sig, Proved},
                 AD = lmsr:change_in_market(LMSRBeta, Q1, Q2, Q1b, Q2b),
                 Rest0 = Amount - AD - MatchedAmount,
                 Rest = Rest0,
-                false = Rest < 0,
+                %false = Rest < 0,
                 %Rest = max(0, Rest0),
                 %if Rest is >0, then we are partially matching the next trade. otherwise, we finish matching in the market maker's zone.
                 AlmostZero = almost_zero(Rest, Amount),
@@ -190,6 +196,7 @@ go({signed, Tx, _Sig, Proved},
                     if
                         %(Rest > 0) -> 
                         not(AlmostZero) ->
+                            io:fwrite("partial match\n"),
                             %make sure that a trade exists to match with
                             %io:fwrite({Rest, Amount}),
                             false = (<<0:256>> == TIDPartiallyMatched),
@@ -217,6 +224,7 @@ go({signed, Tx, _Sig, Proved},
                             futarchy_unmatched:dict_write(
                               FUb2, Dict3b);
                         true ->
+                            io:fwrite("no partial match\n"),
                             Dict3b
                     end,
                 
@@ -224,6 +232,9 @@ go({signed, Tx, _Sig, Proved},
                 %FMID = hash:doit(<<FID/binary, Pubkey/binary, Nonce0:32>>),
                 FMID = futarchy_matched_id_maker(
                          FID, Pubkey, Nonce0),
+                io:fwrite("making futarchy matched: "),
+                io:fwrite(packer:pack(FMID)),
+                io:fwrite("\n"),
                 PartMatch = AD + MatchedAmount,
                 FMb = #futarchy_matched{
                   id = FMID,
@@ -324,7 +335,7 @@ go({signed, Tx, _Sig, Proved},
     Dict3.
 
 almost_zero(Rest, Amount) ->
-    (Rest * 1000) < Amount.
+    abs(Rest * 1000) < Amount.
 
 price_check(TIDsMatched, LimitPrice, Dict) ->
     LastTID = hd(lists:reverse(TIDsMatched)),

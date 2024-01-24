@@ -2084,7 +2084,8 @@ sum_amounts_helper(futarchy_matched, FM, _dict,
     #futarchy_matched{
                     revert_amount = RA
                    } = FM,
-    RA.
+    0.
+    %RA.
 
 remove_repeats(New, Old, Height) ->
     %todo. the old one has "proof" in it. we don't want to lose it in the new one.

@@ -13,7 +13,9 @@ handle_call({absorb, SignedTx, Timeout}, _From, State) when (is_integer(Timeout)
     R = absorb_timeout(SignedTx, Timeout),
     {reply, R, State};
 handle_call({absorb, SignedTx}, _From, State) ->
+    %io:fwrite("tx pool feeder absorb/1\n"),
     R = absorb_internal(SignedTx),
+    %io:fwrite("tx pool feeder absorb/1 done\n"),
     {reply, R, State};
 handle_call(_, _, S) -> {reply, S, S}.
 handle_cast({dump, Block}, S) -> 
@@ -29,8 +31,8 @@ handle_cast({absorb_dump, Block, SignedTxs}, S) ->
 handle_cast(_, S) -> {noreply, S}.
 handle_info(_, S) -> {noreply, S}.
 terminate(_, _) ->
-    ok.
-    %io:fwrite("tx_pool_feeder died\n").
+    %ok.
+    io:fwrite("tx_pool_feeder died\n").
 code_change(_, S, _) -> {ok, S}.
 is_in(_, []) -> false;
 is_in(Tx, [STx2 | T]) ->
@@ -219,11 +221,11 @@ absorb_timeout(SignedTx0, Wait) ->
             %io:fwrite("now 3 "),%1500
     PrevHash = block:hash(headers:top_with_block()),
     spawn(fun() ->
-                  %io:fwrite("tx pool feeder absorb timeout b\n"),
                   absorb_internal2(SignedTx, S)
           end),
     receive
         X when (element(1, X) == dict) -> 
+            tx_reserve:add(SignedTx, H),
             tx_pool:absorb_tx(X, SignedTx),
             ok;
         error -> error;

@@ -1,3 +1,15 @@
+mining pool is dropping txs.
+update for the new log format.
+distribute the coins from the pool between miners based on how the hashrate is divided since November.
+figure out why txs are being dropped.
+
+
+
+the mining pool's estimates for hashrate are inaccurate.
+
+
+
+
 working on futarchy_bet_tx. the case where the bet finishes matching with the lmsr liquidity, not one of the bets from the order book. the total balance of the block isnt being conserved.
 
 

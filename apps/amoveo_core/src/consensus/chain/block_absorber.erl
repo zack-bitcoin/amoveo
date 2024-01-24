@@ -156,6 +156,8 @@ absorb_internal(Block) ->
                     checkpoint:make(),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
+                    tx_reserve:in_block(Block2#block.txs),
+                    tx_reserve:clean(Block2#block.height),
 		    if
 			(Block2#block.height rem 20) == 0 ->
 			%1 == 1 ->

@@ -21,7 +21,7 @@ terminate(_, X) ->
     Txs = TP#tx_pool.txs,
     tx_pool:dump(),
     spawn(fun() ->
-		  timer:sleep(1000),
+		  timer:sleep(2000),
 		  tx_pool_feeder:absorb_async(Txs)
 	  end),
     io:format("potential block died!"), ok.
