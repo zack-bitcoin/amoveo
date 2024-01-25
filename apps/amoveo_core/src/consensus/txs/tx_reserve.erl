@@ -6,6 +6,7 @@
          add/2, %do this every time you add a tx to the tx pool. remember the height you first saw it at, store by tx hash.
          in_block/1, %remove a list of txs because they were already included in a block.
          all/0, %returns all the valid txs 
+         all/1, %returns everything
          dump/0,
          tx_hash/1
 ]).
@@ -56,6 +57,8 @@ handle_cast(dump, _) ->
 handle_cast(_, X) -> {noreply, X}.
 handle_call(all, _From, X) -> 
     {reply, X#db.l, X};
+handle_call({all, 1}, _From, X) -> 
+    {reply, X, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 sort_tx_hashes(L) ->
@@ -145,10 +148,14 @@ in_block(Txs) ->
         true -> ok
     end.
             
+all(1) ->
+    A = gen_server:call(?MODULE, {all, 1}),
+    lists:map(fun({S, _H}) -> S end, A).
 all() ->
     if
         ?on ->
-            gen_server:call(?MODULE, all);
+            A = gen_server:call(?MODULE, all),
+            lists:map(fun({S, _H}) -> S end, A);
         true -> ok
     end.
 dump() ->
