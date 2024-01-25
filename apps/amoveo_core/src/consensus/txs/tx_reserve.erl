@@ -150,12 +150,12 @@ in_block(Txs) ->
             
 all(1) ->
     A = gen_server:call(?MODULE, {all, 1}),
-    lists:map(fun({S, _H}) -> S end, A).
+    lists:map(fun({S, _TxHash, _Height}) -> S end, A).
 all() ->
     if
         ?on ->
             A = gen_server:call(?MODULE, all),
-            lists:map(fun({S, _H}) -> S end, A);
+            lists:map(fun({S, _TxHash, _Height}) -> S end, A);
         true -> ok
     end.
 dump() ->
