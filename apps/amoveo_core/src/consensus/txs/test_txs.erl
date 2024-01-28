@@ -87,7 +87,7 @@ test() ->
     S = jobs(),
     S.
 absorb(Tx) -> 
-    tx_pool_feeder:absorb(Tx).
+    tx_pool_feeder:absorb(Tx, 4000).
 block_trees(X) ->
     X#block.trees.
 restart_chain() ->
@@ -171,9 +171,10 @@ test(1) ->
 
     success;
 test(2) ->
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -190,9 +191,10 @@ test(2) ->
 test(4) -> 
     %channel solo close, channel timeout
     io:fwrite("channel solo close tx, channel timeout tx test \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -240,9 +242,10 @@ test(4) ->
 test(5) -> 
     %channel solo close, channel timeout
     io:fwrite("account delete tx, channel solo close tx, channel timeout tx test \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -286,9 +289,10 @@ test(5) ->
 test(unused) -> 
     %a smart contract that runs out of time or space gas. testing using an infinite loop.
 % look at the result of `trees:get(channels, <<5:256>>).` to see how this changes the channel.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     {NewPub,NewPriv} = signing:new_key(),
     
     Fee = constants:initial_fee() + 20,
@@ -329,9 +333,10 @@ test(unused) ->
     success;
 test(6) -> 
     io:fwrite("channel slash tx test \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     %potential_block:save(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -392,9 +397,10 @@ test(6) ->
     success;
 test(8) ->
     io:fwrite(" channel solo close, and channel team close tx test \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -435,9 +441,10 @@ test(8) ->
     success;
 test(9) ->
     io:fwrite(" channel slash tx, and channel team close tx test \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -484,11 +491,12 @@ test(9) ->
 
 test(7) ->
     %existence tx
-    headers:dump(),
-    block:initialize_chain(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
     io:fwrite("existence test \n"),
     S = <<"test data">>,
-    tx_pool:dump(),
+    %tx_pool:dump(),
     %potential_block:new(),
     Trees = (tx_pool:get())#tx_pool.block_trees,
     %Accounts = trees:accounts(Trees),
@@ -512,9 +520,7 @@ test(11) ->
     %<<OID:80>> = crypto:strong_rand_bytes(10),
     %OID = crypto:strong_rand_bytes(32),
     Fee = constants:initial_fee() + 20,
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
     mine_blocks(4),
     io:fwrite("test 11 1\n"),
     {Pub,Priv} = signing:new_key(),
@@ -635,9 +641,10 @@ test(16) ->
     Question = <<>>,
     %OID = <<1:256>>,
     Fee = constants:initial_fee() + 20,
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     Amount = 1000000000,
     Ctx_1 = create_account_tx:make_dict(Pub1, Amount, Fee, constants:master_pub()),
@@ -709,9 +716,10 @@ test(16) ->
     success;
 test(12) ->
     io:fwrite("multiple bets in a single channel test \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     Trees = (tx_pool:get())#tx_pool.block_trees,
     {NewPub,NewPriv} = signing:new_key(),
     
@@ -755,9 +763,10 @@ test(13) ->
     io:fwrite("test governance \n"),
     Question = <<>>,
     Fee = constants:initial_fee() + 20,
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(2),
     %OID2 = <<1:256>>,
     Tx3 = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, 1 + block:height(), 1, 5),
@@ -827,9 +836,10 @@ test(13) ->
 test(14) -> 
     %options
     io:fwrite("options derivatives enforcement test\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+%    headers:dump(),
+%    block:initialize_chain(),
+%    tx_pool:dump(),
     mine_blocks(2),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -881,9 +891,10 @@ test(14) ->
 test(15) ->
     %If your partner tries closing at a low-nonced channel state, your node needs to automatically create a channel_slash to stop them.
     io:fwrite("channel slash automatic test\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+%    headers:dump(),
+%    block:initialize_chain(),
+%    tx_pool:dump(),
     mine_blocks(1),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -1012,9 +1023,10 @@ test(27) -> test24(3);
 
 test(22) ->
     %api bad signature failure test
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     BP = block:get_by_height(0),
     Trees = block_trees(BP),
     {NewPub,NewPriv} = signing:new_key(),
@@ -1036,9 +1048,10 @@ test(22) ->
     test(23);
 test(23) ->
     %api insufficient balance failure test
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     BP = block:get_by_height(0),
     Trees = block_trees(BP),
     {NewPub,NewPriv} = signing:new_key(),
@@ -1058,9 +1071,10 @@ test(23) ->
     success;
 test(28) ->    
     io:fwrite(" new channel tx2\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
     Trees = block_trees(BP),
@@ -1138,9 +1152,10 @@ test(36) ->
     %tests creating a shareable contract, resolving it, and building a shareable contract priced in a subcurrency from the first contract. 
     %tests spending subcurrency.
     %tests binary resolution of a contract.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+%    headers:dump(),
+%    block:initialize_chain(),
+%    tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*100,
@@ -1280,9 +1295,10 @@ test(37) ->
     io:fwrite("test 37\n"),
     %tests resolving a contract into a different contract.
     %tests simplification by matrix X vector.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*100,
@@ -1406,9 +1422,10 @@ binary 32 ",
 test(38) ->
     io:fwrite("test 38\n"),
     %tests simplification by matrix X matrix
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*100,
@@ -1548,9 +1565,10 @@ binary 32 ",
 test(39) ->
     io:fwrite("test 39\n"),
     %tests simplification by matrix X matrix, but in a subcurrency.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*100,
@@ -1867,9 +1885,10 @@ binary 32 ",
 test(40) ->
     io:fwrite("test 40\n"),
     %test swapping
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -1928,9 +1947,10 @@ int 0 int 1" >>),
 test(41) ->
     io:fwrite("test 41\n"),
     %test swapping in multi-tx
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(12),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2004,10 +2024,11 @@ int 0 int 1" >>),
 test(43) ->
     io:fwrite("test 43, 2 of 2 state channel\n"),
     %2 of 2 state channel
-    headers:dump(),
-    block:initialize_chain(),
-    headers:dump(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %headers:dump(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2139,9 +2160,10 @@ test(44) ->
 %Someone who buys a contract, they should simultaniously make an offer to sell it for 99% of it's maximum value.
     %acc2 starts with veo. they make a bet in a sports game denominated in veo. when the game ends, they want their winnings to automatically switch to being veo
 
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2215,9 +2237,10 @@ def \
 test(45) ->
     io:fwrite("test 45\n"),
     %binary derivative in the new channel, using an oracle to enforce the outcome.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2416,9 +2439,10 @@ test(46) ->
     %2 users own opposite sides of the contract.
     %the winner offers to sell for 99% of it's value
     %the lose should be able to get their 1% out, even if they can't afford to buy the 99%.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(10),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2486,9 +2510,10 @@ int 0 int 1" >>),
 test(47) ->
     io:fwrite("test 47\n"),
     %scalar derivative in the new channel, using an oracle to enforce the outcome.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2611,9 +2636,10 @@ test(47) ->
 test(48) ->
     %market txs
     io:fwrite("test 48 \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(10),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2666,9 +2692,10 @@ int 0 int 1000 \
 test(49) ->
     %market txs in a multi-tx
     io:fwrite("test 49 \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(6),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2711,9 +2738,10 @@ test(50) ->
     %this is to set up the blockchain state to try out the uniswap tool from javascript.
     % We want to there to be many paths between the 2 currencies being swapped, and the optimal solution to involve buying a mixture of different paths.
     io:fwrite("test 50 \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(6),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2766,9 +2794,10 @@ int 0 int 1000 \
     success;
 test(51) ->
     %market liquidity test
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(6),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2815,9 +2844,10 @@ int 0 int 1000 \
 test(52) ->
     %multi-tx, using a flash loan to pay the tx fee.
     io:fwrite("test 52\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(6),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2884,9 +2914,10 @@ test(53) ->
     %market_swap_tx re-publish
 
     io:fwrite("test 53\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(6),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2936,9 +2967,10 @@ int 0 int 1" >>),
 test(54) ->
     %io:fwrite("market liquidity, none left to withdraw.\n")
     io:fwrite("test 54\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(6),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -2992,9 +3024,10 @@ int 0 int 1" >>),
     success;
 test(55) ->
     io:fwrite("test swap_tx2 and trade_cancel_tx\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
@@ -3134,9 +3167,10 @@ int 0 int 1" >>),
     success;
 test(56) ->
     io:fwrite("test swap_tx2, a limit order that cannot be partially matched. test 56\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
@@ -3210,9 +3244,10 @@ int 0 int 1" >>),
     success;
 test(57) ->
     io:fwrite("test trade_cancel_tx when the trade id doesn't yet exist, test 57 \n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
@@ -3231,9 +3266,10 @@ test(57) ->
     success;
 test(58) ->
     io:fwrite("test the hard update 46. It fixed the problem where if the oracle has exactly 2 unmatched orders, it would incorrectly resolve as 'bad question'\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
@@ -3287,9 +3323,10 @@ test(58) ->
     success;
 test(59) ->
     io:fwrite("make a bid to buy veo\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(2),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -3476,9 +3513,10 @@ test(59) ->
     success;
 test(60) ->
     io:fwrite("make a bid to buy veo, and they don't provide a deposit address\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(2),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -3582,9 +3620,10 @@ test(60) ->
 
 test(61) ->
     io:fwrite("make a bid to buy veo, and the bitcoin are not delivered\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     timer:sleep(20),
     mine_blocks(2),
     MP = constants:master_pub(),
@@ -3777,9 +3816,10 @@ test(61) ->
     success;
 test(62) -> 
     %withdraw someone's money from an oracle for them.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     MP = constants:master_pub(),
     {Pub,Priv} = signing:new_key(),
     Fee = constants:initial_fee() + 20,
@@ -3863,9 +3903,10 @@ test(62) ->
 test(63) ->
     io:fwrite("test 63\n"),
     io:fwrite("test that we can create a contract, give it evidence, finalize it, simplify it, and withdraw winnings, all in the same block. also in the same flash loan.\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*2,
@@ -3979,9 +4020,10 @@ test(65) ->
     Question = <<>>,
     MP = constants:master_pub(),
     Fee = constants:initial_fee() + 20,
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
 
     {Pub,Priv} = %signing:new_key(),
@@ -4095,9 +4137,10 @@ test(68) ->
  
 test(unused) ->
     io:fwrite("test stablecoin_new_tx\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(2),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
@@ -4183,9 +4226,10 @@ int 0 int 1" >>),
     success;
 test(unused) ->
     io:fwrite("test stablecoin_new_tx in a multi-tx"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(1),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
@@ -4270,9 +4314,10 @@ test(67) ->
     %seems like receipts wasn't deterministic after the update for fork 52, this test is to see.
 
     %make a contract. provide invalid evidence. check the root hash.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Fee = constants:initial_fee()*100,
@@ -4305,9 +4350,10 @@ test(67) ->
 
 test(empty) ->
     io:fwrite("test 55\n"),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     MP = constants:master_pub(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
@@ -4350,9 +4396,10 @@ test(69) ->
     success;
 test(70) ->
     io:fwrite("job create and job salary receive tx types."),
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(4),
     MP = constants:master_pub(),
     Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
@@ -4450,9 +4497,10 @@ test(71) ->
     success;
 test(72) ->
     %testing the futarchy tx types.
-    headers:dump(),
-    block:initialize_chain(),
-    tx_pool:dump(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
+    %tx_pool:dump(),
     mine_blocks(6),
     MP = constants:master_pub(),
     Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
@@ -4669,10 +4717,11 @@ test24(I) ->
     Question = <<>>,
     %OID = crypto:strong_rand_bytes(32),
     Fee = constants:initial_fee() + 20,
-    headers:dump(),
-    block:initialize_chain(),
+    restart_chain(),
+    %headers:dump(),
+    %block:initialize_chain(),
     %%%timer:sleep(150),
-    tx_pool:dump(),
+    %tx_pool:dump(),
     %%%timer:sleep(150),
     mine_blocks(3),
     %%%timer:sleep(150),

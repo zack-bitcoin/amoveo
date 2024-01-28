@@ -1,3 +1,6 @@
+make sure that the tx_reserve doesn't have a memory leak in the dict.
+
+
 mining pool is dropping txs.
 update for the new log format.
 distribute the coins from the pool between miners based on how the hashrate is divided since November.

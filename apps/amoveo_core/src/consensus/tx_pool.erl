@@ -54,13 +54,13 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 data_new() -> tx_pool:get().
 get() -> gen_server:call(?MODULE, data_new).
 dump() -> 
-    gen_server:call(?MODULE, dump),
-    PTxs = tx_reserve:all(),
-    tx_pool_feeder:absorb_async(PTxs).
+    gen_server:call(?MODULE, dump).
+%    PTxs = tx_reserve:all(),
+%    tx_pool_feeder:absorb_async(PTxs).
 dump(NewTop) -> 
-    gen_server:call(?MODULE, {dump, NewTop}),
-    PTxs = tx_reserve:all(),
-    tx_pool_feeder:absorb_async(PTxs).
+    gen_server:call(?MODULE, {dump, NewTop}).
+%    PTxs = tx_reserve:all(),
+%    tx_pool_feeder:absorb_async(PTxs).
 absorb_tx(NewDict, Tx) ->
     gen_server:call(?MODULE, {absorb_tx, NewDict, Tx}).
 %absorb_tx(Trees, NewDict, Tx) ->

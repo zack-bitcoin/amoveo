@@ -123,12 +123,12 @@ absorb_internal(Block) ->
                             
 			    %tx_pool_feeder:absorb_dump(Block2, lists:reverse(Keep)),
 			    tx_pool_feeder:absorb_dump(Block2, []),
+			    %tx_pool_feeder:absorb_dump(Block2, tx_reserve:all()),
 			    potential_block:new(),
-                            %spawn(fun() ->
-                            %              timer:sleep(2000),
-                                          %io:fwrite(Txs),
-                            %              tx_pool_feeder:absorb(Txs),
-                            %      end),
+                            lists:map(fun(Tx) ->%WORKING HERE
+                                              tx_pool_feeder:absorb_async(Tx)
+                                      end, tx_reserve:all()),
+                                              
                             ok;
 			quick -> 
                             spawn(fun() ->

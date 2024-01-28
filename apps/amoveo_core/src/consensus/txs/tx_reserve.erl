@@ -149,8 +149,8 @@ in_block(Txs) ->
     end.
             
 all(1) ->
-    A = gen_server:call(?MODULE, {all, 1}),
-    lists:map(fun({S, _TxHash, _Height}) -> S end, A).
+    DB = gen_server:call(?MODULE, {all, 1}),
+    DB.
 all() ->
     if
         ?on ->
