@@ -126,6 +126,10 @@ absorb_internal(Block) ->
 			    %tx_pool_feeder:absorb_dump(Block2, tx_reserve:all()),
 			    potential_block:new(),
                             tx_reserve:restore(),
+                            spawn(fun() ->
+                                          timer:sleep(30000),
+                                          tx_reserve:restore()
+                                  end),
 %                            lists:map(fun(Tx) ->
 %                                              tx_pool_feeder:absorb_async([Tx])
 %                                      end, lists:reverse(tx_reserve:all())),
