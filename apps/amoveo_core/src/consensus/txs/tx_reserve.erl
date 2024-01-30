@@ -9,7 +9,8 @@
          all/0, %returns all the valid txs 
          all/1, %returns everything
          dump/0,
-         tx_hash/1
+         tx_hash/1,
+         restore/0
 ]).
 -include("../../records.hrl").
 
@@ -175,4 +176,9 @@ dump() ->
             gen_server:cast(?MODULE, dump);
         true -> ok
     end.
+
+restore() ->    
+    lists:map(fun(Tx) ->
+                      tx_pool_feeder:absorb_async([Tx])
+              end, lists:reverse(all())).
     
