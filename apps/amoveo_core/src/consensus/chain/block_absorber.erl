@@ -125,7 +125,7 @@ absorb_internal(Block) ->
 			    tx_pool_feeder:absorb_dump(Block2, []),
 			    %tx_pool_feeder:absorb_dump(Block2, tx_reserve:all()),
 			    potential_block:new(),
-                            lists:map(fun(Tx) ->%WORKING HERE
+                            lists:map(fun(Tx) ->
                                               tx_pool_feeder:absorb_async(Tx)
                                       end, tx_reserve:all()),
                                               
@@ -156,7 +156,8 @@ absorb_internal(Block) ->
                     checkpoint:make(),
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
-                    tx_reserve:in_block(Block2#block.txs),
+
+                    %tx_reserve:in_block(Block2#block.txs),
                     tx_reserve:clean(Block2#block.height),
 		    if
 			(Block2#block.height rem 20) == 0 ->

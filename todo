@@ -1,4 +1,4 @@
-make sure that the tx_reserve doesn't have a memory leak in the dict.
+make sure that the tx_reserve doesn't have a memory leak in the dict. we updated explorer_22. check to see if it is still leaking data.
 
 
 mining pool is dropping txs.

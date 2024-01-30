@@ -3,6 +3,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 
          clean/1, %scans all txs, removes if they were created more than 10 blocks ago.
+         clean/0,
          add/2, %do this every time you add a tx to the tx pool. remember the height you first saw it at, store by tx hash.
          in_block/1, %remove a list of txs because they were already included in a block.
          all/0, %returns all the valid txs 
@@ -25,6 +26,14 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast({clean, Height}, DB) -> 
     {L2, Removed} = cut_tail2(Height - ?save_gap, DB#db.l, []),
     D2 = remove_all_dict(DB#db.d, Removed),
+    B = (length(L2) == length(dict:fetch_keys(D2))),
+    if
+        B -> ok;
+        true -> io:fwrite("tx reserve fail \n"),
+                R2 = lists:map(fun({_, H, _}) -> H end, Removed),
+                %{[], [32, 47], [29], [32, 29, 47]}
+                io:fwrite({L2, R2, dict:fetch_keys(D2), dict:fetch_keys(DB#db.d)})
+    end,
     DB2 = DB#db{l = L2, d = D2},
     {noreply, DB2};
 handle_cast({in_block, TxHashes}, DB) -> 
@@ -99,16 +108,16 @@ remove_overlap(L, X) ->
 %cut_tail(H, [X|T]) ->
 %    [X|cut_tail(H, T)].
 
-cut_tail2(Height, [], A) ->
+cut_tail2(_Height, [], A) ->
     {lists:reverse(A), []};
-cut_tail2(Height, [{_, _, H}|T], A)
+cut_tail2(Height, X = [{_, _, H}|_], A)
   when H < Height ->
-    {lists:reverse(A), T};
+    {lists:reverse(A), X};
 cut_tail2(H, [X|T], A) ->
     cut_tail2(H, T, [X|A]).
 
 remove_all_dict(D, []) -> D;
-remove_all_dict(D, [{STx, TxHash, Height}|T]) ->
+remove_all_dict(D, [{_STx, TxHash, _Height}|T]) ->
     D2 = dict:erase(TxHash, D),
     remove_all_dict(D2, T).
     
@@ -123,6 +132,8 @@ tx_hash(Tx) ->
 
 
 
+clean() -> 
+    clean(block:height()).
 clean(Height) -> 
     if
         ?on ->
