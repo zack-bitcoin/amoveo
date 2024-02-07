@@ -1,3 +1,13 @@
+when we turn on the tx_reserve, then test_txs:test(1) leaves us in a broken state if we do test(2) too quickly afterwards.
+Because the tx_reserve is still trying to push txs into the tx_pool_feeder.
+because the block_absorber called it.
+because mine_blocks adds a block.
+
+
+
+
+
+
 make sure that the tx_reserve doesn't have a memory leak in the dict. we updated explorer_22. check to see if it is still leaking data.
 
 

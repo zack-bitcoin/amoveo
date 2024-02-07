@@ -87,14 +87,16 @@ test() ->
     S = jobs(),
     S.
 absorb(Tx) -> 
-    tx_pool_feeder:absorb(Tx, 4000).
+    tx_pool_feeder:absorb(Tx, 1000).
 block_trees(X) ->
     X#block.trees.
 restart_chain() ->
     headers:dump(),
     block:initialize_chain(),
     tx_reserve:dump(),
-    tx_pool:dump().
+    tx_pool:dump(),
+    mine_blocks(1),
+    ok.
 test(1) ->
     io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
@@ -150,8 +152,6 @@ test(1) ->
     3 = many_txs(),
     potential_block:new(),
 
-    Txs = (tx_pool:get())#tx_pool.txs,
-%    1=2,
     mine_blocks(1),
 
 
@@ -179,7 +179,7 @@ test(2) ->
     PH = block:hash(BP),
     Trees = block_trees(BP),
     {NewPub,NewPriv} = signing:new_key(),
-    Fee = -9000000000,
+    Fee = -900000000,
     {Ctx, _} = create_account_tx:new(NewPub, 1, Fee, constants:master_pub(), Trees),
     Stx = keys:sign(Ctx),
     absorb(Stx),
@@ -532,6 +532,7 @@ test(11) ->
     0 = many_txs(),
     absorb(Stx0),
     1 = many_txs(),
+    tx_reserve:dump(),
     mine_blocks(1),
     io:fwrite("test 11 2\n"),
 
@@ -4595,7 +4596,98 @@ test(73) ->
     % price went out of range during the lmsr step, so partially unmatched
 
 
+    success;
+test(74) ->
+    %testing the tx_reserve.
+    %TODO
+
+    restart_chain(),
+    mine_blocks(4),
+    Me = keys:pubkey(),
+    MP = constants:master_pub(),
+    %Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
+    {Pub,_Priv} = signing:new_key(),
+    Fee = constants:initial_fee()*2,
+
+%    Tx1 = spend_tx:make_dict(Pub, 10, Fee, Me),
+    Tx1 = create_account_tx:make_dict(Pub, 10, Fee, Me),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+
+    Tx2 = spend_tx:make_dict(Pub, 10, Fee, Me),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    2 = many_txs(),
+
+    Tx3 = spend_tx:make_dict(Pub, 10, Fee, Me),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    3 = many_txs(),
+
+
+%absorb async works.
+    tx_pool:dump(),
+    absorb(Stx1),
+    1 = many_txs(),
+    absorb(Stx2),
+
+    tx_pool_feeder:absorb_async([Stx1, Stx2, Stx3]),
+    timer:sleep(100),
+    3 = many_txs(),
+
+%absorb works.
+    tx_pool:dump(),
+    absorb(Stx1),
+    1 = many_txs(),
+    absorb(Stx2),
+
+    tx_pool_feeder:absorb_async([Stx1, Stx2, Stx3]),
+    timer:sleep(100),
+    3 = many_txs(),
+
+%reserve works.
+    tx_pool:dump(),
+    absorb(Stx1),
+    1 = many_txs(),
+    absorb(Stx2),
+
+    tx_reserve:restore(),
+    timer:sleep(100),
+    potential_block:new(),
+    3 = many_txs(),
+
+
+%mine block doesn't drop txs
+    tx_pool:dump(),
+    absorb(Stx1),
+    1 = many_txs(),
+    absorb(Stx2),
+    2 = many_txs(),
+
+    mine_block_no_tx_reserve_dump(),
+
+%    potential_block:new(),
+%    api:mine_block(),
+%    timer:sleep(100),
+    0 = many_txs(),
+    tx_reserve:restore(),
+    timer:sleep(3000),
+%    io:fwrite({tx_pool:get(), tx_reserve:all()}),
+    potential_block:new(),
+    1 = many_txs(),
+
+
+    
+    %lets confirm that tx_pool_feeder:absorb_async fails. after an invalid tx, it drops the following txs.
+
+    %then, lets check that tx_pool_feeder:absorb succeeds in that situation.
+
+    %finally, lets make sure that tx_reserve:restore() works for this situation as well.
+
+
     success.
+    %make 3 valid txs. put all 3 in the reserve. put #1 in the tx pool. make sure doing tx_reserve:restore() restores all the txs.
 
 
 
@@ -4659,6 +4751,7 @@ is_slash(STx) ->
 	     
 mine_blocks(Many) when Many < 1 -> 
     headers:top(),
+    potential_block:new(),
     potential_block:read(),
     TP = tx_pool:get(),
     %timer:sleep(10),
@@ -4670,6 +4763,10 @@ mine_blocks(Many) when Many < 1 ->
     ok;
 mine_blocks(Many) ->
     %only works if you set the difficulty very low.
+    tx_reserve:dump(),
+    mine_block_no_tx_reserve_dump(),
+    mine_blocks(Many-1).
+mine_block_no_tx_reserve_dump() ->
     headers:top(),
     potential_block:read(),
     TP = tx_pool:get(),
@@ -4680,10 +4777,10 @@ mine_blocks(Many) ->
     {ok, Top} = headers:read(Hash),
     Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
     block:mine(Block, 10000),
-    wait_till_next_block(Height, 100),
-    mine_blocks(Many-1).
-wait_till_mineable(_, 0) ->
-    io:fwrite("failed to create a potential block"),
+    wait_till_next_block(Height, 100).
+    
+wait_till_mineable(N, 0) ->
+    io:fwrite({N, "failed to create a potential block"}),
     1=2,
     ok;
 wait_till_mineable(Height, N) ->

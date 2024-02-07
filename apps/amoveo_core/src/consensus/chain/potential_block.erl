@@ -114,6 +114,10 @@ new_internal2(TP) ->
     PB = block:get_by_height(T),
     if
 	PB == empty -> "";
+	%PB == empty -> 
+        %    io:fwrite("potential block new internal2 loop\n"),
+        %    timer:sleep(100),
+        %    new_internal2(TP);
 	true ->
 	    Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
     %Top = headers:top_with_block(),

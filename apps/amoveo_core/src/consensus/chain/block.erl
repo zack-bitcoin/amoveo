@@ -751,7 +751,7 @@ spawn_many(N, F) ->
     spawn(F),
     spawn_many(N-1, F).
 mine(Rounds) -> 
-    potential_block:save(),
+    %potential_block:save(),
     timer:sleep(10),
     Block = potential_block:read(),
     case Block of
@@ -766,12 +766,24 @@ mine(Block, Rounds) ->
     %Cores = guess_number_of_cpu_cores(),
     Cores = 1, %slow down mining so I don't break the computer.
     mine(Block, Rounds, Cores).
+mine(Block, Rounds, 1) ->
+    case mine2(Block, Rounds) of
+        false -> false;
+        PBlock ->
+%            io:fwrite("found a block\n"),
+            Header = block_to_header(PBlock),
+            headers:absorb([Header]),
+            headers:absorb_with_block([Header]),
+                        %block_absorber:save(PBlock),
+            block_organizer:add([PBlock])
+                        %sync:start()
+    end;
 mine(Block, Rounds, Cores) ->
     F = fun() ->
                 case mine2(Block, Rounds) of
                     false -> false;
                     PBlock ->
-                        io:fwrite("found a block"),
+%                        io:fwrite("found a block\n"),
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
 			headers:absorb_with_block([Header]),

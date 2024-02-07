@@ -122,13 +122,19 @@ absorb_internal(Block) ->
 			   % OldTxs = tl(Block#block.txs),
                             
 			    %tx_pool_feeder:absorb_dump(Block2, lists:reverse(Keep)),
-			    tx_pool_feeder:absorb_dump(Block2, []),
-			    %tx_pool_feeder:absorb_dump(Block2, tx_reserve:all()),
-			    potential_block:new(),
+%                         io:fwrite("about to absorb dump2\n"),
+			    tx_pool_feeder:absorb_dump2(Block2, []),
+%                         io:fwrite("done with absorb dump2\n"),
+			    %tx_pool_feeder:absorb_dump2(Block2, tx_reserve:all()),
+%			    tx_pool_feeder:absorb_dump(Block2, tx_reserve:all()),
                             tx_reserve:restore(),
+			    potential_block:new(),
                             spawn(fun() ->
-                                          timer:sleep(30000),
-                                          tx_reserve:restore()
+                                          timer:sleep(1000),
+                                          ok
+                                          %tx_reserve:restore()
+                                         % timer:sleep(20000),
+                                         % tx_reserve:restore()
                                   end),
 %                            lists:map(fun(Tx) ->
 %                                              tx_pool_feeder:absorb_async([Tx])
@@ -162,7 +168,7 @@ absorb_internal(Block) ->
 		    %io:fwrite(packer:pack(erlang:timestamp())),
 		    %io:fwrite("\n"),
 
-                    %tx_reserve:in_block(Block2#block.txs),
+                    tx_reserve:in_block(Block2#block.txs),
                     tx_reserve:clean(Block2#block.height),
 		    if
 			(Block2#block.height rem 20) == 0 ->

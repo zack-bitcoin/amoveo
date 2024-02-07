@@ -22,7 +22,7 @@
 init(ok) -> {ok, #db{}}.%list of tx sorted by the order we found out about them in.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, _) -> io:format("tx reserve died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({clean, Height}, DB) -> 
     {L2, Removed} = cut_tail2(Height - ?save_gap, DB#db.l, []),
@@ -63,6 +63,7 @@ handle_cast({add, SignedTx, TxHash, Height}, DB) ->
             {noreply, DB}
     end;
 handle_cast(dump, _) -> 
+%    io:fwrite("dumping the tx reserve\n"),
     {noreply, #db{}};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(all, _From, X) -> 
@@ -168,7 +169,7 @@ all() ->
         ?on ->
             A = gen_server:call(?MODULE, all),
             lists:map(fun({S, _TxHash, _Height}) -> S end, A);
-        true -> ok
+        true -> []
     end.
 dump() ->
     if
@@ -178,7 +179,20 @@ dump() ->
     end.
 
 restore() ->    
-    lists:map(fun(Tx) ->
-                      tx_pool_feeder:absorb_async([Tx])
-              end, lists:reverse(all())).
+    %todo. this seems to be failing if there are invalid txs in the list.
+    if
+        ?on ->
+        %    io:fwrite("tx reserve size: "),
+        %    io:fwrite(integer_to_list(length(all()))),
+        %    io:fwrite("\n"),
+%            tx_pool_feeder:absorb(lists:reverse(all()));
+        %    io:fwrite("tx reserve absorbed\n");
+            tx_pool_feeder:absorb_async(lists:reverse(all()));
+%            timer:sleep(500);
+            %lists:map(fun(Tx) ->
+            %                  tx_pool_feeder:absorb_async([Tx])
+            %          end, lists:reverse(all())),
+%            timer:sleep(500);
+        true -> ok
+    end.
     

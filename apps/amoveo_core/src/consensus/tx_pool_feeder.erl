@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3, absorb_dump/2]).
 -export([absorb/1, absorb/2, absorb_async/1, is_in/2,
-	 dump/1]).
+	 absorb_dump2/2, dump/1]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) -> 
@@ -17,6 +17,10 @@ handle_call({absorb, SignedTx}, _From, State) ->
     R = absorb_internal(SignedTx),
     %io:fwrite("tx pool feeder absorb/1 done\n"),
     {reply, R, State};
+handle_call({absorb_dump2, Block, SignedTxs}, _, S) -> 
+    tx_pool:dump(Block),
+    ai2(SignedTxs),
+    {reply, ok, S};
 handle_call(_, _, S) -> {reply, S, S}.
 handle_cast({dump, Block}, S) -> 
     tx_pool:dump(Block),
@@ -218,7 +222,7 @@ absorb_timeout(SignedTx0, Wait) ->
 %    F36 = forks:get(36),
 %    F38 = forks:get(38),
     SignedTx = tx_pool_inclusion_note(element(1, Tx), SignedTx0),
-            %io:fwrite("now 3 "),%1500
+    %io:fwrite("now 3 "),%1500
     PrevHash = block:hash(headers:top_with_block()),
     spawn(fun() ->
                   absorb_internal2(SignedTx, S)
@@ -506,6 +510,14 @@ absorb_async(SignedTxs) ->
 	_ -> %io:fwrite("warning, transactions don't work well if you aren't in sync_mode normal")
 	    ok
     end.
+absorb_dump2(Block, STxs) ->
+    N = sync_mode:check(),
+    case N of
+	normal -> 
+	    gen_server:call(?MODULE, {absorb_dump2, Block, STxs});
+	_ -> ok
+    end.
+    
 absorb_dump(Block, STxs) ->
     N = sync_mode:check(),
     case N of
