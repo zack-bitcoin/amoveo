@@ -4550,9 +4550,10 @@ test(72) ->
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
+    timer:sleep(1000),
     
-    io:fwrite({trees:get(futarchy, FID)}),
-    1 = 2,
+    %io:fwrite({trees:get(futarchy, FID)}),
+    %1 = 2,
 
     FutarchyHash2 = (trees:get(futarchy, FID))#futarchy.root_hash,
     Tx5 = futarchy_bet_tx:make_dict(
@@ -4560,7 +4561,7 @@ test(72) ->
             LimitPrice+5, FutarchyHash2, Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
-    2 = many_txs(),
+    2 = many_txs(),%fails here.
     
     FutarchyHash3 = ok,
     Tx6 = futarchy_bet_tx:make_dict(
@@ -4686,15 +4687,15 @@ test(74) ->
     %finally, lets make sure that tx_reserve:restore() works for this situation as well.
 
 
-    success.
-    %make 3 valid txs. put all 3 in the reserve. put #1 in the tx pool. make sure doing tx_reserve:restore() restores all the txs.
+    success;
+test(futarchy) ->
+    S = success,
+    S = test(71),
+    S = test(72),
+    S = test(73),
+    S.
 
 
-
-%    {_, Leaves2} = trees2:get_proof([{jobs, ID}, {accounts, Pub}], 
-%                                    Loc2, fast),
-%    {%Leaves1, 
-%      Leaves2, Loc2}.
     
 
 

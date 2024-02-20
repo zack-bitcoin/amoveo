@@ -924,11 +924,11 @@ work(Nonce, _) ->
     0.
 mining_data() ->
     case mining_data(common) of
-        ok -> ok;
-        Block ->
-		    [hash:doit(block:hash(Block)),
-		     crypto:strong_rand_bytes(23),
-		     Block#block.difficulty]
+        Block = #block{} ->
+            [hash:doit(block:hash(Block)),
+             crypto:strong_rand_bytes(23),
+             Block#block.difficulty];
+        _ -> ok
     end.
 mining_data(common) ->
     case sync_mode:check() of
