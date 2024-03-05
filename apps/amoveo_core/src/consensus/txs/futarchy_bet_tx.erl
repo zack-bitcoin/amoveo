@@ -121,34 +121,58 @@ go({signed, Tx, _Sig, Proved},
   %This is the case where your trade is added to the order book.
                 FBehind=futarchy_unmatched:dict_get(TIDBehind,Dict2),
                 FAhead= futarchy_unmatched:dict_get(TIDAhead, Dict2),
-                #futarchy_unmatched
-                    {
-                      ahead = TIDAhead,
+                case FBehind of
+                    error -> ok;
+                    _ ->
+                        #futarchy_unmatched
+                            {
+                      ahead = TIDBehind,
                       limit_price = LPBehind,
                       decision = Decision,
                       goal = Goal
-                    } = FBehind,
-                #futarchy_unmatched
-                    {
-                      behind = TIDBehind,
+                     } = FBehind,
+                        true = LimitPrice >= LPBehind
+                end,
+                case FAhead of
+                    error -> ok;
+                    _ ->
+                        #futarchy_unmatched
+                            {
+                      behind = TIDAhead,
                       limit_price = LPAhead,
                       decision = Decision,
                       goal = Goal
-                    } = FAhead,
-                true = LimitPrice >= LPBehind,
-                true = LimitPrice =< LPAhead,
+                     } = FAhead,
+                        true = LimitPrice =< LPAhead
+                end,
                 NewUnmatched2 = 
                     NewUnmatched#futarchy_unmatched{
                       ahead = TIDAhead,
                       behind = TIDBehind},
-                NewUnmatched3= futarchy_unmatched:make_id(NewUnmatched2),
-                TID = NewUnmatched2#futarchy_unmatched.id, 
+                NewUnmatched3= futarchy_unmatched:make_id(NewUnmatched2, NewHeight),
+                TID = NewUnmatched3#futarchy_unmatched.id, 
+                
+                case futarchy_unmatched:dict_get(TID, Dict2) of
+                    empty -> ok;
+                    error -> 
+                        io:fwrite("futarchy bet tx tid is\n"),
+                        io:fwrite({TID, NewUnmatched3}),
+                        1=2
+                end,
                 empty = futarchy_unmatched:dict_get(TID, Dict2),
                 Dict3a = futarchy_unmatched:dict_write(NewUnmatched3, Dict2),
-                FBehind2 = FBehind#futarchy_unmatched{ahead = TID},
-                FAhead2 = FAhead#futarchy_unmatched{behind = TID},
-                Dict4a = futarchy_unmatched:dict_write(FBehind2, Dict3a),
-                Dict5a = futarchy_unmatched:dict_write(FAhead2, Dict4a),
+                Dict4a = case FBehind of
+                             error -> Dict3a;
+                             _ ->
+                                 FBehind2 = FBehind#futarchy_unmatched{ahead = TID},
+                                 futarchy_unmatched:dict_write(FBehind2, Dict3a)
+                         end,
+                Dict5a = case FAhead of
+                             error -> Dict4a;
+                             _ ->
+                                 FAhead2 = FAhead#futarchy_unmatched{behind = TID},
+                                 futarchy_unmatched:dict_write(FAhead2, Dict4a)
+                         end,
                 Dict5a;
             {1, TIDsMatched, TIDPartiallyMatched, Q1b, Q2b} ->
     %This is the case where your trade is completely matched.
@@ -256,7 +280,7 @@ go({signed, Tx, _Sig, Proved},
                                TIDPartiallyMatched, Futarchyb2),
                 Dict5b = futarchy:dict_write(Futarchyb3, Dict4b),
                 Dict5b;
-            {2, TIDsMatched, TIDAfterMatched, NewTopTID, FMIDc, Q1b, Q2b} ->
+            {2, TIDsMatched, TIDAfterMatched, NewTopTID, Q1b, Q2b} ->
     %This is the case where your trade is partially matched.
                 %this is the same as saying that the price went out of range during the lmsr step.
                 %check that they bought one kind of shares.
@@ -332,6 +356,7 @@ go({signed, Tx, _Sig, Proved},
                 Dict5c = futarchy:dict_write(Futarchyc3, Dict4c),
                 Dict5c
         end,
+    io:fwrite("futarchy bet tx finished\n"),
     Dict3.
 
 almost_zero(Rest, Amount) ->

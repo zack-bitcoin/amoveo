@@ -883,16 +883,22 @@ get(Keys, Loc) when is_integer(Loc) ->
                               if
                                   not(Key == Key2) ->
                           %it is weird that Key isn't the same as Key2.
-                                      Acc = dump_get(T, DL),
-                                      io:fwrite({Key, Key2, Acc, dict:fetch(Key, TreesDict), Keys
-                                                 %dict:fetch(Key2, TreesDict)
-                                                }),
-                                      1=2;
-                                  true -> ok
-                              end,
-                              UnhashedKey = 
-                                  dict:fetch(Key, TreesDict),
-                              {UnhashedKey, dump_get(T, DL)}
+                                      %that means we are looking up something that isn't stored in the slice of the database we are searching in.
+                                      UnhashedKey = 
+                                          dict:fetch(Key, TreesDict),
+                                      {UnhashedKey, empty};
+%                                      Acc = dump_get(T, DL),
+%                                      io:fwrite({{keys, Key, Key2}, 
+%                                                 {in_dump, Acc}, {in_ram_slice, dict:fetch(Key, TreesDict)}, 
+%                                                 {keys, Keys}
+%                                                 %dict:fetch(Key2, TreesDict)
+%                                                }),
+%                                      1=2;
+                                  true -> 
+                                      UnhashedKey = 
+                                          dict:fetch(Key, TreesDict),
+                                      {UnhashedKey, dump_get(T, DL)}
+                              end
                       end
               end, L).
             

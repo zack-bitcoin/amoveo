@@ -4542,7 +4542,6 @@ test(72) ->
     OtherGoal = 0,
     LimitPrice = round(math:pow(2, 16)),
     FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
-    %todo. this bet should get added to the order book, but instead it is being matched. this means it fails twice. first make it invalid at the verification level, then fix it so it doesn't happen at the proving level.
     Tx4 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
             LimitPrice, FutarchyHash1, Fee),
@@ -4550,8 +4549,7 @@ test(72) ->
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
-    timer:sleep(1000),
-    
+
     %io:fwrite({trees:get(futarchy, FID)}),
     %1 = 2,
 
@@ -4561,13 +4559,14 @@ test(72) ->
             LimitPrice+5, FutarchyHash2, Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
-    2 = many_txs(),%fails here.
+    2 = many_txs(),
     
     FutarchyHash3 = ok,
     Tx6 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
             LimitPrice+3, FutarchyHash3, Fee),
     Stx6 = keys:sign(Tx6),
+    io:fwrite("absorb tx 6\n"),
     absorb(Stx6),
     3 = many_txs(),
 

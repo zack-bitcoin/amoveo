@@ -118,6 +118,7 @@ tx_pool_inclusion_note(futarchy_bet_tx, SignedTx0) ->
                               LP, futarchy_bet_tx:orders(
                                     Decision, Goal, 
                                     Futarchy)),
+                        io:fwrite("tx_pool_feeder, inclusion note. your trade is added to the order book\n"),
                         {0, TIDAhead, TIDBehind}
                 end
         end,
@@ -127,14 +128,25 @@ tx_pool_inclusion_note(_Type, SignedTx0) -> SignedTx0.
 inclusion_futarchy_bet2(
   Pubkey, Nonce, Goal, <<0:256>>, Amount, OurShares, TheirShares, 
   LimitPrice, B, AccTIDs) -> 
-           %we ran out of money in the lmsr step
-           %we be calculating Q based on available funds to make the purchase, not the limit price. repeat of above
+    %when the order id is <<0:256>>, that means there is nothing left to match with.
     QD = lmsr:max_buy(B, TheirShares, OurShares, Amount),
     {QF, QS} = case Goal of
                    1 -> {OurShares, TheirShares + QD};
                    0 -> {TheirShares + QD, OurShares}
                end,
-    {1, lists:reverse(AccTIDs), <<0:256>>, QF, QS};
+    case AccTIDs of
+        [] -> 
+            io:fwrite("tx_pool_feeder, adding a trade to the pool\n"),
+            {0, <<0:256>>, <<0:256>>};
+        _ ->
+            io:fwrite("tx_pool_feeder, inclusion note. your trade is only partially matched\n"),
+%    {1, lists:reverse(AccTIDs), <<0:256>>, QF, QS};
+%    FMIDc = futarchy_matched_id_maker(
+%              FID, Pubkey, Nonce0),
+    %{2, lists:reverse(AccTIDs), [], <<0:256>>, QF, QS};
+    %{2, lists:reverse(AccTIDs), [], <<0:256>>, QF, QS};
+            {2, lists:reverse(AccTIDs), <<0:256>>, QF, QS}
+    end;
 inclusion_futarchy_bet2(
   Pubkey, Nonce, Goal, OrderID, Amount, OurShares, TheirShares, 
   LimitPrice, B, AccTIDs) -> 
@@ -176,6 +188,7 @@ inclusion_futarchy_bet2(
                     1 -> {OurShares, TheirSharesA};
                     0 -> {TheirSharesA, OurShares}
                 end,
+                        io:fwrite("tx_pool_feeder, inclusion note. your trade is completely matched in the LMSR step\n"),
             {1, lists:reverse(AccTIDs), OID, QFa, QSa};
         true ->
             Amount2 = Amount - LMSRProvides,
@@ -187,6 +200,7 @@ inclusion_futarchy_bet2(
                         (TradeProvides > Amount2) ->
             %we ran out of money matching the trade.
          %will update the trade to be partially matching.
+                        io:fwrite("tx_pool_feeder, inclusion note. your trade is completely matched with other trades\n"),
                             {1, lists:reverse(AccTIDs), OID, QF, QS};
                         true ->
             %recurse to the next trade.
@@ -425,6 +439,16 @@ lookup_merkel_proofs(Dict, [{oracle_bets, Key}|T], Trees, Height) ->
 	end,
     lookup_merkel_proofs(Dict2, T, Trees, Height);
 lookup_merkel_proofs(Dict, [{TreeID, Key}|T], Trees, Height) ->
+    case Key of
+        [] -> 
+            io:fwrite("tx_pool_feeder: looked up a empty key in the consensus dict.\n"),
+            io:fwrite("in tree: "),
+            io:fwrite(TreeID),
+            io:fwrite("\n"),
+            io:fwrite({TreeID, Key}),
+            1=2;
+        _ -> ok
+    end,
     %HashedKey = trees2:hash_key(TreeID, Key),
     Dict2 = 
 	%case dict:find({TreeID, Key}, Dict) of

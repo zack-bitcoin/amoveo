@@ -1,3 +1,9 @@
+potentially found a bug in how reading from empty slots in the tree works. need to verify that we can sync still.
+
+
+
+
+
 working on test_txs:test(72). the futarchy_bet_tx.
 It is making a consensus_state# record, but is failing to store any value under the key "val". instead it should be storing a futarchy_unmatched object.
 

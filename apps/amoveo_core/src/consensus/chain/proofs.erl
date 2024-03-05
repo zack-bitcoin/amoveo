@@ -53,8 +53,8 @@ int_to_tree(16) -> receipts;
 int_to_tree(17) -> stablecoins;
 int_to_tree(18) -> jobs;
 int_to_tree(19) -> futarchy;
-int_to_tree(20) -> futarchy_unmatched;
-int_to_tree(21) -> futarchy_matched.
+int_to_tree(20) -> futarchy_matched;
+int_to_tree(21) -> futarchy_unmatched.
 
 leaf_type2tree(empty) -> empty;
 leaf_type2tree(accounts) -> accounts;
@@ -1045,10 +1045,12 @@ txs_to_querys2([STx|T], Trees, Height) ->
                     [] -> io:fwrite(STx);
                     _ -> ok
                 end,
+                io:fwrite("proofs futarchy_bet start\n"),
                 TIDCases = 
                     case element(4, STx) of
                         {0, TIDAhead, TIDBehind} ->
                             %added an order to the book.
+                            io:fwrite("proofs futarchy_bet, adding order to book\n"),%missing a futarchy unmatched.
                             TA = case TIDAhead of
                                      <<0:256>> -> [];
                                      <<_:256>> -> 
@@ -1059,8 +1061,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                      <<_:256>> -> 
                                          [{futarchy_unmatched, TIDBehind}]
                                  end,
+                            io:fwrite("proofs futarchy_bet. many orders: "),%missing a futarchy unmatched.
+                            io:fwrite(integer_to_list(length(TA++TB))),
+                            io:fwrite("\n"),
+
                             TA ++ TB;
                         {1, TIDsMatched, TIDPartlyMatched, _, _} ->
+                            io:fwrite("proofs futarchy_bet, matching order from the book\n"),
                             %matched orders from the book.
                             %todo, need the FMID of the new matched location. hash:doit(<<FID/binary, Pubkey/binary, nonce0:32>>
                             FMID = futarchy_bet_tx:futarchy_matched_id_maker(
@@ -1070,10 +1077,17 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                       end, [TIDPartlyMatched|
                                             TIDsMatched]) ++ 
                                 [{futarchy_matched, FMID}];
-                        {2,  TIDsMatched, TIDBehind, NewTopTID, _, _} ->
+                        %{2,  TIDsMatched, TIDBehind, NewTopTID, _, _} ->
+                        {2,  TIDsMatched, NewTopTID, _, _} ->
                             %partially matched
+                            io:fwrite("proofs futarchy_bet, partial match of order from the book\n"),
+                            
+                            io:fwrite({{new_top, NewTopTID},
+                                       %{tid_behind, TIDBehind},
+                                       {rest, TIDsMatched}}),
                             lists:map(fun(X) -> {futarchy_unmatched, X}
-                                      end, [NewTopTID, TIDBehind|TIDsMatched])
+                                      %end, [NewTopTID, TIDBehind|TIDsMatched])
+                                      end, [NewTopTID|TIDsMatched])
                     end,
                 NewFU0 = #futarchy_unmatched{
                   owner = Pubkey,
@@ -1085,10 +1099,12 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  },
                 NewFU = futarchy_unmatched:make_id(NewFU0, Height),
                 TID = NewFU#futarchy_unmatched.id,
-                [{accounts, Pubkey},
+                R = [{accounts, Pubkey},
                  {futarchy, FID},
                  {futarchy_unmatched, TID}
-                ] ++ TIDCases
+                    ] ++ TIDCases,
+                %io:fwrite(R),
+                R
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
 		 %{governance, ?n2i(oracle_bet)},
