@@ -353,7 +353,7 @@ price(B, Q1, Q2) ->
 
 q2({rat, 0, _}, _B, _Q1) ->
     impossible;
-q2(P, B, Q1) ->
+q2(P = {rat, _, _}, B, Q1) ->
 %given a price, Q1, and B, solve for Q2.
 %so like, if the current price is P, and we want to match a trade at some higher price Q, you could use this function to see how much liquidity the market maker is going to give you as you move the price from P to Q.
     %the pure logrithm version fails when Q1 is much bigger than B. 
@@ -362,6 +362,8 @@ q2(P, B, Q1) ->
     %Q2b = q2b(P, B, {rat, 0, 1}),
     %to_int(Q2b) + Q1.
 
+    true = is_positive(P),
+    true = less_than(P, {rat, 1, 1}),
     %another issue is that if Q2 is bigger than ?limit, it isn't possible for this library to return that value. So lets scale big values as well.
     StartSize = max(B, Q1),
     %MaxSize = 1024,
@@ -390,8 +392,6 @@ q2b(P, B, Q1) ->
     %Q1 + B*ln((1/P) - 1) = Q2
 
     %sanity check on bounds.
-    true = is_positive(P),
-    true = less_than(P, {rat, 1, 1}),
 
     add(Q1, mul(B, ln(sub(inverse(P), 1)))).
     

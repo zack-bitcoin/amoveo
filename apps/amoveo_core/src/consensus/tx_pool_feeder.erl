@@ -72,6 +72,9 @@ tx_pool_inclusion_note(futarchy_bet_tx, SignedTx0) ->
           pubkey = Pubkey,
           nonce = Nonce
         } = Tx,
+    io:fwrite("0 goal is: "),
+    io:fwrite(integer_to_list(Goal)),
+    io:fwrite("\n"),
     Futarchy = trees:get(futarchy, FID),
     #futarchy
         {
@@ -99,18 +102,28 @@ tx_pool_inclusion_note(futarchy_bet_tx, SignedTx0) ->
    Note = 
         case OurOrders of
             <<0:256>> ->
+                io:fwrite("tx_pool_feeder, inclusion futarchy bet2 version 0\n"),
+                io:fwrite(TYO == <<0:256>>),
+                io:fwrite(" "),
+                io:fwrite(TNO == <<0:256>>),
+                io:fwrite(" "),
+                io:fwrite(FYO == <<0:256>>),
+                io:fwrite(" "),
+                io:fwrite(FNO == <<0:256>>),
+                io:fwrite("\n"),
                 inclusion_futarchy_bet2(
                   Pubkey, Nonce, Goal,
-                  TheirTop, Amount, OurShares, 
+                  TheirTop, OurOrders, Amount, OurShares, 
                   TheirShares, LP, Liquidity, []);
             _ ->
                 OurTop = trees:get(futarchy_unmatched, OurOrders),
                 OurPrice = OurTop#futarchy_unmatched.limit_price,
                 if
                     (LP > OurPrice) ->
+                io:fwrite("tx_pool_feeder, inclusion futarchy bet2 version lp > \n"),
                         inclusion_futarchy_bet2(
                           Pubkey, Nonce, Goal,
-                          TheirTop, Amount, OurShares, 
+                          TheirTop, OurOrders, Amount, OurShares, 
                           TheirShares, LP, Liquidity, []);
                     true ->
                         {TIDAhead, TIDBehind} = 
@@ -126,17 +139,18 @@ tx_pool_inclusion_note(futarchy_bet_tx, SignedTx0) ->
 tx_pool_inclusion_note(_Type, SignedTx0) -> SignedTx0.
    
 inclusion_futarchy_bet2(
-  Pubkey, Nonce, Goal, <<0:256>>, Amount, OurShares, TheirShares, 
-  LimitPrice, B, AccTIDs) -> 
+  Pubkey, Nonce, Goal, <<0:256>>, OurOrders, Amount, OurShares, 
+  TheirShares, LimitPrice, B, AccTIDs) -> 
     %when the order id is <<0:256>>, that means there is nothing left to match with.
+    io:fwrite("tx pool feeder inclusion futarchy bet 2 case 0\n"),
     QD = lmsr:max_buy(B, TheirShares, OurShares, Amount),
     {QF, QS} = case Goal of
-                   1 -> {OurShares, TheirShares + QD};
-                   0 -> {TheirShares + QD, OurShares}
+                   1 -> {OurShares + QD, TheirShares};
+                   0 -> {TheirShares, OurShares + QD}
                end,
     case AccTIDs of
         [] -> 
-            io:fwrite("tx_pool_feeder, adding a trade to the pool\n"),
+            io:fwrite("tx_pool_feeder, inclusion note: adding a trade to the empty order book\n"),
             {0, <<0:256>>, <<0:256>>};
         _ ->
             io:fwrite("tx_pool_feeder, inclusion note. your trade is only partially matched\n"),
@@ -145,18 +159,27 @@ inclusion_futarchy_bet2(
 %              FID, Pubkey, Nonce0),
     %{2, lists:reverse(AccTIDs), [], <<0:256>>, QF, QS};
     %{2, lists:reverse(AccTIDs), [], <<0:256>>, QF, QS};
+%            io:fwrite({{before, OurShares, TheirShares}, % 5, 0
+%                       {afta, QF, QS},% 5, 13
+%                       {others, QD}}),% 13
+%            io:fwrite({lists:map(
+%                         fun(X) -> trees:get(futarchy_unmatched, X) end, 
+%                         AccTIDs)}),
+            io:fwrite({AccTIDs}),
             {2, lists:reverse(AccTIDs), <<0:256>>, QF, QS}
     end;
 inclusion_futarchy_bet2(
-  Pubkey, Nonce, Goal, OrderID, Amount, OurShares, TheirShares, 
-  LimitPrice, B, AccTIDs) -> 
+  Pubkey, Nonce, Goal, TheirOrderID, OurOrderID, Amount, OurShares, 
+  TheirShares, LimitPrice, B, AccTIDs) -> 
      %walk down their_orders, and see how many trades we can match with, to find out if our order can be completely matched, or if part of it will be left unmatched.
     %use lmsr:q2(P, B, Q1) to see how much extra liquidity we get from the market maker.
     %return the final Q1, Q2, any leftover veo, the list of TID that got matched, and the next tid in the order book.
 
     %it is possible that price ends up somewhere the market maker is providing liquidity, instead of partially matching a bet, and this can happen either because we hit the price limit, or because we run out of money to trade with.
-    Order = trees:get(futarchy_unmatched, hd(AccTIDs)),
-%    Order = futarchy_unmatched:dict_get(OrderID, Dict),
+    io:fwrite("tx pool feeder inclusion futarchy bet 2 case 1\n"),
+    Order = trees:get(futarchy_unmatched, TheirOrderID),
+%    Order = trees:get(futarchy_unmatched, hd(AccTIDs)),
+%    Order = futarchy_unmatched:dict_get(TheirOrderID, Dict),
     #futarchy_unmatched
         {
           id = OID,
@@ -164,9 +187,15 @@ inclusion_futarchy_bet2(
           limit_price = LP,
           behind = Next,
           futarchy_id = FID,
-          goal = Goal
+          goal = Goal2
         } = Order,
-    Q2 = lmsr:q2(LP, B, TheirShares),
+    false = Goal2 == Goal,
+%    case Goal2 of
+%        Goal -> io:fwrite("futarchy bet2 goals match\n");
+%        _ -> io:fwrite({{tx, Goal}, {order_book, Goal2}})
+%    end,
+    %LP should be a rat between 0 and 1.
+    Q2 = lmsr:q2({rat, LP, futarchy_bet_tx:one_square()}, B, TheirShares),%crashes here.
     LMSRProvides = 
         lmsr:change_in_market(
           B, OurShares, TheirShares,
@@ -193,6 +222,17 @@ inclusion_futarchy_bet2(
         true ->
             Amount2 = Amount - LMSRProvides,
             PM = futarchy_bet_tx:prices_match(LimitPrice, LP),
+            io:fwrite("tx_pool_feeder, checking if the trades can be matched at thse prices \n"),
+            io:fwrite(integer_to_list(LimitPrice)),
+            io:fwrite(" "),
+            io:fwrite(integer_to_list(LP)),
+            io:fwrite(" "),
+            io:fwrite(PM),
+            io:fwrite(" "),
+            io:fwrite(integer_to_list(LP*LimitPrice)),
+            io:fwrite(" max: "),
+            io:fwrite(integer_to_list(4294967296)),
+            io:fwrite("\n"),
             if
                 PM ->
                     TradeProvides = RA * futarchy_bet_tx:one() div LP,
@@ -204,27 +244,42 @@ inclusion_futarchy_bet2(
                             {1, lists:reverse(AccTIDs), OID, QF, QS};
                         true ->
             %recurse to the next trade.
-                            NextOrder = trees:get(futarchy_unmatched, Next),
+                            %NextOrder = trees:get(futarchy_unmatched, Next),
                             inclusion_futarchy_bet2(
                               Pubkey, Nonce, Goal,
-                              NextOrder, Amount2 - TradeProvides,
+                              Next, OurOrderID, Amount2 - TradeProvides,
+                              %NextOrder, Amount2 - TradeProvides,
                               Q2, TheirShares, LimitPrice, B, 
                               [OID|AccTIDs])
                     end;
                 true ->
-                    1=2,
-                    %this case was already handled, so it should not happen.
-                    Q2z = lmsr:max(B, TheirShares, OurShares, Amount),
+                    %todo. We need to handle both of the cases; if the lmsr is or is not providing liquidity.
+                   % Q2z = lmsr:max(B, TheirShares, OurShares, Amount),
 
-                    Q2z = lmsr:q2(LimitPrice, B, TheirShares),
+                    %Q2z = lmsr:q2(LimitPrice, B, TheirShares),
+                    QDz = lmsr:max_buy(B, TheirShares, OurShares, Amount),
                     FMID = hash:doit(<<FID/binary, Pubkey/binary, Nonce:32>>),%futarchy matched id.
                     
                     {Q1y, Q2y} = case Goal of
-                                     1 -> {TheirShares, Q2z};
-                                     0 -> {Q2z, TheirShares}
+                                     %1 -> {TheirShares, Q2z};
+                                     %0 -> {Q2z, TheirShares}
+                                     1 -> {OurShares + QDz, TheirShares};
+                                     0 -> {TheirShares, OurShares + QDz}
                                  end,
-                    {2, lists:reverse(AccTIDs), OID, 
-                     Next, FMID, Q1y, Q2y}
+                    case AccTIDs of
+                        [] -> 
+                            io:fwrite("tx pool feeder, adding a trade to the the order book\n"),
+                            {TIDAhead, TIDBehind} = 
+                                futarchy_unmatched:id_pair(
+                                  LimitPrice, OurOrderID),
+                            {0, TIDAhead, TIDBehind};
+                        _ ->
+                            io:fwrite("add trade to front of order book, and match some orders.\n"),
+                            {2, lists:reverse(AccTIDs), TheirOrderID, 
+                             Q1y, Q2y}
+%                            {1, lists:reverse(AccTIDs), OID, 
+%                             Next, FMID, Q1y, Q2y}
+                    end
             end
     end.
 

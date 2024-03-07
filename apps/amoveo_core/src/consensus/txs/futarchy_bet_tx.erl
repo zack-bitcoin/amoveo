@@ -1,5 +1,5 @@
 -module(futarchy_bet_tx).
--export([go/4, make_dict/8, set_orders/4, orders/3, hash/1, 
+-export([go/4, make_dict/8, orders/3, hash/1, 
          one/0, one_square/0, prices_match/2,
          futarchy_matched_id_maker/3]).
 
@@ -14,9 +14,9 @@ one_square() -> ?e2_32.
 
 prices_match(A, B) ->
     %if A encodes Ra, and B encodes Rb, then
-    % A*B = Ra * Rb * ?e2_32
-    % (A*B > ?e2^32) <==> (Ra * Rb > 1)
-    (A * B) > ?e2_32.
+    % A*B = Ra * Rb * ?e2_32 ^2
+    % (A*B > ?e2^32^2) <==> (Ra * Rb > 1)
+    (A * B) > ?e2_32 * ?e2_32.
     
 
 make_dict(Pubkey, FID, Decision, Goal, 
@@ -51,14 +51,14 @@ orders(1, 0, F) -> F#futarchy.true_no_orders;
 orders(0, 1, F) -> F#futarchy.false_yes_orders;
 orders(0, 0, F) -> F#futarchy.false_no_orders.
 
-set_orders(1, 1, F, TID) ->
-    F#futarchy{true_yes_orders = TID};
-set_orders(1, 0, F, TID) ->
-    F#futarchy{true_no_orders = TID};
-set_orders(0, 1, F, TID) ->
-    F#futarchy{false_yes_orders = TID};
-set_orders(0, 0, F, TID) ->
-    F#futarchy{false_no_orders = TID}.
+%set_orders(1, 1, F, TID) ->
+%    F#futarchy{true_yes_orders = TID};
+%set_orders(1, 0, F, TID) ->
+%    F#futarchy{true_no_orders = TID};
+%set_orders(0, 1, F, TID) ->
+%    F#futarchy{false_yes_orders = TID};
+%set_orders(0, 0, F, TID) ->
+%    F#futarchy{false_no_orders = TID}.
 
 go({signed, Tx, _Sig, Proved}, 
    Dict, NewHeight, NonceCheck) ->
@@ -126,7 +126,6 @@ go({signed, Tx, _Sig, Proved},
                     _ ->
                         #futarchy_unmatched
                             {
-                      ahead = TIDBehind,
                       limit_price = LPBehind,
                       decision = Decision,
                       goal = Goal
@@ -135,15 +134,16 @@ go({signed, Tx, _Sig, Proved},
                 end,
                 case FAhead of
                     error -> ok;
-                    _ ->
+                    #futarchy_unmatched{} ->
                         #futarchy_unmatched
                             {
-                      behind = TIDAhead,
                       limit_price = LPAhead,
                       decision = Decision,
                       goal = Goal
                      } = FAhead,
-                        true = LimitPrice =< LPAhead
+                        true = LimitPrice =< LPAhead;
+                    _ ->
+                        io:fwrite({FAhead})
                 end,
                 NewUnmatched2 = 
                     NewUnmatched#futarchy_unmatched{
@@ -173,7 +173,22 @@ go({signed, Tx, _Sig, Proved},
                                  FAhead2 = FAhead#futarchy_unmatched{behind = TID},
                                  futarchy_unmatched:dict_write(FAhead2, Dict4a)
                          end,
-                Dict5a;
+
+                Futarchya = futarchy:dict_get(FID, Dict5a),
+                Futarchya2 = case TIDAhead of
+                                 <<0:256>> -> 
+                                     %then update the futarchy to point to this.
+                                     io:fwrite("updating futarchy order book, decision goal \n"),
+                                     io:fwrite(integer_to_list(Decision)),
+                                     io:fwrite(" "),
+                                     io:fwrite(integer_to_list(Goal)),
+                                     io:fwrite("\n"),
+                                     update_orders(Decision, Goal, TID, Futarchya);
+                                 _ -> Futarchya
+                             end,
+                                 
+                Dict6a = futarchy:dict_write(Futarchya2, Dict5a),
+                Dict6a;
             {1, TIDsMatched, TIDPartiallyMatched, Q1b, Q2b} ->
     %This is the case where your trade is completely matched.
                 %check that they bought one kind of shares.
@@ -280,7 +295,8 @@ go({signed, Tx, _Sig, Proved},
                                TIDPartiallyMatched, Futarchyb2),
                 Dict5b = futarchy:dict_write(Futarchyb3, Dict4b),
                 Dict5b;
-            {2, TIDsMatched, TIDAfterMatched, NewTopTID, Q1b, Q2b} ->
+            %{2, TIDsMatched, TIDAfterMatched??, NewTopTID, Q1b, Q2b} ->
+            {2, TIDsMatched, NewTopTID, Q1b, Q2b} ->
     %This is the case where your trade is partially matched.
                 %this is the same as saying that the price went out of range during the lmsr step.
                 %check that they bought one kind of shares.
@@ -296,7 +312,9 @@ go({signed, Tx, _Sig, Proved},
                     remove_firsts(TIDsMatched, Dict2),
 
                 %check that the next trade in the market is at a worse price than we are willing to match at, or that there is no trade after this one.
-                LastFutarchyU = futarchy_unmatched:dict_get(TIDAfterMatched, Dict3c),
+                LastFutarchyU = futarchy_unmatched:dict_get(
+                                  TIDAfterMatched, Dict3c),
+                io:fwrite({LastFutarchyU, TIDAfterMatched}),
                 TIDAfterMatched = LastFutarchyU#futarchy_unmatched.behind,
                 case TIDAfterMatched of
                     <<0:256>> -> ok;
@@ -350,6 +368,8 @@ go({signed, Tx, _Sig, Proved},
                 NewTID = NewUM#futarchy_unmatched.id,
                 empty = futarchy_unmatched:dict_get(NewTID, Dict3c_5),
                 Dict4c = futarchy_unmatched:dict_write(NewUM, Dict3c_5),
+                %todo. verify that set_orders is putting the right pointers in place.
+                1=2,
                 Futarchyc3 = set_orders(
                                Decision, Goal, Futarchyc2, 
                                NewTID, NewTopTID),
@@ -410,9 +430,10 @@ set_orders(1, 0, Futarchy, OurOrders, TheirOrders) ->
 set_orders(0, 1, Futarchy, OurOrders, TheirOrders) ->
     Futarchy#futarchy{false_yes_orders = OurOrders, 
                       false_no_orders = TheirOrders};
-set_orders(0, 1, Futarchy, OurOrders, TheirOrders) ->
+set_orders(0, 0, Futarchy, OurOrders, TheirOrders) ->
     Futarchy#futarchy{false_no_orders = OurOrders, 
                       false_yes_orders = TheirOrders}.
+
 set_shares(1, Futarchy, Q1, Q2) ->
     Futarchy#futarchy{shares_true_yes = Q1,
                       shares_true_no = Q2};
@@ -433,10 +454,10 @@ update_shares(0, Q1, Q2, Futarchy) ->
      }.
 
 %decision, goal, new pointer, futarchy
-update_orders(1, 1, P, F) -> F#futarchy{true_no_orders = P};
-update_orders(1, 0, P, F) -> F#futarchy{true_yes_orders = P};
-update_orders(0, 1, P, F) -> F#futarchy{false_no_orders = P};
-update_orders(0, 0, P, F) -> F#futarchy{false_yes_orders = P}.
+update_orders(1, 1, P, F) -> F#futarchy{true_yes_orders = P};
+update_orders(1, 0, P, F) -> F#futarchy{true_no_orders = P};
+update_orders(0, 1, P, F) -> F#futarchy{false_yes_orders = P};
+update_orders(0, 0, P, F) -> F#futarchy{false_no_orders = P}.
                   
     
 remove_firsts([], Dict) ->
@@ -491,21 +512,32 @@ remove_first(TID, Dict) ->
          decision = D, goal = G, revert_amount = RA,
          win_amount = WinAmount
         },
-    Dict3 = futarchy_matched:dict_write(FM, Dict2),
+    io:fwrite("futarchy bet tx matched a trade. "),
+    io:fwrite(integer_to_list(RA)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(WinAmount)),
+    io:fwrite("\n"),
+    Dict3 = futarchy_matched:dict_write(FM, Dict2), %{futarchy_matched, 
 
     %update the linked list, so we aren't pointing to deleted data.
-    BFU = futarchy_unmatched:dict_get(Behind, Dict3),
-    BFU2 = BFU#futarchy_unmatched{
-             ahead = <<0:256>>
-            },
-    Dict4 = futarchy_unmatched:dict_write(BFU2, Dict3),
+    Dict4 = case Behind of
+                <<0:256>> ->
+                    Dict3;
+                true ->
+                    BFU = futarchy_unmatched:dict_get(Behind, Dict3),
+                    BFU2 = BFU#futarchy_unmatched{
+                             ahead = <<0:256>>
+                            },
+                    futarchy_unmatched:dict_write(BFU2, Dict3)
+            end,
     {Dict4, RA, WinAmount}.
     
 bought_one(Q1, Q2, Q1b, Q2b) ->
      %check that they bought one kind of shares.
     case {Q1, Q2} of
         {Q1b, _} -> ok;
-        {_, Q2b} -> ok
+        {_, Q2b} -> ok;
+        _ -> io:fwrite({Q1, Q2, Q1b, Q2b})
     end,
     true = Q1 =< Q1b,
     true = Q2 =< Q2b.

@@ -285,7 +285,8 @@ dict_key(C = #contract{}) ->
 dict_key(#trade{value = V}) -> V;
 dict_key(#market{id = X}) -> X;
 dict_key(#receipt{id = Z}) -> Z;
-dict_key(#job{id = Z}) -> Z.
+dict_key(#job{id = Z}) -> Z;
+dict_key(#futarchy{fid = X}) -> X.
 
 hash(F) ->
     hash:doit(F).
@@ -1081,13 +1082,22 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         {2,  TIDsMatched, NewTopTID, _, _} ->
                             %partially matched
                             io:fwrite("proofs futarchy_bet, partial match of order from the book\n"),
+                            L1 = TIDsMatched,
+                            L2 = case NewTopTID of
+                                     <<0:256>> -> L1;
+                                     _ -> [NewTopTID|L1]
+                                 end,
                             
-                            io:fwrite({{new_top, NewTopTID},
+%                            io:fwrite({{new_top, NewTopTID},
                                        %{tid_behind, TIDBehind},
-                                       {rest, TIDsMatched}}),
+%                                       {rest, TIDsMatched}}),
                             lists:map(fun(X) -> {futarchy_unmatched, X}
-                                      %end, [NewTopTID, TIDBehind|TIDsMatched])
-                                      end, [NewTopTID|TIDsMatched])
+                                      end, L2)
+                            ++ lists:map(fun(X) -> 
+                                                 <<X1:256>> = X,
+                                                 X2 = <<(X1 + 1):256>>,
+                                                 {futarchy_matched, X2}
+                                      end, L2)
                     end,
                 NewFU0 = #futarchy_unmatched{
                   owner = Pubkey,

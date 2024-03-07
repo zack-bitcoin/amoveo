@@ -52,6 +52,7 @@ dict_write(Job, _Meta, Dict) ->
 id_pair(Price, 
         Pointer %points to the next element in the linked list.
        ) ->
+    io:fwrite("futarchy_unmatched id_pair\n"),
     case trees:get(futarchy_unmatched, Pointer) of
         empty -> {<<0:256>>, <<0:256>>};
         FU ->
