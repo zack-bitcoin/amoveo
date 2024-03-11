@@ -1114,7 +1114,65 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {futarchy_unmatched, TID}
                     ] ++ TIDCases,
                 %io:fwrite(R),
-                R
+                R;
+            futarchy_resolve_tx ->
+                #futarchy_resolve_tx{
+              fid = FID, decision_oid = DOID, pubkey = Pubkey, 
+              creator = Creator
+             } = Tx,
+                Futarchy = trees:get(futarchy, FID),
+                {CID, _, _} = futarchy_resolve_tx:cid_oid(Futarchy),
+                Oracle = trees:get(oracle, DOID),
+                R = Oracle#oracle.result,
+                D = case R of
+                        1 -> 1;
+                        2 -> 0
+                    end,
+                ToKey = sub_accounts:make_v_key(Creator, CID, D),
+                [{accounts, Pubkey},
+                 {accounts, Creator},
+                 {contracts, CID},
+                 {sub_accounts, ToKey},
+                 {futarchy, FID},
+                 {oracle, DOID}];
+            futarchy_unmatched_tx ->
+                #futarchy_unmatched_tx{
+              pubkey = Pubkey, fid = FID, bet_id = UID
+             } = Tx,
+                Futarchy = trees:get(futarchy, FID),
+                Unmatched = trees:get(futarchy_unmatched, UID),
+                Owner = Unmatched#futarchy_unmatched.owner,
+                [{account, Pubkey},
+                 {account, Owner},
+                 {futarchy, FID},
+                 {futarchy_unmatched, UID}];
+            futarchy_matched_tx ->
+                #futarchy_matched_tx{
+              pubkey = Pubkey, bet = MID, revert = Revert
+             } = Tx,
+                Matched = trees:get(futarchy_matched, MID),
+                #futarchy_matched
+                    {
+                      futarchy_id = FID, owner = Owner, 
+                      decision = Decision
+                    } = Matched,
+                Futarchy = trees:get(futarchy, FID),
+                {CID, OID, _} = futarchy_resolve_tx:fid2cid(Futarchy),
+                FMTL = case Revert of
+                        1 ->
+                            [{accounts, Owner}];
+                        0 ->
+                            D = case Decision of
+                                    1 -> 0;
+                                    0 -> 1
+                                end,
+                            SA = sub_accounts:make_v_key(Owner, CID, D),
+                            [{sub_accounts, SA}]
+                    end,
+                [{accounts, Pubkey},
+                 {oracle, OID},
+                 {futarchy, FID},
+                 {futarchy_matched, MID}] ++ FMTL
 	end,
     L ++ txs_to_querys2(T, Trees, Height).
 		 %{governance, ?n2i(oracle_bet)},

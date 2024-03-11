@@ -282,7 +282,7 @@
 -record(job, {id, worker, boss, value, salary, balance, time}).
 -record(futarchy,
         {fid, %deterministically generated from other values.
-        creator, %provides liquidity for the lmsr, and needs to receive extra money from the lmsr later.
+         creator, %provides liquidity for the lmsr, and needs to receive extra money from the lmsr later.
          decision_oid, %determines which market gets reverted. true/false
          goal_oid, %determines who wins the bet in the non-reverted market. yes/no
          root_hash = <<0:256>>, %update every time there is a trade.
@@ -336,4 +336,15 @@
         decision, %your bet is not reverted if this decision is selected. true/false
         goal, %you win if the goal oracle finalizes in this state. true/false
         futarchy_hash %root hash of market state before this trade is executed.
+        }).
+-record(futarchy_matched_tx,
+        {pubkey, nonce, fee,
+        amount, bet, revert}).
+-record(futarchy_unmatched_tx,
+        {pubkey, nonce, fee, fid, bet_id, amount}).
+-record(futarchy_resolve_tx,
+        {pubkey, nonce, fee,
+         fid, %id of the futarchy
+         creator, %person who originally made this futarchy market.
+         decision_oid %id of the decision oracle, which is now finalized
         }).

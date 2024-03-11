@@ -4498,6 +4498,8 @@ test(71) ->
     success;
 test(72) ->
     %testing the futarchy tx types.
+    %testing an unmatched futarchy bet.
+
     restart_chain(),
     %headers:dump(),
     %block:initialize_chain(),
@@ -4539,8 +4541,9 @@ test(72) ->
     
     Decision = 1,
     Goal = 1,
+    OtherDecision = 0,
     OtherGoal = 0,
-    LimitPrice = round(math:pow(2, 31) * 0.9),
+    LimitPrice = round(math:pow(2, 31)),
     FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
     Tx4 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
@@ -4556,7 +4559,7 @@ test(72) ->
     FutarchyHash2 = (trees:get(futarchy, FID))#futarchy.root_hash,
     Tx5 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
-            LimitPrice+5, FutarchyHash2, Fee),
+            LimitPrice-5, FutarchyHash2, Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
     2 = many_txs(),
@@ -4565,7 +4568,7 @@ test(72) ->
 %    FutarchyHash3 = ok,
     Tx6 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, Goal, 1*VEO,
-            LimitPrice+3, FutarchyHash3, Fee),
+            LimitPrice-8, FutarchyHash3, Fee),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
     3 = many_txs(),
@@ -4573,28 +4576,106 @@ test(72) ->
     FutarchyHash4 = (trees:get(futarchy, FID))#futarchy.root_hash,
     Tx7 = futarchy_bet_tx:make_dict(
             Pub, FID, Decision, OtherGoal, 
-            round(2.5*VEO), LimitPrice+3, FutarchyHash4, Fee),
+            round(2.5*VEO), LimitPrice-3, FutarchyHash4, Fee),
     Stx7 = keys:sign(Tx7),
-    io:fwrite("absorb tx 7\n"),
     absorb(Stx7),
     4 = many_txs(),
 
+    FutarchyHash5 = (trees:get(futarchy, FID))#futarchy.root_hash,
+    Tx8 = futarchy_bet_tx:make_dict(
+            Pub, FID, OtherDecision, Goal, 
+            round(VEO), LimitPrice-1, FutarchyHash5, Fee),
+    Stx8 = keys:sign(Tx8),
+    io:fwrite("absorb tx 8\n"),
+    absorb(Stx8),
+    5 = many_txs(),
+
     mine_blocks(1),
     0 = many_txs(),
+
+
+    FRTx = futarchy_resolve_tx:make_dict(
+             MP, FID, 0, Fee),
     
+
+
+    %todo, resolve this futarchy.
+    %futarchy_resolve_tx
+    %withdraw unmatched
+
+
     
     success;
 test(73) ->
     %testing all cases of futarchy_bet_tx
 
-    %an unmatched futarchy bet.
-
-    % fully matched, ran out of liquidity in the lmsr step.
+    % ** fully matched, ran out of liquidity in the lmsr step. 
 
     % fully matched, ran out of liquidity while matching a trade.
 
     % price went out of range during the lmsr step, so partially unmatched
 
+
+    % todo, is failing to create the futarchy_matched element.
+
+    restart_chain(),
+    mine_blocks(6),
+    MP = constants:master_pub(),
+    Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
+    Fee = constants:initial_fee()*2,
+    Tx1 = oracle_new_tx:make_dict(Pub, Fee, <<"Decision">>, block:height() + 1, 0, 0),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    DOID = oracle_new_tx:id(Tx1),
+    Tx2 = oracle_new_tx:make_dict(Pub, Fee, <<"Goal">>, block:height() + 1, 0, 0),
+    GOID = oracle_new_tx:id(Tx2),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    2 = many_txs(),
+    mine_blocks(1),
+
+    VEO = 100000000,
+
+    TrueLiquidity =  2 * VEO,
+    FalseLiquidity = 1 * VEO,
+    Period = 1,
+    Salt2 = <<22:256>>,
+    Tx3 = futarchy_new_tx:make_dict(
+            Pub, DOID, GOID, Period, 
+            TrueLiquidity, FalseLiquidity, Fee, 
+            block:height()),
+    Tx3Nonce = Tx3#futarchy_new_tx.nonce,
+    FID = futarchy:make_id(Pub, <<Tx3Nonce:256>>, block:height()),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Decision = 1,
+    Goal = 1,
+    OtherDecision = 0,
+    OtherGoal = 0,
+    LimitPrice = round(math:pow(2, 32)-1),
+    FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
+    Tx4 = futarchy_bet_tx:make_dict(
+            Pub, FID, Decision, Goal, VEO,
+            LimitPrice, FutarchyHash1, Fee),
+    %io:fwrite(Tx4),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+
+    mine_blocks(1),
+    0 = many_txs(),
+
+
+
+    %todo
+    %resolve the futarchy, 
+    %futarchy_to_binary_tx, to convert it to a subcurrency, 
+    %get the veo out.
 
     success;
 test(74) ->

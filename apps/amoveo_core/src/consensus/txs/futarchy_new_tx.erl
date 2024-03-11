@@ -37,11 +37,13 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     false_liquidity = FalseLiquidity,
     nonce = Nonce0, 
     futarchy_id = FID, fee = Fee} = Tx,
+
     true = NewHeight > (forks:get(54)),
     true = is_integer(Period),
     true = Period > -1,
     true = TrueLiquidity > -1,
     true = FalseLiquidity > -1,
+    false = (GoalOID == DecisionOID),
     Nonce = nonce_check:doit(
               NonceCheck, 
               Nonce0),
