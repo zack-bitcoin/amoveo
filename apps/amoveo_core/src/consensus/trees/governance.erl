@@ -72,7 +72,10 @@ hard_coded(_, 47) -> 905;%job_buy_tx
 hard_coded(_, 48) -> 905;%job_adjust_tx
 hard_coded(_, 49) -> 905;%job_team_adjust_tx
 hard_coded(_, 50) -> 905;%futarchy_new_tx
-hard_coded(_, 51) -> 905.%futarchy_bet_tx
+hard_coded(_, 51) -> 905;%futarchy_bet_tx
+hard_coded(_, 52) -> 0;%futarchy_resolve_tx
+hard_coded(_, 53) -> 0;%futarchy_unmatched_tx
+hard_coded(_, 54) -> 0.%futarchy_matched_tx
 
 
 
@@ -252,6 +255,9 @@ name2number(job_adjust_tx) -> 48;
 name2number(job_team_adjust_tx) -> 49;
 name2number(futarchy_new_tx) -> 50;
 name2number(futarchy_bet_tx) -> 51;
+name2number(futarchy_resolve_tx) -> 52;
+name2number(futarchy_unmatched_tx) -> 53;
+name2number(futarchy_matched_tx) -> 54;
 name2number(X) -> 
     io:fwrite(X),
     1=2,
@@ -307,6 +313,9 @@ number2name(48) -> job_adjust_tx;
 number2name(49) -> job_team_adjust_tx;
 number2name(50) -> futarchy_new_tx;
 number2name(51) -> futarchy_bet_tx;
+number2name(52) -> futarchy_resolve_tx;
+number2name(53) -> futarchy_unmatched_tx;
+number2name(54) -> futarchy_matched_tx;
 number2name(X) ->
     io:fwrite(X),
     1=2,

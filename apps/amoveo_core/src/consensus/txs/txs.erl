@@ -76,6 +76,9 @@ key2module(job_adjust_tx) -> job_adjust_tx;
 key2module(job_team_adjust_tx) -> job_team_adjust_tx;
 key2module(futarchy_new_tx) -> futarchy_new_tx;
 key2module(futarchy_bet_tx) -> futarchy_bet_tx;
+key2module(futarchy_resolve_tx) -> futarchy_resolve_tx;
+key2module(futarchy_matched_tx) -> futarchy_matched_tx;
+key2module(futarchy_unmatched_tx) -> futarchy_unmatched_tx;
 key2module(coinbase_old) -> coinbase_tx.
 developer_lock(From, NewHeight, Dict) -> ok.
     

@@ -4593,12 +4593,31 @@ test(72) ->
     mine_blocks(1),
     0 = many_txs(),
 
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
+    Tx9 = oracle_bet_tx:make_dict(MP, Fee, DOID, 1, OIL+1),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
 
-    FRTx = futarchy_resolve_tx:make_dict(
-             MP, FID, 0, Fee),
+    Tx10 = oracle_close_tx:make_dict(constants:master_pub(),Fee, DOID),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Tx11 = futarchy_resolve_tx:make_dict(
+             MP, FID, DOID, Fee),
+    %todo. this tx is printing 0.44270399 veo from nothing.x
+    Stx11 = keys:sign(Tx11),
+    absorb(Stx11),
+    1 = many_txs(),
+    mine_blocks(1),
+
     
-
-
     %todo, resolve this futarchy.
     %futarchy_resolve_tx
     %withdraw unmatched

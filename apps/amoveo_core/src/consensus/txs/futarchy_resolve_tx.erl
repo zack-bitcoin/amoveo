@@ -4,6 +4,28 @@
 -include("../../records.hrl").
 
 
+%accounting
+%=============
+%pubkey
+%  - Fee
+% contract
+%  + unreverted liquidity 
+%  + unreverted shares of yes and no
+% creator
+%  + reverted liquiduty
+%  + ExtraVeo 
+% futarchy
+%  - liquidity_true
+%  - liquidity_false
+%  - unreverted shares of yes and no.
+%  leave the reverted shares unchanged, this gets reduced when there are futarchy_matched_tx that convert reverted shares back to veo.
+
+% todo
+% lower reverted to zero bit by bit as people revert their bets to veo with futarchy_matched_tx.
+% move all the unreverted to the contract immediately.
+
+
+
 make_contract(OID) ->
     %from amoveo/amoveo_core/priv/binary_2.fs compiled with chalang forth compiler. It has 2 currency types.
     Contract = 
@@ -37,10 +59,7 @@ make_dict(Pubkey, FID, Decision, Fee) ->
     CreatorAccount = trees:get(accounts, Creator),
 %    #acc{} = CreatorAccount,
     <<_:256>> = FID,
-    case Decision of
-        0 -> ok;
-        1 -> ok
-    end,
+    <<_:256>> = Decision,
     #futarchy_resolve_tx{
       pubkey = Pubkey, creator = Creator,
       nonce = Account#acc.nonce+1,
@@ -87,14 +106,15 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Dict3 = 
         case contracts:dict_get(ContractKey, Dict2) of
             empty ->
-                contract:dict_write(
+                contracts:dict_write(
                   contracts:new(ContractHash, 2, <<0:256>>, 0),
                   Dict2);
             _ -> Dict2
         end,
+
+    %todo, put unreverted liquidity and unreverted shares of yes and no into the contract.volume.
  
     %set the futarchy market to unactive.
-    Futarchy2 = Futarchy#futarchy{active = 0},
     %return any extra money to the creator.
     %from the canceled market they get the entire liquidity back.
     LiquidityRecover = 
@@ -147,7 +167,41 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                       Dict4, Creator, ContractKey, 
                       ExtraDiff, 0)
             end,
-    Dict5.
+
+
+    %todo. only remove the unreverted liquidity, not both.
+    %todo. remove the unreverted shares of yes and no.
+    Futarchy2 = Futarchy#futarchy
+        {
+          active = 0,
+          liquidity_true = 0,
+          liquidity_false = 0
+        },
+    io:fwrite("futarchy resolve tx quantities\n"),
+    io:fwrite(integer_to_list(LT)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(LF)),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(STY)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(STN)),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(SFY)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(SFN)),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(LiquidityRecover)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(ExtraTrues)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(ExtraFalses)),
+    io:fwrite(" "),
+    io:fwrite(integer_to_list(ExtraVeo)),
+    io:fwrite("\n"),
+    Dict6 = futarchy:dict_write(Futarchy2, Dict5),
+    Dict6.
+    
+    
 
 spend_or_create_sub(Dict, To, CID, Amount, Direction) ->
     %for Direction, 1 is true and 0 is false. this is the result of the decision oracle.
@@ -165,4 +219,5 @@ spend_or_create_sub(Dict, To, CID, Amount, Direction) ->
                    ToKey, Dict, Amount, none)
         end,
     sub_accounts:dict_write(Tacc, Dict).
+    
     

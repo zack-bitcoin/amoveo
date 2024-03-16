@@ -479,6 +479,8 @@ change_in_market(B, Y0, N0, Y1, N1) ->
     
     Result.
     
+veo_in_market(0, Y, N) when (is_integer(Y) and is_integer(N)) ->
+    Y+N;
 veo_in_market(B, Y, N) when (is_integer(Y) and is_integer(N)) ->
     %C = B * ln(e^(Y/B) + e^(N/B))
     % = B * (ln((Y/B)*(1 + e^((N-Y)/B))))

@@ -178,11 +178,11 @@ go({signed, Tx, _Sig, Proved},
                 Futarchya2 = case TIDAhead of
                                  <<0:256>> -> 
                                      %then update the futarchy to point to this.
-                                     io:fwrite("updating futarchy order book, decision goal \n"),
-                                     io:fwrite(integer_to_list(Decision)),
-                                     io:fwrite(" "),
-                                     io:fwrite(integer_to_list(Goal)),
-                                     io:fwrite("\n"),
+                                     %io:fwrite("updating futarchy order book, decision goal \n"),
+                                     %io:fwrite(integer_to_list(Decision)),
+                                     %io:fwrite(" "),
+                                     %io:fwrite(integer_to_list(Goal)),
+                                     %io:fwrite("\n"),
                                      update_orders(Decision, Goal, TID, Futarchya);
                                  _ -> Futarchya
                              end,
@@ -235,7 +235,7 @@ go({signed, Tx, _Sig, Proved},
                     if
                         %(Rest > 0) -> 
                         not(AlmostZero) ->
-                            io:fwrite("partial match\n"),
+                            %io:fwrite("partial match\n"),
                             %make sure that a trade exists to match with
                             %io:fwrite({Rest, Amount}),
                             false = (<<0:256>> == TIDPartiallyMatched),
@@ -263,7 +263,7 @@ go({signed, Tx, _Sig, Proved},
                             futarchy_unmatched:dict_write(
                               FUb2, Dict3b);
                         true ->
-                            io:fwrite("no partial match\n"),
+                            %io:fwrite("no partial match\n"),
                             Dict3b
                     end,
                 
@@ -271,9 +271,9 @@ go({signed, Tx, _Sig, Proved},
                 %FMID = hash:doit(<<FID/binary, Pubkey/binary, Nonce0:32>>),
                 FMID = futarchy_matched_id_maker(
                          FID, Pubkey, Nonce0),
-                io:fwrite("making futarchy matched: "),
-                io:fwrite(packer:pack(FMID)),
-                io:fwrite("\n"),
+                %io:fwrite("making futarchy matched: "),
+                %io:fwrite(packer:pack(FMID)),
+                %io:fwrite("\n"),
                 PartMatch = AD + MatchedAmount,
                 FMb = #futarchy_matched{
                   id = FMID,
@@ -376,7 +376,7 @@ go({signed, Tx, _Sig, Proved},
                 Dict5c = futarchy:dict_write(Futarchyc3, Dict4c),
                 Dict5c
         end,
-    io:fwrite("futarchy bet tx finished\n"),
+    %io:fwrite("futarchy bet tx finished\n"),
     Dict3.
 
 almost_zero(Rest, Amount) ->
@@ -512,11 +512,11 @@ remove_first(TID, Dict) ->
          decision = D, goal = G, revert_amount = RA,
          win_amount = WinAmount
         },
-    io:fwrite("futarchy bet tx matched a trade. "),
-    io:fwrite(integer_to_list(RA)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(WinAmount)),
-    io:fwrite("\n"),
+    %io:fwrite("futarchy bet tx matched a trade. "),
+    %io:fwrite(integer_to_list(RA)),
+    %io:fwrite(" "),
+    %io:fwrite(integer_to_list(WinAmount)),
+    %io:fwrite("\n"),
     Dict3 = futarchy_matched:dict_write(FM, Dict2), %{futarchy_matched, 
 
     %update the linked list, so we aren't pointing to deleted data.

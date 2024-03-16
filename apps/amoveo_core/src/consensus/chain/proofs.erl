@@ -1122,7 +1122,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
              } = Tx,
                 Futarchy = trees:get(futarchy, FID),
                 {CID, _, _} = futarchy_resolve_tx:cid_oid(Futarchy),
-                Oracle = trees:get(oracle, DOID),
+                Oracle = trees:get(oracles, DOID),
                 R = Oracle#oracle.result,
                 D = case R of
                         1 -> 1;
@@ -1134,7 +1134,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                  {contracts, CID},
                  {sub_accounts, ToKey},
                  {futarchy, FID},
-                 {oracle, DOID}];
+                 {oracles, DOID}];
             futarchy_unmatched_tx ->
                 #futarchy_unmatched_tx{
               pubkey = Pubkey, fid = FID, bet_id = UID
@@ -1170,7 +1170,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             [{sub_accounts, SA}]
                     end,
                 [{accounts, Pubkey},
-                 {oracle, OID},
+                 {oracles, OID},
                  {futarchy, FID},
                  {futarchy_matched, MID}] ++ FMTL
 	end,

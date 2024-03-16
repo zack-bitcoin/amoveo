@@ -1911,7 +1911,7 @@ no_counterfeit(Old, New, Txs, Height) ->
     if
         ((Diff > 0) or (Diff < -50000000))->
         %false ->
-            io:fwrite("height "),
+            io:fwrite("Accounting error. Number of coins in doesn't equal number of coins out.\nheight "),
             io:fwrite(integer_to_list(Height)),
             io:fwrite("; diff is "),
             io:fwrite(integer_to_list(Diff)),
@@ -2083,6 +2083,19 @@ sum_amounts_helper(futarchy, Futarchy, _dict, _, _) ->
                shares_false_yes = SFY,
                shares_false_no = SFN
              } = Futarchy,
+    io:fwrite("block:sum_amounts_helper futarchy \n"),
+    io:fwrite(integer_to_list(Bt)),
+    io:fwrite(", "),
+    io:fwrite(integer_to_list(STY)),
+    io:fwrite(", "),
+    io:fwrite(integer_to_list(STN)),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(Bf)),
+    io:fwrite(", "),
+    io:fwrite(integer_to_list(SFY)),
+    io:fwrite(", "),
+    io:fwrite(integer_to_list(SFN)),
+    io:fwrite("\n"),
     lmsr:veo_in_market(Bt, STY, STN) +
         lmsr:veo_in_market(Bf, SFY, SFN);
 sum_amounts_helper(futarchy_unmatched, FU, _dict, 
