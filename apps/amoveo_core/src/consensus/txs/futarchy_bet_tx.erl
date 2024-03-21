@@ -1,7 +1,7 @@
 -module(futarchy_bet_tx).
 -export([go/4, make_dict/8, orders/3, hash/1, 
-         one/0, one_square/0, prices_match/2,
-         futarchy_matched_id_maker/3]).
+         one/0, one_square/0, prices_match/2
+        ]).
 
 -include("../../records.hrl").
 
@@ -37,15 +37,24 @@ make_dict(Pubkey, FID, Decision, Goal,
     true = is_integer(LimitPrice),
     true = (LimitPrice > 0),
     %the mining pool should update the meta data to store matched_tids for this bet.
-    #futarchy_bet_tx{
-             pubkey = Pubkey,
-             nonce = Account#acc.nonce+1,
-             fee = Fee, fid = FID,
-             limit_price = LimitPrice,
-             amount = Amount,
-             decision = Decision,
-             futarchy_hash = FutarchyHash,
-             goal = Goal}.
+    FU = #futarchy_unmatched{
+      owner = Pubkey, futarchy_id = FID, decision = Decision,
+      goal = Goal, limit_price = LimitPrice, 
+      revert_amount = Amount
+     },
+    Height = block:height(),
+    UID = (futarchy_unmatched:make_id(FU, Height))#futarchy_unmatched.id,
+    Nonce = Account#acc.nonce+1,
+    MID = futarchy_matched:taker_id(FID, Nonce, Pubkey),
+    {UID, MID, #futarchy_bet_tx{
+       pubkey = Pubkey,
+       nonce = Nonce,
+       fee = Fee, fid = FID,
+       limit_price = LimitPrice,
+       amount = Amount,
+       decision = Decision,
+       futarchy_hash = FutarchyHash,
+       goal = Goal}}.
 orders(1, 1, F) -> F#futarchy.true_yes_orders;
 orders(1, 0, F) -> F#futarchy.true_no_orders;
 orders(0, 1, F) -> F#futarchy.false_yes_orders;
@@ -269,8 +278,8 @@ go({signed, Tx, _Sig, Proved},
                 
 
                 %FMID = hash:doit(<<FID/binary, Pubkey/binary, Nonce0:32>>),
-                FMID = futarchy_matched_id_maker(
-                         FID, Pubkey, Nonce0),
+                FMID = futarchy_matched:taker_id(
+                         FID, Nonce0, Pubkey),
                 %io:fwrite("making futarchy matched: "),
                 %io:fwrite(packer:pack(FMID)),
                 %io:fwrite("\n"),
@@ -287,9 +296,12 @@ go({signed, Tx, _Sig, Proved},
                 empty = futarchy_matched:dict_get(FMID, Dict3b_5),
                 Dict4b = futarchy_matched:dict_write(
                            FMb, Dict3b_5),
+                %todo, we also need the futarchy_matched on the other side of the market?
                 Futarchyb = futarchy:dict_get(FID, Dict4b),
-                Futarchyb2 = update_shares(
-                               Decision, Q1b, Q2b, Futarchyb),
+%                Futarchyb2 = update_shares(
+%                               Decision, Q1b, Q2b, Futarchyb),
+                Futarchyb2 = set_shares(
+                               Decision, Futarchyb, Q1b, Q2b),
                 Futarchyb3 = update_orders(
                                Decision, Goal, 
                                TIDPartiallyMatched, Futarchyb2),
@@ -339,11 +351,14 @@ go({signed, Tx, _Sig, Proved},
                 %MatchedAmountc = Amount,
                 LMSRPrice = lmsr:price(LMSRBeta, Q1b, Q2b),
                 true = (LMSRPrice =< LimitPrice),
-                NewTopTID = price_check(TIDsMatched, LMSRPrice, Dict3c),
+                NewTopTID = price_check(
+                              TIDsMatched, LMSRPrice, Dict3c),
                 Futarchyc2 = set_shares(
                                Decision, Futarchy, Q1, Q2),
-                LMSRAmount = lmsr:change_in_market(LMSRBeta, Q1, Q2, Q1b, Q2b),
-                FMIDc = futarchy_matched_id_maker(FID, Pubkey, Nonce0),
+                LMSRAmount = lmsr:change_in_market(
+                               LMSRBeta, Q1, Q2, Q1b, Q2b),
+                FMIDc = futarchy_matched:taker_id(
+                          FID, Nonce0, Pubkey),
                 PartMatchc = LMSRAmount + MatchedAmountc,
                 FMc = #futarchy_matched{
                   id = FMIDc,
@@ -442,16 +457,16 @@ set_shares(0, Futarchy, Q1, Q2) ->
                       shares_false_no = Q2}.
 
 
-update_shares(1, Q1, Q2, Futarchy) ->
-    Futarchy#futarchy{
-      shares_true_yes = Q1,
-      shares_true_no = Q2
-     };
-update_shares(0, Q1, Q2, Futarchy) ->
-    Futarchy#futarchy{
-      shares_false_yes = Q1,
-      shares_false_no = Q2
-     }.
+%update_shares(1, Q1, Q2, Futarchy) ->
+%    Futarchy#futarchy{
+%      shares_true_yes = Q1,
+%      shares_true_no = Q2
+%     };
+%update_shares(0, Q1, Q2, Futarchy) ->
+%    Futarchy#futarchy{
+%      shares_false_yes = Q1,
+%      shares_false_no = Q2
+%     }.
 
 %decision, goal, new pointer, futarchy
 update_orders(1, 1, P, F) -> F#futarchy{true_yes_orders = P};
@@ -502,13 +517,16 @@ remove_first(TID, Dict) ->
             behind = <<0:256>>
            },
     Dict2 = futarchy_unmatched:dict_write(FU2, Dict),
-
+%    futarchy_matched:maker_id(FID, FUNonce, TID, Owner),
+    MID = futarchy_matched:maker_id(TID, Dict),
     %next create the matched trade.
-    <<TIDN:256>> = TID,
-    TID1 = <<(TIDN+1):256>>,%when an unmatched gets entirely matched, just use the next higher id.
+%    <<TIDN:256>> = TID,
+%    TID1 = <<(TIDN+1):256>>,%when an unmatched gets entirely matched, just use the next higher id.
+
+%    TID1 = futarchy_matched_id_maker(FID, Owner, Nonce), %this doesn't work. Owner might end up being unable to make a futarchy_bet_tx for this futarchy, if they are at nonce = Nonce-1.
 
     FM = #futarchy_matched
-        {id = TID1, owner = Owner, futarchy_id = FID,
+        {id = MID, owner = Owner, futarchy_id = FID,
          decision = D, goal = G, revert_amount = RA,
          win_amount = WinAmount
         },
@@ -541,13 +559,4 @@ bought_one(Q1, Q2, Q1b, Q2b) ->
     end,
     true = Q1 =< Q1b,
     true = Q2 =< Q2b.
-
-futarchy_matched_id_maker(
-  FID, Pubkey, Nonce) ->    
-    <<_:256>> = FID,
-    <<_:520>> = Pubkey,
-    hash:doit(<<3,7,3,8,2,4,5,FID/binary, 
-                Pubkey/binary, Nonce:32>>).
-
-
 

@@ -18,7 +18,7 @@ dumps() ->
      {receipts_dump, 69},
      {jobs_dump, 126},
      {futarchy_dump, 346},
-     {futarchy_unmatched_dump, 147},
+     {futarchy_unmatched_dump, 151},
      {futarchy_matched_dump, 115}
     ].
 dumps2() ->

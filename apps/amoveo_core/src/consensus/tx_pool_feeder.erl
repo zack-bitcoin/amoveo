@@ -148,11 +148,27 @@ inclusion_futarchy_bet2(
                    1 -> {OurShares + QD, TheirShares};
                    0 -> {TheirShares, OurShares + QD}
                end,
-    case AccTIDs of
-        [] -> 
+%    io:fwrite({LimitPrice, B, TheirShares}),
+        %[{4294967295,288539008,0}],
+    Q2 = lmsr:q2({rat, LimitPrice, futarchy_bet_tx:one_square()}, B, TheirShares),
+    LMSRProvides = 
+        -lmsr:change_in_market(
+           B, OurShares, TheirShares,
+           Q2, TheirShares),
+    if
+        LMSRProvides > Amount -> 
+            QD = lmsr:max_buy(B, TheirShares, OurShares, Amount),
+            TheirSharesA = TheirShares + QD,
+            {QFa, QSa} = 
+                case Goal of
+                    1 -> {OurShares, TheirSharesA};
+                    0 -> {TheirSharesA, OurShares}
+                end,
+            {1, lists:reverse(AccTIDs), <<0:256>>, QFa, QSa};
+        [] == AccTIDs -> 
             io:fwrite("tx_pool_feeder, inclusion note: adding a trade to the empty order book\n"),
             {0, <<0:256>>, <<0:256>>};
-        _ ->
+        true ->
             io:fwrite("tx_pool_feeder, inclusion note. your trade is only partially matched\n"),
 %    {1, lists:reverse(AccTIDs), <<0:256>>, QF, QS};
 %    FMIDc = futarchy_matched_id_maker(
@@ -195,7 +211,7 @@ inclusion_futarchy_bet2(
 %        _ -> io:fwrite({{tx, Goal}, {order_book, Goal2}})
 %    end,
     %LP should be a rat between 0 and 1.
-    Q2 = lmsr:q2({rat, LP, futarchy_bet_tx:one_square()}, B, TheirShares),%crashes here.
+    Q2 = lmsr:q2({rat, LP, futarchy_bet_tx:one_square()}, B, TheirShares),
     LMSRProvides = 
         lmsr:change_in_market(
           B, OurShares, TheirShares,

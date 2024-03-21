@@ -1,6 +1,7 @@
 -module(futarchy_matched).
 -export([key_to_int/1, dict_get/2,
-         dict_write/2, dict_write/3, dict_get/3
+         dict_write/2, dict_write/3, dict_get/3,
+         maker_id/1, maker_id/2, maker_id/4, taker_id/3
         ]).
 
 -include("../../records.hrl").
@@ -31,4 +32,43 @@ dict_write(Job, _Meta, Dict) ->
                      } = Job,
     csc:update({?MODULE, ID}, Job, Dict).
 
-       
+taker_id(FID, TxNonce, Owner) ->
+    true = is_integer(TxNonce),
+    true = TxNonce > 0,
+    <<_:256>> = FID,
+    Pub = trees2:compress_pub(Owner),
+    hash:doit(<<3,7,3,8,2,4,5,TxNonce:32,
+                FID/binary, Pub/binary>>).
+maker_id(TID) ->
+    Trees = (tx_pool:get())#tx_pool.block_trees,
+    FU = trees:get(futarchy_unmatched, TID, dict:new(), Trees),
+    maker_id2(FU).
+maker_id(TID, Dict) ->
+    FU = futarchy_unmatched:dict_get(TID, Dict),
+    maker_id2(FU).
+
+maker_id2(FU) ->
+    #futarchy_unmatched
+        {
+          owner = Owner,
+          futarchy_id = FID,
+          nonce = FUNonce,
+          id = TID
+        } = FU,
+    maker_id(FID, FUNonce, TID, Owner).
+    
+    
+
+maker_id(FID, Nonce, UnmatchedID, Owner) ->
+    %this nonce is from inside the futarchy_unmatched element.
+    %makers use the id of their own unmatched trade here.
+    %takers use the tx nonce.
+    true = is_integer(Nonce),
+    <<_:256>> = FID,
+    <<_:256>> = UnmatchedID,
+    true = Nonce > 0,
+    Pub = trees2:compress_pub(Owner),
+    hash:doit(<<3,7,3,8,2,4,5,Nonce:32, FID/binary, 
+                UnmatchedID/binary, Pub/binary>>).
+
+

@@ -286,7 +286,9 @@ dict_key(#trade{value = V}) -> V;
 dict_key(#market{id = X}) -> X;
 dict_key(#receipt{id = Z}) -> Z;
 dict_key(#job{id = Z}) -> Z;
-dict_key(#futarchy{fid = X}) -> X.
+dict_key(#futarchy{fid = X}) -> X;
+dict_key(#futarchy_matched{id = X}) -> X;
+dict_key(#futarchy_unmatched{id = X}) -> X.
 
 hash(F) ->
     hash:doit(F).
@@ -1046,12 +1048,12 @@ txs_to_querys2([STx|T], Trees, Height) ->
                     [] -> io:fwrite(STx);
                     _ -> ok
                 end,
-                io:fwrite("proofs futarchy_bet start\n"),
+                %io:fwrite("proofs futarchy_bet start\n"),
                 TIDCases = 
                     case element(4, STx) of
                         {0, TIDAhead, TIDBehind} ->
                             %added an order to the book.
-                            io:fwrite("proofs futarchy_bet, adding order to book\n"),%missing a futarchy unmatched.
+                            %io:fwrite("proofs futarchy_bet, adding order to book\n"),%missing a futarchy unmatched.
                             TA = case TIDAhead of
                                      <<0:256>> -> [];
                                      <<_:256>> -> 
@@ -1062,26 +1064,57 @@ txs_to_querys2([STx|T], Trees, Height) ->
                                      <<_:256>> -> 
                                          [{futarchy_unmatched, TIDBehind}]
                                  end,
-                            io:fwrite("proofs futarchy_bet. many orders: "),%missing a futarchy unmatched.
-                            io:fwrite(integer_to_list(length(TA++TB))),
-                            io:fwrite("\n"),
+                            %io:fwrite("proofs futarchy_bet. many orders: "),%missing a futarchy unmatched.
+                            %io:fwrite(integer_to_list(length(TA++TB))),
+                            %io:fwrite("\n"),
 
                             TA ++ TB;
                         {1, TIDsMatched, TIDPartlyMatched, _, _} ->
-                            io:fwrite("proofs futarchy_bet, matching order from the book\n"),
+                            %io:fwrite("proofs futarchy_bet, matching order from the book\n"),
                             %matched orders from the book.
                             %todo, need the FMID of the new matched location. hash:doit(<<FID/binary, Pubkey/binary, nonce0:32>>
-                            FMID = futarchy_bet_tx:futarchy_matched_id_maker(
-                                     FID, Pubkey, Nonce),
-                            lists:map(fun(X) ->
-                                         {futarchy_unmatched, X}
-                                      end, [TIDPartlyMatched|
-                                            TIDsMatched]) ++ 
-                                [{futarchy_matched, FMID}];
+%                            1=2, %we aren't calculating the futarchy_matched ids correctly. 
+%                            #futarchy_unmatched{
+%                                fid = TIDPartlyMatched,
+%                                owner = PMOwner,
+%                                nonce = PMNonce,
+%                               } = trees:get(futarchy_unmatched,
+%                                             TIDPartlyMatched),
+%                            FMID = futarchy_bet_tx:futarchy_matched_id_maker(
+                            %         FID, Pubkey, Nonce),
+%                                     TIDPartlyMatched, PMNonce, 
+%                                     PMOwner),
+                            TIDs = [TIDPartlyMatched|TIDsMatched],
+                            TIDs2 = lists:filter(fun(X) ->
+                                                         not(X == <<0:256>>)
+                                                 end, TIDs),
+                            TakerID = futarchy_matched:taker_id(
+                                        FID, Nonce, Pubkey),
+                            [{futarchy_matched, TakerID}] ++
+                            lists:map(
+                              fun(X) ->
+                                      {futarchy_unmatched, X}
+                                      end, TIDs2) ++
+                            lists:map(
+                              fun(X) ->
+%                                      #futarchy_unmatched{
+%                                   owner = MOwner,
+%                                   nonce = MNonce,
+%                                   futarchy_id = FID
+%                                  } = trees:get(
+%                                        futarchy_unmatched,
+%                                        X),
+                                      FMID2 = futarchy_matched:maker_id(X),
+%                                      FMID2 = futarchy_matched:maker_id(FID, MNonce, X, MOwner),
+%                                      FMID2 = futarchy_bet_tx:futarchy_matched_id_maker(
+%                                                FID, MOwner, X, MNonce),
+                                      {futarchy_matched, FMID2}
+                                      end, TIDs2);
+%                                [{futarchy_matched, FMID}];
                         %{2,  TIDsMatched, TIDBehind, NewTopTID, _, _} ->
                         {2,  TIDsMatched, NewTopTID, _, _} ->
                             %partially matched
-                            io:fwrite("proofs futarchy_bet, partial match of order from the book\n"),
+                            %io:fwrite("proofs futarchy_bet, partial match of order from the book\n"),
                             L1 = TIDsMatched,
                             L2 = case NewTopTID of
                                      <<0:256>> -> L1;
@@ -1091,6 +1124,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
 %                            io:fwrite({{new_top, NewTopTID},
                                        %{tid_behind, TIDBehind},
 %                                       {rest, TIDsMatched}}),
+                            1=2, %we aren't calculating the futarchy_matched ids correctly. 
                             lists:map(fun(X) -> {futarchy_unmatched, X}
                                       end, L2)
                             ++ lists:map(fun(X) -> 
@@ -1128,7 +1162,42 @@ txs_to_querys2([STx|T], Trees, Height) ->
                         1 -> 1;
                         2 -> 0
                     end,
-                ToKey = sub_accounts:make_v_key(Creator, CID, D),
+                #futarchy{
+                      shares_true_yes = STY,
+                      shares_true_no = STN,
+                      shares_false_yes = SFY,
+                      shares_false_no = SFN
+                     } = Futarchy,
+                {SY, SN} = 
+                    case D of
+                        1 -> 
+                            {STY, STN};
+                        0 -> 
+                            {SFY, SFN}
+                    end,
+
+                io:fwrite("proofs futarchy resolve tx, creator cid D. \n"),
+                io:fwrite(base64:encode(Creator)),
+                io:fwrite("\n"),
+                io:fwrite(base64:encode(CID)),
+                io:fwrite("\n"),
+                ToKey = 
+                    if
+                        SY > SN ->
+                            io:fwrite("1"),
+                            sub_accounts:make_v_key(Creator, CID, 1);
+                        true ->
+                            io:fwrite("0"),
+                            sub_accounts:make_v_key(Creator, CID, 0)
+                    end,
+                
+                %resolved oracle to 1.
+
+                io:fwrite("\n"),
+                %ToKey = 
+                %    case 
+%sub_accounts:make_v_key(Creator, CID, 1),
+%                ToKey2 = sub_accounts:make_v_key(Creator, CID, 0),
                 [{accounts, Pubkey},
                  {accounts, Creator},
                  {contracts, CID},
@@ -1142,8 +1211,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 Futarchy = trees:get(futarchy, FID),
                 Unmatched = trees:get(futarchy_unmatched, UID),
                 Owner = Unmatched#futarchy_unmatched.owner,
-                [{account, Pubkey},
-                 {account, Owner},
+                [{accounts, Pubkey},
+                 {accounts, Owner},
                  {futarchy, FID},
                  {futarchy_unmatched, UID}];
             futarchy_matched_tx ->
@@ -1157,7 +1226,9 @@ txs_to_querys2([STx|T], Trees, Height) ->
                       decision = Decision
                     } = Matched,
                 Futarchy = trees:get(futarchy, FID),
-                {CID, OID, _} = futarchy_resolve_tx:fid2cid(Futarchy),
+                {CID, _OID, _} = futarchy_resolve_tx:cid_oid(
+                                  Futarchy), 
+                OID = Futarchy#futarchy.decision_oid,
                 FMTL = case Revert of
                         1 ->
                             [{accounts, Owner}];

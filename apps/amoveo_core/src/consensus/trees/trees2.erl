@@ -2,7 +2,7 @@
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
          copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
-         recover/1, compress_pub/1,
+         recover/1, 
          val2int/1]).
 
 -include("../../records.hrl").
@@ -645,6 +645,7 @@ serialize(#futarchy_unmatched{
              decision = D, revert_amount = RA,
              goal = G,
              limit_price = LP, ahead = Ahead,
+             nonce = Nonce,
              behind = Behind}) ->
     %32 = size(ID),
     32 = size(FID),
@@ -661,11 +662,11 @@ serialize(#futarchy_unmatched{
     true = is_integer(LP),
     32 = size(Ahead),
     32 = size(Behind),
-    <<D, G, RA:64, LP:64, Pub2/binary, 
+    <<D, G, RA:64, LP:64, Nonce: 32, Pub2/binary, 
       FID/binary, 
       Ahead/binary, Behind/binary>>;
-%1,1,8,8,33,32,32,32
-%128 + 9 + 9 + 32 = 147
+%1,1,8,8,33,32,32,32,4
+%128 + 9 + 9 + 32 = 151
 serialize(#futarchy_matched{
              owner = Pub, futarchy_id = FID,
              decision = D, goal = G, revert_amount = RA,
@@ -784,11 +785,12 @@ deserialize(12, <<Active, BP:32, MT:32, RH:256, LT:64,
       active = Active,
       many_trades = MT};
 %    futarchy:make_id(F1, 0);
-deserialize(13, <<D, G, RA:64, LP:64, Pub2:(33*8),
+deserialize(13, <<D, G, RA:64, LP:64, Nonce:32, Pub2:(33*8),
                   FID2:256,
                   Ahead2:256, Behind2:256>>) ->
     Pub = decompress_pub(<<Pub2:(33*8)>>),
     FU = #futarchy_unmatched{
+      nonce = Nonce,
       owner = Pub, futarchy_id = <<FID2:256>>, 
       decision = D, 
       revert_amount = RA, limit_price = LP, 

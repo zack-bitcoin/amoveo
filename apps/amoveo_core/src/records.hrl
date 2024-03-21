@@ -308,7 +308,8 @@
          revert_amount,
          limit_price,
          ahead, %they are in a linked list sorted by price. This is the order book.
-         behind %by making it a double linked list, our proofs can be smaller. We don't need to prove the chain back to the futarchy market.
+         behind, %by making it a double linked list, our proofs can be smaller. We don't need to prove the chain back to the futarchy market.
+         nonce = 0 %used for generating unique IDs for if portions of this order are matched.
          }).
 -record(futarchy_matched,
         {id,

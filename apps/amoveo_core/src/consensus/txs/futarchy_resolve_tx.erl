@@ -1,5 +1,5 @@
 -module(futarchy_resolve_tx).
--export([go/4, make_dict/4, cid_oid/1]).
+-export([go/4, make_dict/4, cid_oid/1, spend_or_create_sub/5]).
 
 -include("../../records.hrl").
 
@@ -20,9 +20,9 @@
 %  - unreverted shares of yes and no.
 %  leave the reverted shares unchanged, this gets reduced when there are futarchy_matched_tx that convert reverted shares back to veo.
 
-% todo
-% lower reverted to zero bit by bit as people revert their bets to veo with futarchy_matched_tx.
+
 % move all the unreverted to the contract immediately.
+% lower reverted to zero bit by bit as people revert their bets to veo with futarchy_matched_tx.
 
 
 
@@ -88,21 +88,18 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
               shares_false_no = SFN,
               creator = Creator
                } = Futarchy,
-    {ContractKey, OID, ContractHash} = cid_oid(Futarchy),
+    {ContractKey, _GOID, ContractHash} = cid_oid(Futarchy),
 
     
     Oracle = oracles:dict_get(
                Decision, Dict2, NewHeight),
-    %not that Decision and OID are id for two different oracles.
+    %note that Decision and _GOID are id for two different oracles
     #oracle{result = OracleResult
            } = Oracle,
+%    io:fwrite("futarchy resolve tx, oracle result: "),
+%    io:fwrite(integer_to_list(OracleResult)),
+%    io:fwrite("\n"),
 
-
-%    BinaryContract = make_contract(Decision),
-%    ContractHash = hash:doit(BinaryContract),
-   
-%    ContractKey = contracts:make_v_id(
-%                    ContractHash, 2, <<0:256>>, 0),
     Dict3 = 
         case contracts:dict_get(ContractKey, Dict2) of
             empty ->
@@ -112,9 +109,24 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             _ -> Dict2
         end,
 
-    %todo, put unreverted liquidity and unreverted shares of yes and no into the contract.volume.
+    %put unreverted liquidity and unreverted shares of yes and no into the contract.volume.
+    VolumeBoost = 
+        case OracleResult of
+            1 -> %decision=0 is reverted.
+                -lmsr:change_in_market(LF, SFY, SFN, 0, 0);
+            2 -> %decision=1 is reverted.
+                -lmsr:change_in_market(LT, STY, STN, 0, 0);
+            3 -> Dict3
+        end,
+    true = VolumeBoost >= 0,
+
+    Contract = contracts:dict_get(ContractKey, Dict3),
+
+    Contract2 = Contract#contract
+        {volume = Contract#contract.volume + VolumeBoost},
+
+    Dict4 = contracts:dict_write(Contract2, Dict3),
  
-    %set the futarchy market to unactive.
     %return any extra money to the creator.
     %from the canceled market they get the entire liquidity back.
     LiquidityRecover = 
@@ -139,32 +151,35 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     %some of the extra shares can be combined back into veo.
     ExtraVeo = min(ExtraTrues, ExtraFalses),
     %give the extra money back to the creator.
-    Dict4 = 
-        case accounts:dict_get(Creator, Dict3) of
+    Dict5 = 
+        case accounts:dict_get(Creator, Dict4) of
             #acc{} ->
+                ADiff = ExtraVeo + lmsr:veo_in_market(LiquidityRecover, 0, 0),
                 CreatorAcc = accounts:dict_update(
-                               Creator, Dict3, 
-                               LiquidityRecover + ExtraVeo, 
+                               Creator, Dict4, 
+                               %LiquidityRecover + ExtraVeo, 
+                               %ExtraVeo, 
+                               ADiff,
                                none),
-                accounts:dict_write(CreatorAcc, Dict3);
-            _ -> Dict3
+                accounts:dict_write(CreatorAcc, Dict4);
+            _ -> Dict4
         end,
   
  
     ExtraDiff = max(ExtraTrues, ExtraFalses) - ExtraVeo,
-    Dict5 = if
+    Dict6 = if
                 (ExtraDiff == 0) ->
                     %no extra liquidity.
-                    Dict4;
+                    Dict5;
                 (ExtraTrues > ExtraFalses) ->
                     %send extra shares of True to the creator of the futarchy market. Because they originally provided the liquidity for the lmsr.
                     spend_or_create_sub(
-                      Dict4, Creator, ContractKey, 
+                      Dict5, Creator, ContractKey, 
                       ExtraDiff, 1);
                 true ->
                     %send extra shares of False...
                     spend_or_create_sub(
-                      Dict4, Creator, ContractKey, 
+                      Dict5, Creator, ContractKey, 
                       ExtraDiff, 0)
             end,
 
@@ -177,6 +192,23 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
           liquidity_true = 0,
           liquidity_false = 0
         },
+    Futarchy3 = 
+        case OracleResult of
+            1 -> %revert false
+                Futarchy2#futarchy
+                    {
+                  shares_true_yes = 0,
+                  shares_true_no = 0
+                 };
+            2 -> %revert true
+                Futarchy2#futarchy
+                    {
+                  shares_false_yes = 0,
+                  shares_false_no = 0
+                 };
+            3 -> %revert both
+                Futarchy2
+        end,
     io:fwrite("futarchy resolve tx quantities\n"),
     io:fwrite(integer_to_list(LT)),
     io:fwrite(" "),
@@ -198,8 +230,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     io:fwrite(" "),
     io:fwrite(integer_to_list(ExtraVeo)),
     io:fwrite("\n"),
-    Dict6 = futarchy:dict_write(Futarchy2, Dict5),
-    Dict6.
+    Dict7 = futarchy:dict_write(Futarchy3, Dict6),
+    Dict7.
     
     
 
@@ -214,6 +246,15 @@ spend_or_create_sub(Dict, To, CID, Amount, Direction) ->
     OA = sub_accounts:dict_get(ToKey, Dict),
     Tacc = 
         case OA of
+            error -> 
+                io:fwrite("futarchy resolve tx, creator cid D. \n"),
+                io:fwrite(base64:encode(To)),
+                io:fwrite("\n"),
+                io:fwrite(base64:encode(CID)),
+                io:fwrite("\n"),
+                io:fwrite(integer_to_list(D)),
+                io:fwrite("\n"),
+                1=2;
             empty -> sub_accounts:new(To, Amount, CID, D);
             _ -> sub_accounts:dict_update(
                    ToKey, Dict, Amount, none)

@@ -4498,7 +4498,7 @@ test(71) ->
     success;
 test(72) ->
     %testing the futarchy tx types.
-    %testing an unmatched futarchy bet.
+    %add unmatched bets to the order book, then use futarchy_unmatched to get your money out again.
 
     restart_chain(),
     %headers:dump(),
@@ -4506,10 +4506,11 @@ test(72) ->
     %tx_pool:dump(),
     mine_blocks(6),
     MP = constants:master_pub(),
-    Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
+    %Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
+    Pub = keys:pubkey(),
     Fee = constants:initial_fee()*2,
 
-    Tx1 = oracle_new_tx:make_dict(Pub, Fee, <<"Decision">>, block:height() + 1, 0, 0),
+    Tx1 = oracle_new_tx:make_dict(Pub, Fee, <<"Decision">>, block:height()-1, 0, 0),
     Stx1 = keys:sign(Tx1),
     absorb(Stx1),
     1 = many_txs(),
@@ -4536,8 +4537,8 @@ test(72) ->
     Stx3 = keys:sign(Tx3),
     absorb(Stx3),
     1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
     
     Decision = 1,
     Goal = 1,
@@ -4545,82 +4546,102 @@ test(72) ->
     OtherGoal = 0,
     LimitPrice = round(math:pow(2, 31)),
     FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
-    Tx4 = futarchy_bet_tx:make_dict(
-            Pub, FID, Decision, Goal, 1*VEO,
-            LimitPrice, FutarchyHash1, Fee),
+    {UID1, _, Tx4} = futarchy_bet_tx:make_dict(
+                    Pub, FID, Decision, Goal, 1*VEO,
+                    LimitPrice, FutarchyHash1, Fee),
     %io:fwrite(Tx4),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
-    1 = many_txs(),
+    2 = many_txs(),
 
     %io:fwrite({trees:get(futarchy, FID)}),
     %1 = 2,
 
     FutarchyHash2 = (trees:get(futarchy, FID))#futarchy.root_hash,
-    Tx5 = futarchy_bet_tx:make_dict(
-            Pub, FID, Decision, Goal, 1*VEO,
-            LimitPrice-5, FutarchyHash2, Fee),
+    {UID2, _, Tx5} = futarchy_bet_tx:make_dict(
+                    Pub, FID, Decision, Goal, 1*VEO,
+                    LimitPrice-5, FutarchyHash2, Fee),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
-    2 = many_txs(),
+    3 = many_txs(),
     
     FutarchyHash3 = (trees:get(futarchy, FID))#futarchy.root_hash,
 %    FutarchyHash3 = ok,
-    Tx6 = futarchy_bet_tx:make_dict(
-            Pub, FID, Decision, Goal, 1*VEO,
-            LimitPrice-8, FutarchyHash3, Fee),
+    {UID3, _, Tx6} = futarchy_bet_tx:make_dict(
+                    Pub, FID, Decision, Goal, 1*VEO,
+                    LimitPrice-8, FutarchyHash3, Fee),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
-    3 = many_txs(),
-
-    FutarchyHash4 = (trees:get(futarchy, FID))#futarchy.root_hash,
-    Tx7 = futarchy_bet_tx:make_dict(
-            Pub, FID, Decision, OtherGoal, 
-            round(2.5*VEO), LimitPrice-3, FutarchyHash4, Fee),
-    Stx7 = keys:sign(Tx7),
-    absorb(Stx7),
     4 = many_txs(),
 
+    FutarchyHash4 = (trees:get(futarchy, FID))#futarchy.root_hash,
+    {UID4, _, Tx7} = futarchy_bet_tx:make_dict(
+                    Pub, FID, Decision, OtherGoal, 
+                    round(2.5*VEO), LimitPrice-3, FutarchyHash4, Fee),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    5 = many_txs(),
+
     FutarchyHash5 = (trees:get(futarchy, FID))#futarchy.root_hash,
-    Tx8 = futarchy_bet_tx:make_dict(
-            Pub, FID, OtherDecision, Goal, 
-            round(VEO), LimitPrice-1, FutarchyHash5, Fee),
+    {UID5, _, Tx8} = futarchy_bet_tx:make_dict(
+                    Pub, FID, OtherDecision, Goal, 
+                    round(VEO), LimitPrice-1, FutarchyHash5, Fee),
     Stx8 = keys:sign(Tx8),
     io:fwrite("absorb tx 8\n"),
     absorb(Stx8),
-    5 = many_txs(),
+    6 = many_txs(),
 
-    mine_blocks(1),
-    0 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     OIL_gov = trees:get(governance, oracle_initial_liquidity),
     OIL = governance:value(OIL_gov),
     Tx9 = oracle_bet_tx:make_dict(MP, Fee, DOID, 1, OIL+1),
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    7 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     Tx10 = oracle_close_tx:make_dict(constants:master_pub(),Fee, DOID),
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
-    1 = many_txs(),
-    mine_blocks(1),
-    0 = many_txs(),
+    8 = many_txs(),
+    %mine_blocks(1),
+    %0 = many_txs(),
 
     Tx11 = futarchy_resolve_tx:make_dict(
              MP, FID, DOID, Fee),
-    %todo. this tx is printing 0.44270399 veo from nothing.x
     Stx11 = keys:sign(Tx11),
     absorb(Stx11),
-    1 = many_txs(),
+    9 = many_txs(),
     mine_blocks(1),
 
+    UIDs = [UID1, UID2, UID3, UID4, UID5],
+
+    Unmatcheds = lists:map(
+                   fun(U) ->
+                           Tx12 = futarchy_unmatched_tx:make_dict(
+                                    Pub, U, Fee),
+                           Stx12 = keys:sign(Tx12),
+                           absorb(Stx12)
+                           %trees:get(futarchy_unmatched,U)
+                   end, UIDs),
+    %io:fwrite(Unmatcheds),
+    5 = many_txs(),
+
+
+
+    %withdraw unmatched/matched
+%    Tx12 = futarchy_unmatched_tx:make_dict(MP, UID, Fee),
+%    Stx12 = keys:sign(Tx12),
+%    absorb(Stx12),
+%    1 = many_txs(),
     
-    %todo, resolve this futarchy.
-    %futarchy_resolve_tx
-    %withdraw unmatched
+%    Tx13 = futarchy_matched_tx:make_dict(MP, MID, Reverted, Fee),
+%    Stx13 = keys:sign(Tx13),
+%    absorb(Stx13),
+%    2 = many_txs(),
 
 
     
@@ -4647,7 +4668,7 @@ test(73) ->
     absorb(Stx1),
     1 = many_txs(),
     DOID = oracle_new_tx:id(Tx1),
-    Tx2 = oracle_new_tx:make_dict(Pub, Fee, <<"Goal">>, block:height() + 1, 0, 0),
+    Tx2 = oracle_new_tx:make_dict(Pub, Fee, <<"Goal">>, block:height() - 1, 0, 0),
     GOID = oracle_new_tx:id(Tx2),
     Stx2 = keys:sign(Tx2),
     absorb(Stx2),
@@ -4676,20 +4697,45 @@ test(73) ->
     Goal = 1,
     OtherDecision = 0,
     OtherGoal = 0,
-    LimitPrice = round(math:pow(2, 32)-1),
+    LimitPrice = round(math:pow(2, 32)*0.98),
     FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
-    Tx4 = futarchy_bet_tx:make_dict(
-            Pub, FID, Decision, Goal, VEO,
-            LimitPrice, FutarchyHash1, Fee),
+    {_UID1, MID1, Tx4} = futarchy_bet_tx:make_dict(
+                    Pub, FID, Decision, Goal, VEO div 100,
+                    LimitPrice, FutarchyHash1, Fee),
     %io:fwrite(Tx4),
     Stx4 = keys:sign(Tx4),
     absorb(Stx4),
     1 = many_txs(),
 
+    %mine_blocks(1),
+    %0 = many_txs(),
+
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
+    Tx5 = oracle_bet_tx:make_dict(MP, Fee, DOID, 1, OIL+1),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    2 = many_txs(),
+
+    Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, DOID),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    3 = many_txs(),
+
+    Tx7 = futarchy_resolve_tx:make_dict(
+             MP, FID, DOID, Fee),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    4 = many_txs(),
     mine_blocks(1),
     0 = many_txs(),
 
-
+    Tx8 = futarchy_matched_tx:make_dict(Pub, MID1, 0, Fee),
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
+    
+    mine_blocks(1),
 
     %todo
     %resolve the futarchy, 

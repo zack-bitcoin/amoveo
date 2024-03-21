@@ -32,20 +32,20 @@
 %cat pool2_slice_addresses | sort | uniq -c
 
 %pool2 has these miners, with this many payments made.
-%     43 BF6npb0GNhpAXJZASh9Jncx5Fou18jP43UiB/Cjpo+Jt9hcSRm6zp2ihnm6hblcty+pBawK09SeQlPReJxK8sOw= 4.712806995
-%    445 BFB3qHkLoxQK4IiQvwEqBo64saIw3Sk5w7JBLHldimUIwQlFv7ni4vkph7kl4X5PTPa9ra8Z4EEPJeSybBohE5Q= 48.77207239
-%     54 BJ37iobqiuD841SprjP078J6U8PthhGL/bSC54h1DmDrj13hRZmKll1EyMP7y8EeT7caFY6TVInHaRyS1jLhYpE= 5.91840878
-%     29 BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E= 3.17840471
+%     43 BF6npb0GNhpAXJZASh9Jncx5Fou18jP43UiB/Cjpo+Jt9hcSRm6zp2ihnm6hblcty+pBawK09SeQlPReJxK8sOw= 
+%    445 BFB3qHkLoxQK4IiQvwEqBo64saIw3Sk5w7JBLHldimUIwQlFv7ni4vkph7kl4X5PTPa9ra8Z4EEPJeSybBohE5Q= 
+%     54 BJ37iobqiuD841SprjP078J6U8PthhGL/bSC54h1DmDrj13hRZmKll1EyMP7y8EeT7caFY6TVInHaRyS1jLhYpE= 
+%     29 BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E= 
 % total: 571
 
 %pool1 miners, with this many payments made.
-%    244 BEB/9uVjQrLVkXtBKHCmY+/+Pn3ih8IIwfzdex0wYqRkcRbdiJSkTqfI+YiNzyjgSKCGOPR+yhLg4zlfiFoWNjo= 5.55453354
-%    308 BF6npb0GNhpAXJZASh9Jncx5Fou18jP43UiB/Cjpo+Jt9hcSRm6zp2ihnm6hblcty+pBawK09SeQlPReJxK8sOw= 7.01146038
-%    410 BFB3qHkLoxQK4IiQvwEqBo64saIw3Sk5w7JBLHldimUIwQlFv7ni4vkph7kl4X5PTPa9ra8Z4EEPJeSybBohE5Q= 9.33343752
-%    486 BHGWh9mqsQZStlZp5foxBZSQM4ociYI8eD+J+rqMkYQ/F/7WMpt2O2NsBkBFcTrNc+IE93ZkU49fwA/jFC2JPys= 11.06353813
-%    394 BJ37iobqiuD841SprjP078J6U8PthhGL/bSC54h1DmDrj13hRZmKll1EyMP7y8EeT7caFY6TVInHaRyS1jLhYpE= 8.96920581
-%    838 BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E= 19.07663571
-%    366 BMwXC8If4nGPbItlUy0+WafXWq7VPOjCSaA00cdkuO697ifzGeKq4ePyiCdU4dYp2vdtqO22Bb1l7q+trC04eT8= 8.33180032
+%    244 BEB/9uVjQrLVkXtBKHCmY+/+Pn3ih8IIwfzdex0wYqRkcRbdiJSkTqfI+YiNzyjgSKCGOPR+yhLg4zlfiFoWNjo= 
+%    308 BF6npb0GNhpAXJZASh9Jncx5Fou18jP43UiB/Cjpo+Jt9hcSRm6zp2ihnm6hblcty+pBawK09SeQlPReJxK8sOw=
+%    410 BFB3qHkLoxQK4IiQvwEqBo64saIw3Sk5w7JBLHldimUIwQlFv7ni4vkph7kl4X5PTPa9ra8Z4EEPJeSybBohE5Q= 
+%    486 BHGWh9mqsQZStlZp5foxBZSQM4ociYI8eD+J+rqMkYQ/F/7WMpt2O2NsBkBFcTrNc+IE93ZkU49fwA/jFC2JPys= 
+%    394 BJ37iobqiuD841SprjP078J6U8PthhGL/bSC54h1DmDrj13hRZmKll1EyMP7y8EeT7caFY6TVInHaRyS1jLhYpE= 
+%    838 BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E= 
+%    366 BMwXC8If4nGPbItlUy0+WafXWq7VPOjCSaA00cdkuO697ifzGeKq4ePyiCdU4dYp2vdtqO22Bb1l7q+trC04eT8= 
 % total: rewards paid 3046
 
 % overearned
@@ -61,7 +61,6 @@
   25,195,75,44,43,220,114,122,177,240,216,11,166,135,
   43,56,189,148,88,212,12,77,90,53,62,235,107,127,202,
   60,61,85,236,217,9,243>>).
-
 
 
 %Pool two keeps %5 of the rewards.
@@ -105,7 +104,6 @@ earned_in_range(A, B) ->
 
 
 %mining_pool_recovery:earned_in_range(288000, 303000).
-%{6001021420,1040834597}
 %{6566342555,1220449944}
 % in veo it is {65.66342555,12.20449944}
 
