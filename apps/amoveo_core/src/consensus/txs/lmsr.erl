@@ -5,7 +5,7 @@
          inverse/1, add/2, price/3,
          veo_in_market/3, change_in_market/5,
          q2/3, q2b/3, ac/2, max_buy/4,
-         test_max_buy/1,
+         test_max_buy/1, less_than/2,
          test_price_q2/0]).
 
 %==========TLDR, limits of this software=======

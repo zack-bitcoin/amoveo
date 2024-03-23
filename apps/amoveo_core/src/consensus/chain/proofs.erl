@@ -1123,15 +1123,23 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             
 %                            io:fwrite({{new_top, NewTopTID},
                                        %{tid_behind, TIDBehind},
-%                                       {rest, TIDsMatched}}),
-                            1=2, %we aren't calculating the futarchy_matched ids correctly. 
+%                                       {rest, TIDsMatche}}),
+                            NewTID = (futarchy_unmatched:make_id(
+                                       #futarchy_unmatched
+                                       {owner = Pubkey, futarchy_id = FID, decision = Decision, goal = Goal, limit_price = LP, revert_amount = Amount}, 
+                                        Height))#futarchy_unmatched.id,
+                            io:fwrite("proofs new tid is \n"),
+                            io:fwrite(base64:encode(NewTID)),
+                            io:fwrite("\n"),
+                            FMIDc = futarchy_matched:taker_id(
+                                      FID, Nonce, Pubkey),
+                            [{futarchy_unmatched, NewTID},
+                             {futarchy_matched, FMIDc}] ++
                             lists:map(fun(X) -> {futarchy_unmatched, X}
                                       end, L2)
                             ++ lists:map(fun(X) -> 
-                                                 <<X1:256>> = X,
-                                                 X2 = <<(X1 + 1):256>>,
-                                                 {futarchy_matched, X2}
-                                      end, L2)
+                                                 {futarchy_matched, futarchy_matched:maker_id_with_tx_pool(X)}
+                                         end, L2)
                     end,
                 NewFU0 = #futarchy_unmatched{
                   owner = Pubkey,

@@ -16,7 +16,7 @@ prices_match(A, B) ->
     %if A encodes Ra, and B encodes Rb, then
     % A*B = Ra * Rb * ?e2_32 ^2
     % (A*B > ?e2^32^2) <==> (Ra * Rb > 1)
-    (A * B) > ?e2_32 * ?e2_32.
+    (A * B) >= ((?e2_32 * ?e2_32) div 4).
     
 
 make_dict(Pubkey, FID, Decision, Goal, 
@@ -308,7 +308,9 @@ go({signed, Tx, _Sig, Proved},
                 Dict5b = futarchy:dict_write(Futarchyb3, Dict4b),
                 Dict5b;
             %{2, TIDsMatched, TIDAfterMatched??, NewTopTID, Q1b, Q2b} ->
-            {2, TIDsMatched, NewTopTID, Q1b, Q2b} ->
+            {2, TIDsMatched, %all of these were matched.
+             NewTopTID, %the new pointer in futarchy.
+             Q1b, Q2b} ->
     %This is the case where your trade is partially matched.
                 %this is the same as saying that the price went out of range during the lmsr step.
                 %check that they bought one kind of shares.
@@ -316,7 +318,8 @@ go({signed, Tx, _Sig, Proved},
                 TheirOrders = hd(TIDsMatched),
 
                 %check that the worst-priced order still is within the bounds of the price we wanted to pay.
-                TIDAfterMatched = 
+                %TIDAfterMatched = 
+                NewTopTID = 
                     price_check(TIDsMatched, LimitPrice, Dict2),
 
                   %remove the tidsmatched from the db.
@@ -324,13 +327,14 @@ go({signed, Tx, _Sig, Proved},
                     remove_firsts(TIDsMatched, Dict2),
 
                 %check that the next trade in the market is at a worse price than we are willing to match at, or that there is no trade after this one.
-                LastFutarchyU = futarchy_unmatched:dict_get(
-                                  TIDAfterMatched, Dict3c),
-                io:fwrite({LastFutarchyU, TIDAfterMatched}),
-                TIDAfterMatched = LastFutarchyU#futarchy_unmatched.behind,
-                case TIDAfterMatched of
+                %io:fwrite({LastFutarchyU, TIDAfterMatched}),%error, <<0:256>>
+                case NewTopTID of
                     <<0:256>> -> ok;
                     _ ->
+                        LastFutarchyU = futarchy_unmatched:dict_get(
+                                          %TIDAfterMatched, Dict3c),
+                                          NewTopTID, Dict3c),
+                        TIDAfterMatched = LastFutarchyU#futarchy_unmatched.behind,
 
                         AfterMatched=futarchy_unmatched:dict_get(
                                        TIDAfterMatched, Dict2),
@@ -341,18 +345,34 @@ go({signed, Tx, _Sig, Proved},
                         ok
                 end,
 
-                #futarchy_unmatched
-                    {
-                  decision = D,
-                  goal = G,
-                  limit_price = LastPrice
-                 } = LastFutarchyU,
+                D = case Decision of
+                        1 -> 0;
+                        0 -> 1
+                    end,
+                G = case Goal of
+                        1 -> 0;
+                        0 -> 1
+                    end,
+
+%                #futarchy_unmatched
+%                    {
+%                  decision = D,
+%                  goal = G,
+%                  limit_price = LastPrice
+%                 } = LastFutarchyU,
 
                 %MatchedAmountc = Amount,
                 LMSRPrice = lmsr:price(LMSRBeta, Q1b, Q2b),
-                true = (LMSRPrice =< LimitPrice),
+                %io:fwrite({LMSRPrice, LimitPrice}),%{{rat,289415,813704},2168958484}
+                % shares/veo, between 0 and 1.
+                % limitprice is /?e2_32
+                %true = (LMSRPrice =< LimitPrice),
+                false = lmsr:less_than(
+                          {rat, LimitPrice, ?e2_32},
+                          LMSRPrice),
                 NewTopTID = price_check(
-                              TIDsMatched, LMSRPrice, Dict3c),
+                              %TIDsMatched, LMSRPrice, Dict3c),
+                              TIDsMatched, LimitPrice, Dict3c),
                 Futarchyc2 = set_shares(
                                Decision, Futarchy, Q1, Q2),
                 LMSRAmount = lmsr:change_in_market(
@@ -370,21 +390,29 @@ go({signed, Tx, _Sig, Proved},
                   %win_amount = PartMatchc * ?e2_16 div LimitPrice
                   win_amount = (Q1b + Q2b - Q1 - Q2) + WinAmount2 
                  },
-                empty = futarchy_id:dict_get(FMIDc, Dict3c),
+                empty = futarchy_matched:dict_get(FMIDc, Dict3c),
                 Dict3c_5 = futarchy_matched:dict_write(
                              FMc, Dict3c),
                 NewUM0 = #futarchy_unmatched{
-                  owner = Pubkey, decision=D, goal=G, 
-                  revert_amount = Amount - LMSRAmount - MatchedAmountc, 
+                  owner = Pubkey, decision=Decision, goal=Goal, 
+                  %revert_amount = Amount - LMSRAmount - MatchedAmountc, 
+                  revert_amount = Amount, 
                   limit_price = LimitPrice, ahead = <<0:256>>,
                   behind = OurOrders, futarchy_id = FID
                  },
-                NewUM = futarchy_unmatched:make_id(NewUM0),
+                NewUM1 = futarchy_unmatched:make_id(
+                          NewUM0, NewHeight),
+                NewUM = NewUM1#futarchy_unmatched{
+                  revert_amount = Amount - LMSRAmount - MatchedAmountc
+                         },
                 NewTID = NewUM#futarchy_unmatched.id,
-                empty = futarchy_unmatched:dict_get(NewTID, Dict3c_5),
-                Dict4c = futarchy_unmatched:dict_write(NewUM, Dict3c_5),
-                %todo. verify that set_orders is putting the right pointers in place.
-                1=2,
+                io:fwrite("futarchy_bet_tx new tid is \n"),
+                io:fwrite(base64:encode(NewTID)),
+                io:fwrite("\n"),
+                empty = futarchy_unmatched:dict_get(
+                          NewTID, Dict3c_5),
+                Dict4c = futarchy_unmatched:dict_write(
+                           NewUM, Dict3c_5),
                 Futarchyc3 = set_orders(
                                Decision, Goal, Futarchyc2, 
                                NewTID, NewTopTID),
@@ -397,6 +425,9 @@ go({signed, Tx, _Sig, Proved},
 almost_zero(Rest, Amount) ->
     abs(Rest * 1000) < Amount.
 
+price_check(TIDsMatched, {rat, LA, LB}, Dict) ->
+    LP = LA * ?e2_32 div LB,
+    price_check(TIDsMatched, LP, Dict);
 price_check(TIDsMatched, LimitPrice, Dict) ->
     LastTID = hd(lists:reverse(TIDsMatched)),
     false = (LastTID == <<0:256>>),
@@ -404,7 +435,17 @@ price_check(TIDsMatched, LimitPrice, Dict) ->
         futarchy_unmatched:dict_get(LastTID, Dict),
     LPc = LastFutarchyU#futarchy_unmatched.limit_price,
     %true = (LimitPrice * LPc) >= ?e2_32,
-    true = prices_match(LimitPrice, LPc),
+    if
+        ((not is_integer(LimitPrice)) or
+         (not is_integer(LPc))) ->
+            io:fwrite({LimitPrice, LPc});
+        true -> ok
+    end,
+    case prices_match(LimitPrice, LPc) of
+        true -> ok;
+        false -> io:fwrite({LimitPrice, LPc, LastTID})
+                     %limit price is less than lpc
+    end,
     LastFutarchyU#futarchy_unmatched.behind.%their top
     
 
@@ -413,7 +454,10 @@ almost_equal(A, B) ->
     true = (abs(A - B) < 100),
     ok.
 
-hash(F = #futarchy_bet_tx{pubkey = Pub, nonce = Nonce, limit_price = LP, amount = A, decision = D, goal = G, futarchy_hash = FH}) ->
+hash(#futarchy_bet_tx{
+        pubkey = Pub, nonce = Nonce, limit_price = LP, 
+        amount = A, decision = D, goal = G, 
+        futarchy_hash = FH}) ->
     B = <<Pub/binary, Nonce:32, LP:64, A:64, D, G, FH/binary>>,
     hash:doit(B).
 
@@ -520,10 +564,6 @@ remove_first(TID, Dict) ->
 %    futarchy_matched:maker_id(FID, FUNonce, TID, Owner),
     MID = futarchy_matched:maker_id(TID, Dict),
     %next create the matched trade.
-%    <<TIDN:256>> = TID,
-%    TID1 = <<(TIDN+1):256>>,%when an unmatched gets entirely matched, just use the next higher id.
-
-%    TID1 = futarchy_matched_id_maker(FID, Owner, Nonce), %this doesn't work. Owner might end up being unable to make a futarchy_bet_tx for this futarchy, if they are at nonce = Nonce-1.
 
     FM = #futarchy_matched
         {id = MID, owner = Owner, futarchy_id = FID,

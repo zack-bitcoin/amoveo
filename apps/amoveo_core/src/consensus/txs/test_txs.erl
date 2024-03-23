@@ -4647,16 +4647,9 @@ test(72) ->
     
     success;
 test(73) ->
-    %testing all cases of futarchy_bet_tx
+    %testing futarchy_bet_tx
 
-    % ** fully matched, ran out of liquidity in the lmsr step. 
-
-    % fully matched, ran out of liquidity while matching a trade.
-
-    % price went out of range during the lmsr step, so partially unmatched
-
-
-    % todo, is failing to create the futarchy_matched element.
+    % fully matched, ran out of liquidity in the lmsr step. 
 
     restart_chain(),
     mine_blocks(6),
@@ -4744,6 +4737,109 @@ test(73) ->
 
     success;
 test(74) ->
+    %testing futarchy_bet_tx
+    % fully matched, ran out of liquidity while matching a trade.
+    restart_chain(),
+    mine_blocks(6),
+    MP = constants:master_pub(),
+    Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
+    Fee = constants:initial_fee()*2,
+    Tx1 = oracle_new_tx:make_dict(Pub, Fee, <<"Decision">>, block:height() + 1, 0, 0),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    DOID = oracle_new_tx:id(Tx1),
+    Tx2 = oracle_new_tx:make_dict(Pub, Fee, <<"Goal">>, block:height() - 1, 0, 0),
+    GOID = oracle_new_tx:id(Tx2),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    2 = many_txs(),
+    mine_blocks(1),
+
+    VEO = 100000000,
+
+    TrueLiquidity =  2 * VEO,
+    FalseLiquidity = 1 * VEO,
+    Period = 1,
+    Salt2 = <<22:256>>,
+    Tx3 = futarchy_new_tx:make_dict(
+            Pub, DOID, GOID, Period, 
+            TrueLiquidity, FalseLiquidity, Fee, 
+            block:height()),
+    Tx3Nonce = Tx3#futarchy_new_tx.nonce,
+    FID = futarchy:make_id(Pub, <<Tx3Nonce:256>>, block:height()),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Decision = 1,
+    Goal = 1,
+    OtherDecision = 0,
+    OtherGoal = 0,
+
+    LimitPrice = round(math:pow(2, 31)*1.01),
+    FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
+    {UID1, _MID1, Tx4} = futarchy_bet_tx:make_dict(
+                           Pub, FID, Decision, Goal, VEO * 2,
+                           LimitPrice, FutarchyHash1, Fee),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
+
+    FutarchyHash2 = (trees:get(futarchy, FID))#futarchy.root_hash,
+    {_UID2, MID2, Tx5} = futarchy_bet_tx:make_dict(
+                    Pub, FID, Decision, OtherGoal, VEO,
+                    LimitPrice, FutarchyHash2, Fee),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    2 = many_txs(),
+
+    mine_blocks(1),
+    1=2,
+
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
+    Tx6 = oracle_bet_tx:make_dict(MP, Fee, DOID, 1, OIL+1),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    3 = many_txs(),
+
+    Tx7 = oracle_close_tx:make_dict(constants:master_pub(),Fee, DOID),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    4 = many_txs(),
+
+    Tx8 = futarchy_resolve_tx:make_dict(
+             MP, FID, DOID, Fee),
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    5 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Tx9 = futarchy_unmatched_tx:make_dict(MP, UID1, Fee),
+    Stx9 = keys:sign(Tx9),
+    absorb(Stx9),
+    1 = many_txs(),
+
+    Tx10 = futarchy_matched_tx:make_dict(Pub, MID2, 0, Fee),
+    Stx10 = keys:sign(Tx10),
+    absorb(Stx10),
+    2 = many_txs(),
+    
+    mine_blocks(1),
+    0 = many_txs(),
+
+    ok;
+test(75) ->
+    %testing futarchy_bet_tx
+    % price went out of range during the lmsr step, so partially unmatched
+
+    ok;
+    
+test(80) ->
     %testing the tx_reserve.
     %TODO
 
@@ -4833,6 +4929,7 @@ test(74) ->
 
 
     success;
+
 test(futarchy) ->
     S = success,
     S = test(71),

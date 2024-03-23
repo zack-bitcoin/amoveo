@@ -181,7 +181,7 @@ inclusion_futarchy_bet2(
 %            io:fwrite({lists:map(
 %                         fun(X) -> trees:get(futarchy_unmatched, X) end, 
 %                         AccTIDs)}),
-            io:fwrite({AccTIDs}),
+%            io:fwrite({AccTIDs}),
             {2, lists:reverse(AccTIDs), <<0:256>>, QF, QS}
     end;
 inclusion_futarchy_bet2(
@@ -237,6 +237,7 @@ inclusion_futarchy_bet2(
             {1, lists:reverse(AccTIDs), OID, QFa, QSa};
         true ->
             Amount2 = Amount - LMSRProvides,
+            DD = 100000000000000000,
             PM = futarchy_bet_tx:prices_match(LimitPrice, LP),
             io:fwrite("tx_pool_feeder, checking if the trades can be matched at thse prices \n"),
             io:fwrite(integer_to_list(LimitPrice)),
@@ -245,9 +246,9 @@ inclusion_futarchy_bet2(
             io:fwrite(" "),
             io:fwrite(PM),
             io:fwrite(" "),
-            io:fwrite(integer_to_list(LP*LimitPrice)),
+            io:fwrite(integer_to_list((LP*LimitPrice) div DD)),
             io:fwrite(" max: "),
-            io:fwrite(integer_to_list(4294967296)),
+            io:fwrite(integer_to_list((4294967296 * 4294967296) div DD)),
             io:fwrite("\n"),
             if
                 PM ->

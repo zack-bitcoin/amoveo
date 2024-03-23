@@ -1,6 +1,11 @@
-futarchy_matched and futarchy_unmatched should be tested.
+futarchy_bet tests needed:
+* Partially match a trade.
+* futarchy_matched_tx for reverted trades.
+* futarchy_bet_tx, same price should be next in line.
 
+* do the same tests, but leaving some trades in the order book. To make sure we aren't hard coding pointing to Null anywhere.
 
+* update the futarchy_bet_txs to use other accounts, to make sure we aren't using incorrect addresses anywhere, and so we can check that balances are changing correctly.
 
 
 working on test_txs:test(72). the futarchy_bet_tx.
