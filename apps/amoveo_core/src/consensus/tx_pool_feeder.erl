@@ -164,6 +164,8 @@ inclusion_futarchy_bet2(
                     1 -> {OurShares, TheirSharesA};
                     0 -> {TheirSharesA, OurShares}
                 end,
+            true = QFa >= 0,
+            true = QSa >= 0,
             {1, lists:reverse(AccTIDs), <<0:256>>, QFa, QSa};
         [] == AccTIDs -> 
             io:fwrite("tx_pool_feeder, inclusion note: adding a trade to the empty order book\n"),
@@ -211,7 +213,12 @@ inclusion_futarchy_bet2(
 %        _ -> io:fwrite({{tx, Goal}, {order_book, Goal2}})
 %    end,
     %LP should be a rat between 0 and 1.
-    Q2 = lmsr:q2({rat, LP, futarchy_bet_tx:one_square()}, B, TheirShares),
+    Q2 = max(TheirShares, lmsr:q2({rat, LP, futarchy_bet_tx:one_square()}, B, TheirShares)),%max because we can only buy shares here.
+%    case (Q2 >= 0) of
+%        true -> ok;
+%        false ->
+%            io:fwrite({Q2, LP, B, TheirShares, OurShares})
+%    end,
     LMSRProvides = 
         lmsr:change_in_market(
           B, OurShares, TheirShares,
@@ -234,14 +241,16 @@ inclusion_futarchy_bet2(
                     0 -> {TheirSharesA, OurShares}
                 end,
                         io:fwrite("tx_pool_feeder, inclusion note. your trade is completely matched in the LMSR step\n"),
+            true = QFa >= 0,
+            true = QSa >= 0,
             {1, lists:reverse(AccTIDs), OID, QFa, QSa};
         true ->
             Amount2 = Amount - LMSRProvides,
             DD = 100000000000000000,
             PM = futarchy_bet_tx:prices_match(LimitPrice, LP),
-            io:fwrite("tx_pool_feeder, checking if the trades can be matched at thse prices \n"),
+            io:fwrite("tx_pool_feeder, checking if the trades can be matched at thse prices \n limitprice: "),
             io:fwrite(integer_to_list(LimitPrice)),
-            io:fwrite(" "),
+            io:fwrite(" lp: "),
             io:fwrite(integer_to_list(LP)),
             io:fwrite(" "),
             io:fwrite(PM),
@@ -252,12 +261,29 @@ inclusion_futarchy_bet2(
             io:fwrite("\n"),
             if
                 PM ->
-                    TradeProvides = RA * futarchy_bet_tx:one() div LP,
+                    TradeProvides = RA * futarchy_bet_tx:one_square() div LP,
+                    io:fwrite("one: "),
+                    io:fwrite(integer_to_list(futarchy_bet_tx:one())),
+                    io:fwrite("\n"),
+                    io:fwrite("LP: "),
+                    io:fwrite(integer_to_list(LP)),
+                    io:fwrite("\n"),
+                    io:fwrite("RA: "),
+                    io:fwrite(integer_to_list(RA)),
+                    io:fwrite("\n tradeprovides: "),
+                    io:fwrite(integer_to_list(TradeProvides)),
+                    io:fwrite("\n amount2: "),
+                    io:fwrite(integer_to_list(Amount2)),
+                    io:fwrite("\n"),
+                    %io:fwrite({TradeProvides, Amount2, RA}),
+                    %[{6043,102872791,200000000}],
                     if
                         (TradeProvides > Amount2) ->
             %we ran out of money matching the trade.
          %will update the trade to be partially matching.
                         io:fwrite("tx_pool_feeder, inclusion note. your trade is completely matched with other trades\n"),
+                            true = QF >= 0,
+                            true = QS >= 0,
                             {1, lists:reverse(AccTIDs), OID, QF, QS};
                         true ->
             %recurse to the next trade.

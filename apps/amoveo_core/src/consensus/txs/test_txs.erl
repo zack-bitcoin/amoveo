@@ -4600,21 +4600,22 @@ test(72) ->
     Stx9 = keys:sign(Tx9),
     absorb(Stx9),
     7 = many_txs(),
-    %mine_blocks(1),
+    mine_blocks(1),
     %0 = many_txs(),
 
     Tx10 = oracle_close_tx:make_dict(constants:master_pub(),Fee, DOID),
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
-    8 = many_txs(),
-    %mine_blocks(1),
+    1 = many_txs(),
+    mine_blocks(1),
     %0 = many_txs(),
 
     Tx11 = futarchy_resolve_tx:make_dict(
              MP, FID, DOID, Fee),
     Stx11 = keys:sign(Tx11),
     absorb(Stx11),
-    9 = many_txs(),
+    1 = many_txs(),
+    1=2,
     mine_blocks(1),
 
     UIDs = [UID1, UID2, UID3, UID4, UID5],
@@ -4670,8 +4671,8 @@ test(73) ->
 
     VEO = 100000000,
 
-    TrueLiquidity =  2 * VEO,
-    FalseLiquidity = 1 * VEO,
+    TrueLiquidity =  20 * VEO,
+    FalseLiquidity = 10 * VEO,
     Period = 1,
     Salt2 = <<22:256>>,
     Tx3 = futarchy_new_tx:make_dict(
@@ -4690,10 +4691,10 @@ test(73) ->
     Goal = 1,
     OtherDecision = 0,
     OtherGoal = 0,
-    LimitPrice = round(math:pow(2, 32)*0.98),
+    LimitPrice = round(math:pow(2, 32)-math:pow(2, 16)),
     FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
     {_UID1, MID1, Tx4} = futarchy_bet_tx:make_dict(
-                    Pub, FID, Decision, Goal, VEO div 100,
+                    Pub, FID, Decision, Goal, VEO,
                     LimitPrice, FutarchyHash1, Fee),
     %io:fwrite(Tx4),
     Stx4 = keys:sign(Tx4),

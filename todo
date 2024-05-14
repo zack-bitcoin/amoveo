@@ -1,3 +1,28 @@
+check coinbase rewards to see if someone is secretly  mining.
+fix the error in the mining pool where non-standard reward addresses cause it to crash.
+
+
+
+
+get the server working to share off-chain contracts again.
+* test it.
+
+
+How exactly does the money migrate to the new binary contract?
+Futarchy matched could pay out either of the subcurrencies
+
+* veo
+* unmatched
+* matched1 matched2
+* subcurrency matched2
+* veo matched2
+
+
+
+
+test 74 is failing. tx_pool_feeder thinks we completely match the trade, but we only partially matched. it doesn't leave the pointer empty.
+
+
 futarchy_bet tests needed:
 * Partially match a trade.
 * futarchy_matched_tx for reverted trades.
@@ -19,12 +44,9 @@ need more tests of futarchy as well.
 
 
 
-distribute the coins from the pool between miners based on how the hashrate is divided since November.
-figure out why txs are being dropped.
+the oracle_close_tx is causing 1/6th of a veo to get burned somehow.
 
 
-
-the mining pool's estimates for hashrate are inaccurate.
 
 
 

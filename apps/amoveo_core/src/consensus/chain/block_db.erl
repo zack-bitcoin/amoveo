@@ -8,7 +8,7 @@
          uncompress/1, compress/1,
          check/0, by_height_from_compressed/2,
          ram_height/0, genesis/0, exists/1,
-         set_ram_height/1,
+         set_ram_height/1, read_internal/2,
          test/0]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db_dict()).
@@ -651,6 +651,10 @@ read2(N, BH) ->
             BH2 = block:prev_hash(0, B),
             [B|read2(N-1, BH2)]
     end.
+
+read_internal(Start, End) ->
+    N = End - Start,
+    lists:reverse(read2(N+1, block:hash(block:get_by_height(End)))).
    
 read(Hash) ->
     {ok, Version} = application:get_env(amoveo_core, db_version),

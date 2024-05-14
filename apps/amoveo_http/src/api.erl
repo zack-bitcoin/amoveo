@@ -41,7 +41,10 @@ blocks(Start, End) ->
             sync:low_to_high(sync:dict_to_blocks(K, D));
         is_list(L) -> L
     end.
-            
+
+blocks(4, Start, End) ->
+    block_db:read_internal(Start, End).
+
 tx_scan(L) ->
     %scan the N recent blocks to see if the txids from list L have been published.
     RH = block_db:ram_height(),

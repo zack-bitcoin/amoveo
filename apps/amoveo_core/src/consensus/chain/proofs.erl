@@ -1104,7 +1104,7 @@ txs_to_querys2([STx|T], Trees, Height) ->
 %                                  } = trees:get(
 %                                        futarchy_unmatched,
 %                                        X),
-                                      FMID2 = futarchy_matched:maker_id(X),
+                                      FMID2 = futarchy_matched:maker_id_with_tx_pool(X),
 %                                      FMID2 = futarchy_matched:maker_id(FID, MNonce, X, MOwner),
 %                                      FMID2 = futarchy_bet_tx:futarchy_matched_id_maker(
 %                                                FID, MOwner, X, MNonce),
@@ -1184,28 +1184,14 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             {SFY, SFN}
                     end,
 
-                io:fwrite("proofs futarchy resolve tx, creator cid D. \n"),
-                io:fwrite(base64:encode(Creator)),
-                io:fwrite("\n"),
-                io:fwrite(base64:encode(CID)),
-                io:fwrite("\n"),
                 ToKey = 
                     if
                         SY > SN ->
-                            io:fwrite("1"),
                             sub_accounts:make_v_key(Creator, CID, 1);
                         true ->
-                            io:fwrite("0"),
                             sub_accounts:make_v_key(Creator, CID, 0)
                     end,
                 
-                %resolved oracle to 1.
-
-                io:fwrite("\n"),
-                %ToKey = 
-                %    case 
-%sub_accounts:make_v_key(Creator, CID, 1),
-%                ToKey2 = sub_accounts:make_v_key(Creator, CID, 0),
                 [{accounts, Pubkey},
                  {accounts, Creator},
                  {contracts, CID},

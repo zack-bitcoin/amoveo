@@ -3,6 +3,8 @@
 
 -include("../../records.hrl").
 
+-define(l2top,    3342617437).
+-define(l2bottom, 4822377600).
 
 %accounting
 %=============
@@ -72,16 +74,20 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     pubkey = Pubkey, nonce = Nonce0, fee = Fee,
     fid = FID, decision_oid = Decision, creator = Creator
    } = Tx,
+    io:fwrite("futarchy_resolve_tx start \n"),
     Nonce = nonce_check:doit(
               NonceCheck, 
               Nonce0),
     Acc = accounts:dict_update(
             Pubkey, Dict, -Fee, Nonce),
+    io:fwrite("accounting account \n"),
+    io:fwrite(integer_to_list(-Fee)),
+    io:fwrite("\n"),
     Dict2 = accounts:dict_write(Acc, Dict),
     Futarchy = futarchy:dict_get(FID, Dict, NewHeight),
     #futarchy{decision_oid = Decision,
-              liquidity_true = LT,
-              liquidity_false = LF,
+              liquidity_true = LT0,
+              liquidity_false = LF0,
               shares_true_yes = STY,
               shares_true_no = STN,
               shares_false_yes = SFY,
@@ -90,6 +96,8 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                } = Futarchy,
     {ContractKey, _GOID, ContractHash} = cid_oid(Futarchy),
 
+    LT = LT0 * ?l2top div ?l2bottom,
+    LF = LF0 * ?l2top div ?l2bottom,
     
     Oracle = oracles:dict_get(
                Decision, Dict2, NewHeight),
@@ -109,15 +117,38 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             _ -> Dict2
         end,
 
+%    VolumeBoost =
+%        lmsr:veo_in_market(LF0, SFY, SFN)
+%        + lmsr:veo_in_market(LT0, STY, STN),
+    
+
     %put unreverted liquidity and unreverted shares of yes and no into the contract.volume.
     VolumeBoost = 
         case OracleResult of
             1 -> %decision=0 is reverted.
-                -lmsr:change_in_market(LF, SFY, SFN, 0, 0);
+%                -lmsr:change_in_market(LF0, SFY, SFN, 0, 0);
+                lmsr:veo_in_market(LF0, SFY, SFN) - lmsr:veo_in_market(LF0, 0, 0);
             2 -> %decision=1 is reverted.
-                -lmsr:change_in_market(LT, STY, STN, 0, 0);
+                %-lmsr:change_in_market(LT0, STY, STN, 0, 0);
+                lmsr:veo_in_market(LT0, STY, STN) - lmsr:veo_in_market(LT0, 0, 0);
             3 -> Dict3
         end,
+
+    io:fwrite("volumeboost data\n"),
+    io:fwrite(integer_to_list(SFY)),
+    io:fwrite(", "),
+    io:fwrite(integer_to_list(SFN)),
+    io:fwrite(", "),
+    io:fwrite(integer_to_list(STY)),
+    io:fwrite(", "),
+    io:fwrite(integer_to_list(STN)),
+    io:fwrite("\n"),
+
+%    io:fwrite("oracle result is "),
+%    io:fwrite(integer_to_list(OracleResult)),
+%    io:fwrite("\n"),
+    
+
     true = VolumeBoost >= 0,
 
     Contract = contracts:dict_get(ContractKey, Dict3),
@@ -125,25 +156,33 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     Contract2 = Contract#contract
         {volume = Contract#contract.volume + VolumeBoost},
 
+    io:fwrite("accounting contract \n"),
+    io:fwrite(integer_to_list(VolumeBoost)),
+    io:fwrite("\n"),
     Dict4 = contracts:dict_write(Contract2, Dict3),
  
     %return any extra money to the creator.
     %from the canceled market they get the entire liquidity back.
     LiquidityRecover = 
         case OracleResult of
-            1 -> LF;
-            2 -> LT;
-            3 -> LT + LF
+            %1 -> LF;
+            %2 -> LT;
+            %3 -> LT + LF
+            1 -> LF0;
+            2 -> LT0;
+            3 -> LT0 + LF0
         end,
 
     %the creator gets any extra shares sold in the market.
     {ExtraTrues, ExtraFalses} = 
         case OracleResult of
             1 ->
-                C = lmsr:veo_in_market(LT, STY, STN),
+                %C = lmsr:veo_in_market(LT, STY, STN),
+                C = lmsr:veo_in_market(LT0, STY, STN),
                 {C - STY, C - STN};
             2 ->
-                C = lmsr:veo_in_market(LF, SFY, SFN),
+                %C = lmsr:veo_in_market(LF, SFY, SFN),
+                C = lmsr:veo_in_market(LF0, SFY, SFN),
                 {C - SFY, C - SFN};
             3 ->
                 {0, 0}
@@ -161,8 +200,17 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                                %ExtraVeo, 
                                ADiff,
                                none),
+                io:fwrite("accounting creator account \n"),
+                io:fwrite(integer_to_list(ExtraVeo)),
+                io:fwrite(", "),
+                io:fwrite(integer_to_list(lmsr:veo_in_market(LiquidityRecover, 0, 0))),
+                io:fwrite(", "),
+                io:fwrite(integer_to_list(ADiff)),
+                io:fwrite("\n"),
                 accounts:dict_write(CreatorAcc, Dict4);
-            _ -> Dict4
+            _ -> 
+                %todo. if the creator account was deleted, the extra money should get deleted, so accounting works right.
+                Dict4
         end,
   
  
@@ -209,28 +257,41 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
             3 -> %revert both
                 Futarchy2
         end,
-    io:fwrite("futarchy resolve tx quantities\n"),
-    io:fwrite(integer_to_list(LT)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(LF)),
+%    io:fwrite("futarchy resolve tx quantities\n"),
+%    io:fwrite(integer_to_list(LT)),
+%    io:fwrite(" "),
+%    io:fwrite(integer_to_list(LF)),
+%    io:fwrite("\n"),
+%    io:fwrite(integer_to_list(STY)),
+%    io:fwrite(" "),
+%    io:fwrite(integer_to_list(STN)),
+%    io:fwrite("\n"),
+%    io:fwrite(integer_to_list(SFY)),
+%    io:fwrite(" "),
+%    io:fwrite(integer_to_list(SFN)),
+%    io:fwrite("\n"),
+%    io:fwrite(integer_to_list(LiquidityRecover)),
+%    io:fwrite(" "),
+%    io:fwrite(integer_to_list(ExtraTrues)),
+%    io:fwrite(" "),
+%    io:fwrite(integer_to_list(ExtraFalses)),
+%    io:fwrite(" "),
+%    io:fwrite(integer_to_list(ExtraVeo)),
+%    io:fwrite("\n"),
+    io:fwrite("accounting futarchy \n"),
+%    io:fwrite(integer_to_list(- LT - LF + VolumeBoost)),
+    io:fwrite(integer_to_list(block:sum_amounts_helper(futarchy, Futarchy3, 0, 0, 0) - block:sum_amounts_helper(futarchy, Futarchy, 0, 0, 0))),
     io:fwrite("\n"),
-    io:fwrite(integer_to_list(STY)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(STN)),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(SFY)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(SFN)),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(LiquidityRecover)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(ExtraTrues)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(ExtraFalses)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(ExtraVeo)),
-    io:fwrite("\n"),
+    %io:fwrite(integer_to_list(VolumeBoost)), %0
+    %io:fwrite("\n"),
     Dict7 = futarchy:dict_write(Futarchy3, Dict6),
+
+
+    % account - 0.003
+    % contract + 0
+    % creator + 2.08
+    % futarchy - 3
+
     Dict7.
     
     

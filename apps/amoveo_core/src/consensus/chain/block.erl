@@ -14,7 +14,7 @@
          header_by_height/1, 
          calculate_prev_hashes/1,
          prev_hash/2,
-         make_roots/1,
+         make_roots/1, sum_amounts_helper/5,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -1908,15 +1908,30 @@ no_counterfeit(Old, New, Txs, Height) ->
               true -> 0
           end,
     Diff = (NA - OA) - (OCA * CloseOracles) - BlockReward,
+    BurnLimit = 
+        case application:get_env(amoveo_core, test_mode) of
+            %{ok, true} ->   -1;
+            {ok, true} ->  -50000000;
+            {ok, false} -> -50000000
+        end,
     if
-        ((Diff > 0) or (Diff < -50000000))->
+        ((Diff > 0) or (Diff < BurnLimit))->
         %false ->
             io:fwrite("Accounting error. Number of coins in doesn't equal number of coins out.\nheight "),
             io:fwrite(integer_to_list(Height)),
             io:fwrite("; diff is "),
             io:fwrite(integer_to_list(Diff)),
             io:fwrite("\n"),
-            io:fwrite({OK, NK}),
+            case application:get_env(amoveo_core, test_mode) of
+                {ok, true} -> 
+                    if
+                        Diff > 0 -> io:fwrite("error, counterfeiting\n"),
+                                    0=1;
+                        true -> ok
+                    end;
+                _ -> 
+                    io:fwrite({OK, NK})
+            end,
             %io:fwrite(packer:pack([0, NK, OK])),
             io:fwrite("\n");
         true -> ok
@@ -2074,8 +2089,18 @@ sum_amounts_helper(jobs, Job, _dict, _, _) ->
         not(is_integer(R)) -> io:fwrite(Job);
         true -> R
     end;
+
+
+%how does liquidity move through.
+% when you create a futarchy, liquidity goes from the account to the new futarchy. lmsr:veo_in_market/3 for the 2 markets inside the futarchy. This is the liquidity for the market.
+
+% when a bet is made, it can only increase the number of shares in the lmsr, so betting only increases the veo stored in the market market. 
+
+% when the futarchy decision is finalized, in the reverted market the creator gains lmsr:veo_in_market. In the market that is not reverted, they get paid in a mixture of veo and a subcurrency in the new binary market.
+
 sum_amounts_helper(futarchy, Futarchy, _dict, _, _) ->
     #futarchy{
+               fid = FID,
                liquidity_true = Bt,
                liquidity_false = Bf,
                shares_true_yes = STY,
@@ -2083,21 +2108,14 @@ sum_amounts_helper(futarchy, Futarchy, _dict, _, _) ->
                shares_false_yes = SFY,
                shares_false_no = SFN
              } = Futarchy,
-    io:fwrite("block:sum_amounts_helper futarchy \n"),
-    io:fwrite(integer_to_list(Bt)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(STY)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(STN)),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(Bf)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(SFY)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(SFN)),
-    io:fwrite("\n"),
-    lmsr:veo_in_market(Bt, STY, STN) +
-        lmsr:veo_in_market(Bf, SFY, SFN);
+    R = lmsr:veo_in_market(Bt, STY, STN) +
+        lmsr:veo_in_market(Bf, SFY, SFN),
+%    io:fwrite("block sum amounts helper futarchy has: "),
+%    io:fwrite(base64:encode(FID)),
+%    io:fwrite(" : "),
+%    io:fwrite(integer_to_list(R)),
+%    io:fwrite("\n"),
+    R;
 sum_amounts_helper(futarchy_unmatched, FU, _dict, 
                    _, _) ->
     #futarchy_unmatched{
@@ -2109,7 +2127,9 @@ sum_amounts_helper(futarchy_matched, FM, _dict,
     #futarchy_matched{
                     revert_amount = RA
                    } = FM,
-    0.
+    %as long as subcurrencies have value of 0, then futarchy_matched also need to have a value of 0. Since they get converted into subcurrency.
+    0.%sometimes we convert futarchy_matched into the share type in the binary market that ends up winning. For accounting, we need to remove the futarchy_matched, and add it's liquidity checksum to the contract.
+%we don't want the contract's liquidity to go negative, 
     %RA.
 
 remove_repeats(New, Old, Height) ->

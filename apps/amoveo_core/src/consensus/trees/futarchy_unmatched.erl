@@ -29,17 +29,6 @@ make_id(FU = #futarchy_unmatched{
         1 -> ok
     end,
     B = <<Pub2/binary, FID/binary, Decision, Goal, LP:64, Amount:64>>,
-    io:fwrite("futarchy umatched making id \n"),
-    io:fwrite(base64:encode(B)),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(Decision)),
-    io:fwrite(" "),
-    io:fwrite(integer_to_list(Goal)),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(LP)),
-    io:fwrite("\n"),
-    io:fwrite(integer_to_list(Amount)),
-    io:fwrite("\n\n"),
     ID = hash:doit(B),
     FU#futarchy_unmatched{id = ID}.
 

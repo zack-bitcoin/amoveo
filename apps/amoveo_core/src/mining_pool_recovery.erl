@@ -2,19 +2,29 @@
 -export([earned_in_range/2, scan_range/3, check_height/1]).
 
 
+%Ramon payment.
+%has pubkeys:
+%BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E=
+%BHGWh9mqsQZStlZp5foxBZSQM4ociYI8eD+J+rqMkYQ/F/7WMpt2O2NsBkBFcTrNc+IE93ZkU49fwA/jFC2JPys=
+%3.17840471 + 11.06353813 + 19.07663571.
+%33.31857855
+%pool2:
+%  BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E= 3.17840471
+%pool1: 
+% BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E= 19.07663571
+% BHGWh9mqsQZStlZp5foxBZSQM4ociYI8eD+J+rqMkYQ/F/7WMpt2O2NsBkBFcTrNc+IE93ZkU49fwA/jFC2JPys= 11.06353813
+
+
 %pool2 miners to get this much veo
 %  BF6npb0GNhpAXJZASh9Jncx5Fou18jP43UiB/Cjpo+Jt9hcSRm6zp2ihnm6hblcty+pBawK09SeQlPReJxK8sOw= 4.712806995
 %  BFB3qHkLoxQK4IiQvwEqBo64saIw3Sk5w7JBLHldimUIwQlFv7ni4vkph7kl4X5PTPa9ra8Z4EEPJeSybBohE5Q= 48.77207239
 %  BJ37iobqiuD841SprjP078J6U8PthhGL/bSC54h1DmDrj13hRZmKll1EyMP7y8EeT7caFY6TVInHaRyS1jLhYpE= 5.91840878
-%  BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E= 3.17840471
 
 %pool1 miners to get this much veo
 % BEB/9uVjQrLVkXtBKHCmY+/+Pn3ih8IIwfzdex0wYqRkcRbdiJSkTqfI+YiNzyjgSKCGOPR+yhLg4zlfiFoWNjo= 5.55453354
 % BF6npb0GNhpAXJZASh9Jncx5Fou18jP43UiB/Cjpo+Jt9hcSRm6zp2ihnm6hblcty+pBawK09SeQlPReJxK8sOw= 7.01146038
 % BFB3qHkLoxQK4IiQvwEqBo64saIw3Sk5w7JBLHldimUIwQlFv7ni4vkph7kl4X5PTPa9ra8Z4EEPJeSybBohE5Q= 9.33343752
-% BHGWh9mqsQZStlZp5foxBZSQM4ociYI8eD+J+rqMkYQ/F/7WMpt2O2NsBkBFcTrNc+IE93ZkU49fwA/jFC2JPys= 11.06353813
 % BJ37iobqiuD841SprjP078J6U8PthhGL/bSC54h1DmDrj13hRZmKll1EyMP7y8EeT7caFY6TVInHaRyS1jLhYpE= 8.96920581
-% BKgyo7skE9wcEHRBLElAth3bXgYjSzoja980tkjjOk1kvq1XL2/uq/n88ys2eGHuorCtlRKnLDG0T88UrHIZ+7E= 19.07663571
 % BMwXC8If4nGPbItlUy0+WafXWq7VPOjCSaA00cdkuO697ifzGeKq4ePyiCdU4dYp2vdtqO22Bb1l7q+trC04eT8= 8.33180032
 
 
@@ -104,6 +114,7 @@ earned_in_range(A, B) ->
 
 
 %mining_pool_recovery:earned_in_range(288000, 303000).
+%{6001021420,1040834597}
 %{6566342555,1220449944}
 % in veo it is {65.66342555,12.20449944}
 
