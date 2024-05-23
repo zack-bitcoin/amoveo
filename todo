@@ -1,3 +1,4 @@
+make a cold storage address.
 check coinbase rewards to see if someone is secretly  mining.
 fix the error in the mining pool where non-standard reward addresses cause it to crash.
 

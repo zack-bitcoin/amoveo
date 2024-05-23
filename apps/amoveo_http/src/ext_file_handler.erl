@@ -11,7 +11,8 @@ handle(Req, State) ->
     %io:fwrite("path is "),
     %io:fwrite(F),
     %io:fwrite("\n"),
-    PrivDir0 = 
+    PrivDir0 = "../../../../_build/default/lib/light_node/src/js",
+    PrivDir0_unused = 
 	case application:get_env(amoveo_core, kind) of
 	    {ok, "production"} ->
 		"../../../../_build/prod/lib/light_node/src/js";
