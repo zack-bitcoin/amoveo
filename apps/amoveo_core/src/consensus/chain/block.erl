@@ -477,7 +477,7 @@ make(Header, Txs0, Trees, Pub) ->
 %        Height == 1 -> io:fwrite({Querys});
 %        true -> ok 
 %    end,
-    Facts = proofs:prove(Querys, Trees),
+    Facts = proofs:prove(Querys, Trees, Height),
     Dict = proofs:facts_to_dict(Facts, dict:new()),
     if
         true -> ok;
@@ -985,7 +985,7 @@ check0(Block) ->
  
                 {true, ProofTree0} = 
                     trees2:verify_proof(
-                      Proof, Leaves),
+                      Proof, Leaves, Height),
                 false = is_integer(ProofTree0),
                 Dict2 = proofs:facts_to_dict(
                          Facts, dict:new()),

@@ -449,7 +449,7 @@ absorb_internal2(SignedTx, PID) ->
                                      csc:add(TreeID, HK, {TreeID, Key}, Value, D)
                              end, dict:new(), Facts20);
                             true ->
-                                Facts = proofs:prove(Querys, F#tx_pool.block_trees),
+                                Facts = proofs:prove(Querys, F#tx_pool.block_trees, Height),
                                 proofs:facts_to_dict(Facts, dict:new())
                         end,
 %                    if

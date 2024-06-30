@@ -1,9 +1,9 @@
 -module(trees2).
--export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
+-export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/4, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/3, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
          copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
-         recover/1, to_keys/1, store_leaves/2, get_proof/2,
-         cs2v/1, restore_leaves_proof/2, remove_leaves_proof/1,
+         recover/1, to_keys/1, store_leaves/2, get_proof/3,
+         cs2v/1, restore_leaves_proof/3, remove_leaves_proof/2,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -914,9 +914,9 @@ get(Keys, Loc) when is_integer(Loc) ->
             
     
     
-get_proof(Keys, Loc) ->
-    get_proof(Keys, Loc, small).
-get_proof(Keys0, Loc, Type) ->
+get_proof(Keys, Loc, Height) ->
+    get_proof(Keys, Loc, small, Height).
+get_proof(Keys0, Loc, Type, Height) ->
     {Keys3, TreesDict} = 
         strip_tree_info(Keys0, [], dict:new()),%this is where we lose the tree info. it also hashes the keys.
     Keys = remove_repeats(Keys3),%this is a N^2 algorithm, it might end up being the bottleneck eventually.
@@ -985,14 +985,14 @@ get_proof(Keys0, Loc, Type) ->
 %    io:fwrite("\n"),
     %io:fwrite({Keys, Keys30, Leaves, dict:fetch_keys(MetasDict)}),
 
-    Proof2 = remove_leaves_proof(Proof),
+    Proof2 = remove_leaves_proof(Proof, Height),
 
     if
         not(?sanity) -> ok;
         true ->
 
             {Proof3, _} = 
-                restore_leaves_proof(Proof2, Leaves),
+                restore_leaves_proof(Proof2, Leaves, Height),
             Proof4 = get_verkle:deserialize_proof(
                        get_verkle:serialize_proof(Proof3)),
     %checking that serializing doesn't beak anything.
@@ -1033,34 +1033,34 @@ depth_order(Keys) ->
     lists:map(fun({K, _}) ->
                       K end, K3).
    
--define(version, 2). 
-            
-remove_leaves_proof([]) -> [];
-remove_leaves_proof({I, 0}) -> {I, 0};
-remove_leaves_proof({I, {<<K:256>>, <<V:256>>}}) -> 
+remove_leaves_proof([], _) -> [];
+remove_leaves_proof({I, 0}, _) -> {I, 0};
+remove_leaves_proof({I, {<<K:256>>, <<V:256>>}}, Height) -> 
+    B = Height < forks:get(55),
     if
-        (?version == 1) ->
+        B ->
             {I, 1};
-        (?version == 2) ->
+        true ->
             {I, {<<K:256>>, <<V:256>>}}
     end;
-remove_leaves_proof(T) when is_tuple(T) -> 
+remove_leaves_proof(T, Height) when is_tuple(T) -> 
     list_to_tuple(
       remove_leaves_proof(
-        tuple_to_list(T)));
-remove_leaves_proof([H|T]) -> 
-    [remove_leaves_proof(H)|
-     remove_leaves_proof(T)];
-remove_leaves_proof(<<X:256>>) ->
+        tuple_to_list(T), Height));
+remove_leaves_proof([H|T], Height) -> 
+    [remove_leaves_proof(H, Height)|
+     remove_leaves_proof(T, Height)];
+remove_leaves_proof(<<X:256>>, _) ->
     <<X:256>>;
-remove_leaves_proof(N) when is_integer(N) -> N.
+remove_leaves_proof(N, _) when is_integer(N) -> N.
 
 
-restore_leaves_proof(A, B) ->
+restore_leaves_proof(A, B, Height) ->
+    F = Height < forks:get(55),
     if
-        (?version == 1) ->
+        F ->
             restore_leaves_proof1(A, B);
-        (?version == 2) ->
+        true ->
             restore_leaves_proof2(A, B)
     end.
 
@@ -1214,7 +1214,7 @@ dump_get(T, V) ->
     deserialize(T, S).
     
 
-verify_proof(Proof0, Things) ->
+verify_proof(Proof0, Things, Height) ->
     CFG = tree:cfg(amoveo),
     
     Proof1 = 
@@ -1224,7 +1224,7 @@ verify_proof(Proof0, Things) ->
             true -> Proof0
         end,
     {Proof, []} = 
-        restore_leaves_proof(Proof1, Things),
+        restore_leaves_proof(Proof1, Things, Height),
     CFG = tree:cfg(amoveo),
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof, CFG),
@@ -2054,7 +2054,8 @@ test(0) ->
     success;
 test(1) ->
     %testing making and verifying the verkle proof.
-    
+   
+    Height = 5,
     Range = 2,
     Keys = lists:map(fun(_) -> signing:new_key()
                      end, range(1, Range)),
@@ -2073,10 +2074,10 @@ test(1) ->
     Loc = 1,
     Loc2 = store_things(As, Loc),
     
-    {Proof, As0b} = get_proof(to_keys(As2), Loc2),
+    {Proof, As0b} = get_proof(to_keys(As2), Loc2, Height),
 %make sure in and out are same length!! todo
 
-    {true, ProofTree} = verify_proof(Proof, As0b),
+    {true, ProofTree} = verify_proof(Proof, As0b, Height),
     
     ProofTree2 = 
         update_proof(As2, ProofTree),
@@ -2084,9 +2085,9 @@ test(1) ->
     
     Loc3 = store_verified(Loc2, ProofTree2),
 
-    {Proof3, As2b} = get_proof(to_keys(As2), Loc3),
+    {Proof3, As2b} = get_proof(to_keys(As2), Loc3, Height),
     
-    {true, V2} = verify_proof(Proof3, As2b),
+    {true, V2} = verify_proof(Proof3, As2b, Height),
 
     prune(Loc2, Loc3),
 
@@ -2163,6 +2164,7 @@ test(4) ->
                         balance = 100000000, 
                         nonce = 0} 
            end, Keys),
+    Height = 5,
     Loc = 1,
     {As0, As1} = lists:split(Many div 2, As),
     print_now(),
@@ -2174,7 +2176,7 @@ test(4) ->
     print_now(),
     io:fwrite("get proof\n"),
     {Proof, As2} = 
-        get_proof(Keys2, Loc2),
+        get_proof(Keys2, Loc2, Height),
     true = length(As2) == length(As0_1),
     print_now(),
     io:fwrite("things proved "),
@@ -2183,7 +2185,7 @@ test(4) ->
     print_now(),
     io:fwrite("verify proof\n"),
     {true, ProofTree} = 
-        verify_proof(Proof, As2),
+        verify_proof(Proof, As2, Height),
     As3 = lists:map(fun(A) ->
                             A#acc{balance = 28}
                     end, As0_1),
@@ -2196,11 +2198,11 @@ test(4) ->
     print_now(),
     io:fwrite("get proof 2\n"),
     %io:fwrite({to_keys(As2)}),
-    {Proof3, As2b} = get_proof(to_keys(As2), Loc3),
+    {Proof3, As2b} = get_proof(to_keys(As2), Loc3, Height),
     print_now(),
     io:fwrite("verify proof 2\n"),
     %{true, V2} = verify_proof(Proof3, As3),
-    {true, V2} = verify_proof(Proof3, As2b),
+    {true, V2} = verify_proof(Proof3, As2b, Height),
     prune(Loc2, Loc3),
     success;
 test(5) ->

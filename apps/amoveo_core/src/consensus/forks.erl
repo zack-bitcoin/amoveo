@@ -72,7 +72,7 @@ get(51) -> common(165250, test_height());%create tx type contract_timeout_tx2. I
 get(52) -> common(273203, test_height()+3);%the verkle update.
 get(53) -> common(286537, test_height()+3);%employment contracts
 get(54) -> common(999999999999286537, test_height()+3);%futarchy
-get(55) -> common(9999999999999, test_height()+3);%verkle fix
+get(55) -> common(317437, test_height()+3);%verkle fix
 
 %get(50) -> common(99999149729, %perpetual stablecoin hard update.
 %                  test_height()+1);

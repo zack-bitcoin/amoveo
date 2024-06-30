@@ -1,5 +1,5 @@
 -module(proofs).
--export([prove/2, test/0, hash/1, facts_to_dict/2, txs_to_querys/3, 
+-export([prove/3, test/0, hash/1, facts_to_dict/2, txs_to_querys/3, 
          root/1, tree/1, path/1, value/1, %governance_to_querys/1,
          key/1]).
 -define(Header, 1).
@@ -127,13 +127,13 @@ remove_repeats([X, X|T]) ->
 remove_repeats([A|B]) -> 
     [A|remove_repeats(B)].
 
-prove(Querys, Trees) when is_integer(Trees) ->
+prove(Querys, Trees, Height) when is_integer(Trees) ->
     X = case application:get_env(amoveo_core, kind) of
             {ok, "production"} -> small;
             _ -> fast
         end,
-    trees2:get_proof(Querys, Trees, X);
-prove(Querys, Trees) ->
+    trees2:get_proof(Querys, Trees, X, Height);
+prove(Querys, Trees, _) ->
     F2 = det_order(Querys),
     prove2(F2, Trees).
 prove2([], _) ->
@@ -1373,11 +1373,11 @@ test() ->
               %{oracle_bets, #key{pub = keys:pubkey(), id = OID}}
 	     ],% ++
         %governance_to_querys(trees:governance(Trees)),
-    Facts = prove(Querys, Trees),
+    Facts = prove(Querys, Trees, block:height()),
     ProofRoot = hash(Facts),
     Dict = facts_to_dict(Facts, dict:new()), %when processing txs, we use this dictionary to look up the state.
     Querys2 = dict:fetch_keys(Dict),
-    Facts = prove(Querys2, Trees),
+    Facts = prove(Querys2, Trees, block:height()),
     Dict,
     
     %Txs = binary_to_term(base64:decode(ETxs)),
@@ -1391,7 +1391,7 @@ test() ->
            keys:sign(NewTx2),
            signing:sign_tx(NewTx3, Pub3, Priv30)],
     Q2 = txs_to_querys2(Txs, Trees, 1),
-    prove(Q2, Trees),
+    prove(Q2, Trees, block:height()),
     success.
 oracle_type_get(Trees, OID, Height) 
   when is_integer(Trees) ->    

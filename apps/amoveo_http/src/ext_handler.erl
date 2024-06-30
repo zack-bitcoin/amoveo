@@ -333,7 +333,9 @@ doit({bets}) ->
     free_variables:bets();
 doit({proof, IDs, Hash}) ->
     %batch verkle proofs.
-    Loc = (block:get_by_hash(Hash))#block.trees,
+    B = block:get_by_hash(Hash),
+    Height = B#block.height,
+    Loc = B#block.trees,
     true = is_integer(Loc),
     
     %io:fwrite({IDs, Loc}),%{<<_:520>>, 13}
@@ -341,7 +343,7 @@ doit({proof, IDs, Hash}) ->
                              %trees2:key({TreeName, ID}) end,
 %                             {TreeName, ID} end,
 %                     IDs),
-    {Proof, IDs3} = trees2:get_proof(IDs, Loc, fast),
+    {Proof, IDs3} = trees2:get_proof(IDs, Loc, fast, Height),
     %todo. put this proof in a format that javascript will understand.
     {ok, {Proof, IDs3}};
     
