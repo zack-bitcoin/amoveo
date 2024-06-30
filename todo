@@ -1,7 +1,56 @@
-make a cold storage address.
-check coinbase rewards to see if someone is secretly  mining.
-fix the error in the mining pool where non-standard reward addresses cause it to crash.
+set up a hard update to activate trees2.erl version=2.
+run all the tests.
+test out that we can still sync with the new code.
+activate the update on all the full nodes.
+make an announcement about what happened.
 
+
+
+need to give block height to trees2:remove_leaves_proof and restore_leaves_proof so that we can update the version with a hard update.
+
+
+changed encoding in a forking way.
+when we do this update, make sure we can still sync the blocks. then update all the nodes.
+
+in verkle tree. the problem seems to be in trees2:remove_leaves_proof and trees2:restore_leaves_proof.
+They fail if you are trying to prove an empty element, and there is something filling that element.
+
+
+
+
+in the verkle tree, when you try to prove the non-existance of an element, you are instead proving what exists in the slot where that element would have existed.
+If the slot is empty, you just show the empty slot.
+If the slot has something in it, then you prove that thing exists and is not the thing that you had been looking for.
+
+The verkle system can only store 32 hashes as the keys and values.
+At the blockchain level, when we generate a verkle proof, we want to restore the key/value pairs that had been in it, so we don't need to double-record the keys and values.
+
+while trying to restore the values, we have a list of values that are being restored. So, we have an expectation that the number of things being proved is the same as the number of things that we had been wanting to prove.
+
+But, if we tried to prove the non-existance of an element, that could potentially mean that our verkle proof includes an extra element. The thing that is in the slot where we want to store to.
+
+For example.
+Alice wants to create a new account by sending money to Bob.
+To verify this tx, we need to make sure that this account doesn't already exist.
+So, we need to prove the non-existance of this new account in the verkle tree.
+When we make this proof, we find that the tree is pointing to charlie. So, a proof that Bob's account doesn't exist must include Charlie's key.
+
+This is the case that isn't being handled well.
+When we are decoding the verkle proof, we aren't using Charlie's key correctly.
+see `test_txs:test(76).`
+
+
+
+
+
+
+
+there is a bug in the verkle tree that gets exposed if in test_txs:test(72) we change mine_blocks(7), to mine_blocks(6).
+trying to build a test to activate the bug more directly. test_txs:test(76).
+working on the make_pairs_from tool, which is supposed to convert consensus state data into pairs of {tree_id, key}.
+
+
+check coinbase rewards to see if someone is secretly  mining. amoveo_utils:recent_miners/1
 
 
 

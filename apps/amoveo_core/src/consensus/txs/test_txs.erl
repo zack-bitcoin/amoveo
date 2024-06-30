@@ -4493,7 +4493,8 @@ test(71) ->
 
     Loc2 = trees2:store_things([F, FU, FM], 1),
 
-    trees2:get([{futarchy, FID}, {futarchy_unmatched, FUID}, {futarchy_matched, FMID}], Loc2),
+    X = trees2:get([{futarchy, FID}, {futarchy_unmatched, FUID}, {futarchy_matched, FMID}], Loc2),
+    %io:fwrite({X}),
 
     success;
 test(72) ->
@@ -4607,7 +4608,7 @@ test(72) ->
     Stx10 = keys:sign(Tx10),
     absorb(Stx10),
     1 = many_txs(),
-    mine_blocks(1),
+    mine_blocks(2),
     %0 = many_txs(),
 
     Tx11 = futarchy_resolve_tx:make_dict(
@@ -4615,8 +4616,14 @@ test(72) ->
     Stx11 = keys:sign(Tx11),
     absorb(Stx11),
     1 = many_txs(),
-    1=2,
+
+    potential_block:new(),
+    block:height(),
+    %1=2,
+    %do potential_block:new().
+
     mine_blocks(1),
+    0 = many_txs(),
 
     UIDs = [UID1, UID2, UID3, UID4, UID5],
 
@@ -4839,6 +4846,89 @@ test(75) ->
     % price went out of range during the lmsr step, so partially unmatched
 
     ok;
+test(76) ->
+    %combination of keys made the verkle database crash.
+
+    %got these "keys" by looking at the proof written on the block.
+    {NewKeys, Keys} = 
+        {[
+           {sub_accounts,<<169,61,183,149,112,32,246,231,201,95,165,
+                           92,254,122,105,49,128,76,156,169,169,241,
+                           108,203,95,60,149,124,50,234,196,125>>}
+         ],
+         [
+          {oracle,<<73,53,221,96,177,113,132,195,218,111,50,24,103,
+                    132,155,237,141,100,201,135,96,135,166,202,207,
+                    66,111,143,42,186,89,44>>,
+           0,
+           <<205,191,105,117,232,163,91,13,3,85,139,230,130,45,250,
+             225,102,72,44,36,251,134,176,67,63,96,232,22,127,92,145,
+             228>>,
+           8,3,1,
+           <<0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+             0,0,0,0>>,
+           <<4,133,89,134,205,122,130,218,16,254,229,12,186,57,121,
+             105,43,173,164,137,130,226,246,188,49,236,32,10,247,161,
+             232,193,46,14,58,3,190,212,42,97,158,69,121,135,20,133,
+             143,208,46,58,66,6,181,227,170,244,237,22,35,120,150,45,
+             13,134,58>>,
+           9,0,0}
+         ]},
+    {sub_accounts, BSA_ID} = hd(NewKeys),
+
+    Pointer = 1,
+    Leaves = make_leaves(Keys),
+    Pairs = make_pairs_from(NewKeys),
+
+    CFG = tree:cfg(amoveo),
+%    Leaves2 = lists:sort(fun({leaf, <<A:256>>, _, _}, 
+%                             {leaf, <<B:256>>, _, _}) -> 
+%                                 A =< B
+%                         end, Leaves),
+    {P2, _, _} = store_verkle:batch(Leaves, Pointer, CFG),
+
+   % P2 = trees2:store_leaves(Leaves, Pointer),
+
+    %{leaf, 32 bytes, 32 bytes, meta-bytes}
+
+    %sanity check that the proof system does work.
+    Pairs2 = [{sub_accounts, hash:doit(1)}],
+    {Proof0, As0} = trees2:get_proof(Pairs2, P2, fast),
+    %{Proof02,[]} = trees2:restore_leaves_proof(Proof0, As0),
+    {true, _} = trees2:verify_proof(Proof0, As0),
+
+
+    %showing that we can prove and verify this at the verkle level, so the error must be in encoding or decoding.
+    Key3 = trees2:hash_key(sub_accounts, BSA_ID),
+    {VProof, _VMetasDict} = get_verkle:batch([Key3], P2, CFG, fast),
+%    io:fwrite({VProof}), %{[root, {125, {key, hash}}]
+    
+
+
+    {true, _, _} = verify_verkle:proof(VProof, CFG),
+
+
+    {Proof, As} = trees2:get_proof(
+                    %[{sub_accounts, hash:doit(1)}],
+                    NewKeys,
+                    P2, fast),
+%    io:fwrite({Proof, As}),
+%    {Proof, As} = trees2:get_proof(Pairs, P2, small),
+    %Proof2a = trees2:remove_leaves_proof(Proof),
+    %{Proof2,[]} = trees2:restore_leaves_proof(Proof, As),
+%    io:fwrite({proof1, Proof, vproof, VProof, proof_control, Proof0}),
+%    io:fwrite({{Proof0, As0}, {Proof, As}}),
+    
+    io:fwrite("try restore leaves proof\n"),
+    Proof2 = trees2:restore_leaves_proof(Proof, As),
+    %io:fwrite(Proof2),
+
+
+    {true, _} = trees2:verify_proof(Proof, As),
+    Keys,
+    {P2};
+
+
     
 test(80) ->
     %testing the tx_reserve.
@@ -5124,3 +5214,70 @@ vm(Code) ->
 range(N, N) -> [N];
 range(N, M) when N < M ->
     [N|range(N+1, M)].
+
+make_pairs_from(Keys) ->
+    Types = lists:map(fun(X) -> element(1, X) end,
+                      Keys),
+    Types2 = lists:map(fun(X) ->
+                               case X of
+                                   acc -> accounts;
+                                   contracts -> contracts;
+                                   sub_accounts -> sub_accounts;
+                                   futarchy -> futarchy;
+                                   oracle -> oracles
+                               end
+                       end, Types),
+    true = (length(Types2) == length(Keys)),
+    Keys2 = to_keys(Types2, Keys).
+    %Keys2 = trees2:to_keys(Keys),
+%TKs = make_pairs(Types2, Keys2).
+
+to_keys([], []) -> [];
+to_keys([accounts|T], [#acc{pubkey = P}|K]) -> 
+    [{accounts, P}|to_keys(T, K)];
+to_keys([Type|T], [X|K]) -> 
+    [{Type, trees2:key(X)}|to_keys(T, K)].
+    
+
+make_pairs([], []) ->
+    [];
+make_pairs([H|T], [A|B]) ->
+    [{H, A}|make_pairs(T, B)].
+
+%tree_size(Type, [{Type, S}|_]) -> S;
+%tree_size(Type, [{_, _}|T]) ->
+%    tree_size(Type, T).
+
+make_leaves(L) ->
+    trees2:cs2v(L).
+
+remove_repeat_leaves([], _) -> [];
+remove_repeat_leaves([L|T], D) -> 
+%    K = L#leaf.key,
+    K = element(2, L),
+    D2 = dict:store(K, true, D),
+    Rest = remove_repeat_leaves(T, D2),
+    case dict:find(K, D) of
+        {ok, _} -> Rest;
+        _ -> [L|Rest]
+    end.
+
+
+%    CFG = tree:cfg(amoveo),
+%    make_leaves2(CFG, L).
+%make_leaves2(_, []) -> [];
+%make_leaves2(CFG, [{Type, Key}|T]) -> 
+    %an empty slot.
+%    make_leaves2(CFG, T);
+%make_leaves2(CFG, [L|T]) -> 
+    %[Key] = trees2:to_keys([L]),
+%    <<_:256>> = Key,
+%    Z = <<0:64>>,
+%    N2 = <<0:(32*8)>>,
+%    R = leaf_verkle:new(Key, <<0:(32*8)>>, <<0:64>>, CFG),
+    %[R|make_leaves2(CFG, T)].
+
+remove_empties([]) -> [];
+remove_empties([{_, _}|T]) -> remove_empties(T);
+remove_empties([H|T]) -> 
+    [H|remove_empties(T)].

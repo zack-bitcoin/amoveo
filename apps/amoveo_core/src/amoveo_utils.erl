@@ -4,7 +4,8 @@
 	 block_rewards/2,
 	 tx_history/1, tx_history/2, tx_history/3,
 	 address_history/2,address_history/3,address_history/4,
-	 push_txs/0, key_full_to_light/1, iterator/2
+	 push_txs/0, key_full_to_light/1, iterator/2,
+         recent_miners/1, all_keys/0
 	]).
 -include("records.hrl").
 
@@ -226,3 +227,49 @@ key_full_to_light(K) ->
 iterator(_, 0) -> [];
 iterator(X, N) when N > 0 -> 
     [X|iterator(X, N-1)].
+
+recent_miners(L) ->
+    recent_miners2(block:height(), L).
+recent_miners2(0, _) -> ok;
+recent_miners2(N, L) -> 
+    B = block:get_by_height(N),
+    Tx = hd(element(10, B)),
+    A = element(2, Tx),
+    Bool = is_in(A, L),
+    if 
+        Bool -> recent_miners2(N-1, L);
+        true -> A
+    end.
+            
+    
+all_keys() ->
+    Height = block:height(),
+    S = forks:get(52),
+    potential_block:new(),
+    {_, Keys} = (potential_block:check())#block.proofs,
+    {Keys, all_keys2(S+1, Height)}.
+    
+
+all_keys2(H, HeightLimit) 
+  when H > HeightLimit -> [];
+all_keys2(H, HL) -> 
+    B = block:get_by_height(H),
+    #block{proofs = P} = B,
+    {_, Keys} = P,
+    merge_lists(Keys, all_keys2(H+1, HL)).
+
+merge_lists([], K) -> K;
+merge_lists([H|T], K) ->
+    IS_IN = is_in_list(H, K),
+    if
+        IS_IN -> merge_lists(T, K);
+        true -> merge_lists(T, [H|K])
+    end.
+is_in_list(_, []) -> false;
+is_in_list(A, [A|_]) -> true;
+is_in_list(A, [_|T]) -> 
+    is_in_list(A, T).
+            
+
+           
+    

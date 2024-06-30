@@ -2,7 +2,8 @@
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/3, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/2, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
          copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
-         recover/1, 
+         recover/1, to_keys/1, store_leaves/2, get_proof/2,
+         cs2v/1, restore_leaves_proof/2, remove_leaves_proof/1,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -149,7 +150,8 @@ remove_repeat([L1 = {leaf, A, X, <<Type, P1:56>>},
         not(P1 == P2) ->
             DBName = int2dump_name(Type),
             dump:delete(P1, DBName);
-        true -> ok
+        true -> 
+            1=2
     end,
     remove_repeat([L2|T]);
 remove_repeat([L1 = {leaf, A, _, <<Type1, P1:56>>}, 
@@ -191,10 +193,12 @@ remove_repeat([]) -> [].
 
 store_things(Things, Loc) ->
     %return the pointer to the new version of the verkle tree.
-    CFG = tree:cfg(amoveo),
     %io:fwrite({Things}),
     false = is_record(hd(Things), consensus_state),
     V = cs2v(Things),
+    store_leaves(V, Loc).
+store_leaves(V, Loc) ->
+    CFG = tree:cfg(amoveo),
     V2 = lists:sort(fun({leaf, <<A:256>>, _, _}, 
                         {leaf, <<B:256>>, _, _}) -> 
                             A =< B
@@ -436,10 +440,12 @@ compress_pub(<<4, X:256>>) ->
     1=2,
     <<4, X:256>>;
 compress_pub(X) ->
-    <<E:8, A:128, B:128, C:128, D:128>> = X,
-    <<X1:264, X2:256>> = X,
-    io:fwrite({<<E:8, A:128>>, <<B:128>>, <<C:128>>, <<D:128>>, base64:encode(X), base64:encode(<<X1:264>>), base64:encode(<<X2:256>>)}),
+    %<<E:8, A:128, B:128, C:128, D:128>> = X,
+
+    %io:fwrite({<<E:8, A:128>>, <<B:128>>, <<C:128>>, <<D:128>>, base64:encode(X), base64:encode(<<X1:264>>), base64:encode(<<X2:256>>)}),
     %ok.
+    io:fwrite("tried to compress an invalid pubkey.\n"),
+    1=2,
     bad_pub.
 
 
@@ -826,7 +832,9 @@ to_keys([]) -> [];
 to_keys([Acc|T]) ->
     [key(Acc)|to_keys(T)].
 
-strip_tree_info([], R, D) -> {lists:reverse(R), D};
+strip_tree_info([], R, D) -> 
+    %returns a list of the hashed keys, and a dictionary of the key-value pairs.
+    {lists:reverse(R), D};
 strip_tree_info([{Tree, X}|T], R, D) -> 
     %io:fwrite("strip tree info 2\n"),
     K = hash_key(Tree, X),
@@ -938,7 +946,9 @@ get_proof(Keys0, Loc, Type) ->
     %print_now(),
     %io:fwrite("key tree order \n"),
     if
+        true -> ok;
         ?sanity ->
+            %seems like it doesn't work if we are proving empty slots.
             Keys2 = key_tree_order(element(1, Proof)),
             KeyLengthBool = length(Keys) == length(Keys2),
             if
@@ -957,6 +967,11 @@ get_proof(Keys0, Loc, Type) ->
         lists:map(fun(K) ->
                           case dict:find(K, MetasDict) of
                               {ok, <<T, V:56>>} ->
+                                  if
+                                      (T == 0) ->
+                                          io:fwrite({T, V, <<T, V:56>>, K, dict:fetch_keys(MetasDict)});
+                                      true -> ok
+                                  end,
                                   dump_get(T, V);
                               error ->
                                   {EmptyTree, UK} = 
@@ -1017,13 +1032,18 @@ depth_order(Keys) ->
                     end, K2),
     lists:map(fun({K, _}) ->
                       K end, K3).
-    
-                      
-
+   
+-define(version, 2). 
+            
 remove_leaves_proof([]) -> [];
 remove_leaves_proof({I, 0}) -> {I, 0};
 remove_leaves_proof({I, {<<K:256>>, <<V:256>>}}) -> 
-    {I, 1};
+    if
+        (?version == 1) ->
+            {I, 1};
+        (?version == 2) ->
+            {I, {<<K:256>>, <<V:256>>}}
+    end;
 remove_leaves_proof(T) when is_tuple(T) -> 
     list_to_tuple(
       remove_leaves_proof(
@@ -1036,35 +1056,135 @@ remove_leaves_proof(<<X:256>>) ->
 remove_leaves_proof(N) when is_integer(N) -> N.
 
 
-restore_leaves_proof([], Leaves) -> {[], Leaves};
-restore_leaves_proof([{I, 0}], T) -> 
+restore_leaves_proof(A, B) ->
+    if
+        (?version == 1) ->
+            restore_leaves_proof1(A, B);
+        (?version == 2) ->
+            restore_leaves_proof2(A, B)
+    end.
+
+restore_leaves_proof1([], T) -> {[], T};
+restore_leaves_proof1([{I, 0}], T) -> 
+    %io:fwrite("restore 0\n"),
     {[{I, 0}], T};
-restore_leaves_proof(Proofs, [{_Tree, _K}|T]) -> 
-    %skip empty slot.
-    restore_leaves_proof(Proofs, T);
-restore_leaves_proof([{I, 1}], [L|T]) -> 
-    case L of
-        {_Tree, _Key} -> 
+restore_leaves_proof1([{I, 1}], [L|T]) ->
+%restore_leaves_proof1([{I, {<<_:256>>, <<_:256>>}}], [L|T]) ->
+    case L of 
+        {_Tree, _Key} ->
             {[{I, 0}], T};
-        _ -> 
-            V = hash:doit(serialize(L)),
-            K = key(L),
-            {[{I, {K, V}}], T}
+        _ ->
+            {[{I, {key(L), hash:doit(serialize(L))}}], T}
     end;
-restore_leaves_proof(Proofs, Leaves) 
+restore_leaves_proof1(Proofs, [X = {_, _}|T]) ->
+    %skip empty slot
+    %io:fwrite("restore skip\n"),
+%    io:fwrite({Proofs, X}),
+    restore_leaves_proof1(Proofs, T);
+restore_leaves_proof1(Proofs, Leaves) 
   when is_tuple(Proofs) -> 
+%    io:fwrite("trees2 case is tuple\n"),
     {Proofs2, Leaves2} = 
-        restore_leaves_proof(
+        restore_leaves_proof1(
           tuple_to_list(Proofs), Leaves),
     {list_to_tuple(Proofs2), Leaves2};
-restore_leaves_proof([H|T], L) -> 
-    {H2, L2} = restore_leaves_proof(H, L),
-    {T2, L3} = restore_leaves_proof(T, L2),
+restore_leaves_proof1([H|T], L) -> 
+%    io:fwrite("trees2 case is list\n"),
+    {H2, L2} = restore_leaves_proof1(H, L),
+    {T2, L3} = restore_leaves_proof1(T, L2),
     {[H2|T2], L3};
-restore_leaves_proof(<<X:256>>, L) ->
+restore_leaves_proof1(<<X:256>>, L) ->
+%    io:fwrite("trees2 case is binary\n"),
     {<<X:256>>, L};
-restore_leaves_proof(X, L) when is_integer(X) ->
+restore_leaves_proof1(X, L) when is_integer(X) ->
+%    io:fwrite("trees2 case is integer\n"),
     {X, L}.
+
+restore_leaves_proof2([], T) -> {[], T};
+restore_leaves_proof2([{I, 0}], T) -> 
+    %io:fwrite("restore 0\n"),
+    {[{I, 0}], T};
+%restore_leaves_proof2([{I, 1}], [L|T]) ->
+restore_leaves_proof2([{I, {T1 = <<_:256>>, V = <<_:256>>}}], [L|T]) ->
+    %todo.
+    case L of 
+        {Tree, Key} ->
+            {[{I, 0}], T};
+        _ ->
+            KeyL = key(L),
+            if
+                (T1 == KeyL) -> 
+                    %restoring value
+                    {[{I, {KeyL, hash:doit(serialize(L))}}], T};
+                true ->
+                    %value used to prove non-empty status of an element, to prove that a different element must be empty.
+                    {[{I, {T1, V}}], [L|T]}
+            end
+    end;
+restore_leaves_proof2([{I, {T1, V}}], [L|T]) ->
+    io:fwrite({I, T1, V, L, T});
+restore_leaves_proof2(Proofs, [X = {_, _}|T]) ->
+    %skip empty slot
+    %io:fwrite("restore skip\n"),
+%    io:fwrite({Proofs, X}),
+    restore_leaves_proof2(Proofs, T);
+restore_leaves_proof2(Proofs, Leaves) 
+  when is_tuple(Proofs) -> 
+%    io:fwrite("trees2 case is tuple\n"),
+    {Proofs2, Leaves2} = 
+        restore_leaves_proof2(
+          tuple_to_list(Proofs), Leaves),
+    {list_to_tuple(Proofs2), Leaves2};
+restore_leaves_proof2([H|T], L) -> 
+%    io:fwrite("trees2 case is list\n"),
+    {H2, L2} = restore_leaves_proof2(H, L),
+    {T2, L3} = restore_leaves_proof2(T, L2),
+    {[H2|T2], L3};
+restore_leaves_proof2(<<X:256>>, L) ->
+%    io:fwrite("trees2 case is binary\n"),
+    {<<X:256>>, L};
+restore_leaves_proof2(X, L) when is_integer(X) ->
+%    io:fwrite("trees2 case is integer\n"),
+    {X, L}.
+
+
+%restore_leaves_proof([{I, 1}], [{_, _}|T]) -> 
+%    io:fwrite("tree2 restore_leaves_proof, an empty slot that needs to be ffilled\n"),
+%    1=2;
+%restore_leaves_proof([{I, 1}], []) -> 
+%restore_leaves_proof([{I, {Key = <<_:256>>, <<_:256>>}}], [L|T]) -> 
+%    case L of
+%        {Key, _} -> 
+%            io:fwrite("restore 1\n"),
+%            {[{I, 0}], T};
+%        _ -> 
+%            io:fwrite("restore 2\n"),
+%            {[{I, {key(L), hash:doit(serialize(L))}}], T}
+%    end;
+%restore_leaves_proof([{I, {<<_:256>>, <<_:256>>}}], []) -> 
+%    io:fwrite("failed to restore a leaf to the verkle proof\n"),
+%    1=2;
+%restore_leaves_proof([{I, 1}], [{_Tree, _Key}|T]) -> 
+%    io:fwrite("restore leaves restore an empty.\n"),
+%    {[{I, 0}], T};
+%restore_leaves_proof([{I, 1}], [L|T]) -> 
+%restore_leaves_proof([{I, {K1 = <<_:256>>, V1 = <<_:256>>}}], 
+%                     [{Tree, Key}|T]) -> 
+%    {[{I, {K1, V1}}], T};
+    
+%restore_leaves_proof([{I, {K1 = <<_:256>>, V1 = <<_:256>>}}], [L|T]) -> 
+%    io:fwrite("restore leaves starting restoration.\n"),
+            %io:fwrite("restore case 2\n"),
+%    K = key(L),
+%    case K of
+%        K1 -> 
+            %restoring a leaf
+%            V = hash:doit(serialize(L)),
+%            {[{I, {K, V}}], T};
+%        _ ->
+            %leaf used to prove an empty slot
+%            {[{I, {K1, V1}}], [L|T]}
+%    end;
 
     
 
@@ -1105,12 +1225,9 @@ verify_proof(Proof0, Things) ->
         end,
     {Proof, []} = 
         restore_leaves_proof(Proof1, Things),
-
     CFG = tree:cfg(amoveo),
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof, CFG),
-    %todo. in verify_verkle:proof, if there are 2 things stored in the same branch, and you try to make a proof of both of them, when you verify the proof, only one of the 2 things is included.
-    %or maybe it is just missing leaves.
     lists:map(fun(X) ->
                       case X of
                           {unmatched, _, accounts, _, _} ->

@@ -12,15 +12,6 @@ handle(Req, State) ->
     %io:fwrite(F),
     %io:fwrite("\n"),
     PrivDir0 = "../../../../_build/default/lib/light_node/src/js",
-    PrivDir0_unused = 
-	case application:get_env(amoveo_core, kind) of
-	    {ok, "production"} ->
-		"../../../../_build/prod/lib/light_node/src/js";
-	    {ok, "local"} ->
-		"../../../../_build/local/lib/light_node/src/js";
-	    {ok, "integration"} ->
-		"../../../../_build/dev1/lib/light_node/src/js"
-	end,
     PrivDir = list_to_binary(PrivDir0),
     F1 = case F of
              <<"/crypto", Rest/binary>> -> Rest;
