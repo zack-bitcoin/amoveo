@@ -1224,7 +1224,7 @@ verify_proof(Proof0, Things, Height) ->
             true -> Proof0
         end,
     {Proof, []} = 
-        restore_leaves_proof(Proof1, Things, Height),
+        restore_leaves_proof(Proof1, Things, Height),%breaks here...
     CFG = tree:cfg(amoveo),
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof, CFG),
