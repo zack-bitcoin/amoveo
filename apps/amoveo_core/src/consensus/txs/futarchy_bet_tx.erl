@@ -97,12 +97,13 @@ go({signed, Tx, _Sig, Proved},
 %              NonceCheck, 
 %              Nonce0),
     io:fwrite("accounting: pay Fee and Amount from Pubkey\n"),
-    io:fwrite(integer_to_list(Amount)),
+    io:fwrite(integer_to_list(-Fee - Amount)),
     io:fwrite("\n"),
     Acc = accounts:dict_update(
              Pubkey, Dict, 
             -Fee - Amount, 
             Nonce),
+    io:fwrite("write account\n"),
     Dict2 = accounts:dict_write(Acc, Dict),
     Futarchy = futarchy:dict_get(FID, Dict2),
     #futarchy{active = Active, root_hash = RootHash2} =
@@ -173,17 +174,20 @@ go({signed, Tx, _Sig, Proved},
                         1=2
                 end,
                 empty = futarchy_unmatched:dict_get(TID, Dict2),
+                io:fwrite("write futarchy_unmatched\n"),
                 Dict3a = futarchy_unmatched:dict_write(NewUnmatched3, Dict2),
                 Dict4a = case FBehind of
                              error -> Dict3a;
                              _ ->
                                  FBehind2 = FBehind#futarchy_unmatched{ahead = TID},
+                                 io:fwrite("write futarchy_unmatched\n"),
                                  futarchy_unmatched:dict_write(FBehind2, Dict3a)
                          end,
                 Dict5a = case FAhead of
                              error -> Dict4a;
                              _ ->
                                  FAhead2 = FAhead#futarchy_unmatched{behind = TID},
+                                 io:fwrite("write futarchy_unmatched\n"),
                                  futarchy_unmatched:dict_write(FAhead2, Dict4a)
                          end,
 
@@ -200,6 +204,7 @@ go({signed, Tx, _Sig, Proved},
                                  _ -> Futarchya
                              end,
                                  
+                io:fwrite("write futarchy\n"),
                 Dict6a = futarchy:dict_write(Futarchya2, Dict5a),
                 Dict6a;
             {1, TIDsMatched, TIDPartiallyMatched, Q1b, Q2b} ->
@@ -218,7 +223,7 @@ go({signed, Tx, _Sig, Proved},
                 io:fwrite("q2b: "),
                 io:fwrite(integer_to_list(Q2b)),
                 io:fwrite("\n"),
-                bought_one(Q1, Q2, Q1b, Q2b),
+                %bought_one(Q1, Q2, Q1b, Q2b),
                 case TIDsMatched of
                     [] -> ok;
                     _ -> TheirOrders = hd(TIDsMatched)
@@ -288,8 +293,9 @@ go({signed, Tx, _Sig, Proved},
                                      revert_amount = FURA - Rest
                                     },
                             io:fwrite("accounting: lose Rest from futarchy_unmatched. \n"),
-                            io:fwrite(integer_to_list(Rest)),
+                            io:fwrite(integer_to_list(-Rest)),
                             io:fwrite("\n"),
+                            io:fwrite("write futarchy_unmatched\n"),
                             Dict3c = futarchy_unmatched:dict_write(
                                        FUb2, Dict3b),
                             FMID2 = futarchy_matched:maker_id(
@@ -306,9 +312,10 @@ go({signed, Tx, _Sig, Proved},
                              },
                             empty = futarchy_matched:dict_get(
                                       FMID2, Dict3c),
-                            io:fwrite("accounting: gain Rest from futarchy_matched. \n"),
+                            io:fwrite("accounting: gain Rest from futarchy_matched. (counts as zero) \n"),
                             io:fwrite(integer_to_list(Rest)),
                             io:fwrite("\n"),
+                            io:fwrite("write futarchy_matched\n"),
                             Dict3d = futarchy_matched:dict_write(
                                        FMb2, Dict3c),
                             Dict3d;
@@ -343,13 +350,14 @@ go({signed, Tx, _Sig, Proved},
                 io:fwrite("accounting: gain PartMatch from futarchy_matched. \n"),
                 io:fwrite(integer_to_list(PartMatch)),
                 io:fwrite("\n"),
+                io:fwrite("write futarchy_matched\n"),
                 Dict4b = futarchy_matched:dict_write(
                            FMb, Dict3b),
                 Futarchyb = futarchy:dict_get(FID, Dict4b),
 %                Futarchyb2 = update_shares(
 %                               Decision, Q1b, Q2b, Futarchyb),
                 Futarchyb2 = set_shares(
-                               Decision, Futarchyb, Q1b, Q2b),
+                               Decision, Futarchyb, Q1b, Q2b),%probably an error here with the shares TODO
                 Futarchyb3 = update_orders(
                                Decision, Goal, 
                                TIDPartiallyMatched, Futarchyb2),
@@ -362,7 +370,12 @@ go({signed, Tx, _Sig, Proved},
                 io:fwrite(" "),
                 io:fwrite(integer_to_list(Q2b)),
                 io:fwrite("\n"),
+                io:fwrite("write futarchy\n"),
                 Dict5b = futarchy:dict_write(Futarchyb3, Dict4b),
+                io:fwrite("accounting futarchy \n"),
+                %io:fwrite({Futarchy, Futarchyb3}),
+                io:fwrite(integer_to_list(block:sum_amounts_helper(futarchy, Futarchyb3, 0, 0, 0) - block:sum_amounts_helper(futarchy, Futarchy, 0, 0, 0))),
+                io:fwrite("\n"),
                 Dict5b;
             %{2, TIDsMatched, TIDAfterMatched??, NewTopTID, Q1b, Q2b} ->
             {2, TIDsMatched, %all of these were matched.
@@ -449,6 +462,7 @@ go({signed, Tx, _Sig, Proved},
                   win_amount = (Q1b + Q2b - Q1 - Q2) + WinAmount2 
                  },
                 empty = futarchy_matched:dict_get(FMIDc, Dict3c),
+                io:fwrite("write futarchy_matched\n"),
                 Dict3c_5 = futarchy_matched:dict_write(
                              FMc, Dict3c),
                 NewUM0 = #futarchy_unmatched{
@@ -469,11 +483,13 @@ go({signed, Tx, _Sig, Proved},
                 io:fwrite("\n"),
                 empty = futarchy_unmatched:dict_get(
                           NewTID, Dict3c_5),
+                io:fwrite("write futarchy_unmatched\n"),
                 Dict4c = futarchy_unmatched:dict_write(
                            NewUM, Dict3c_5),
                 Futarchyc3 = set_orders(
                                Decision, Goal, Futarchyc2, 
                                NewTID, NewTopTID),
+                io:fwrite("write futarchy\n"),
                 Dict5c = futarchy:dict_write(Futarchyc3, Dict4c),
                 Dict5c
         end,
@@ -624,6 +640,7 @@ remove_first(TID, Dict) ->
             ahead = <<0:256>>,
             behind = <<0:256>>
            },
+    io:fwrite("write futarchy unmatched\n"),
     Dict2 = futarchy_unmatched:dict_write(FU2, Dict),
 %    futarchy_matched:maker_id(FID, FUNonce, TID, Owner),
     MID = futarchy_matched:maker_id(TID, Dict),
@@ -639,6 +656,7 @@ remove_first(TID, Dict) ->
     %io:fwrite(" "),
     %io:fwrite(integer_to_list(WinAmount)),
     %io:fwrite("\n"),
+    io:fwrite("write futarchy_matched\n"),
     Dict3 = futarchy_matched:dict_write(FM, Dict2), %{futarchy_matched, 
 
     %update the linked list, so we aren't pointing to deleted data.
@@ -650,6 +668,7 @@ remove_first(TID, Dict) ->
                     BFU2 = BFU#futarchy_unmatched{
                              ahead = <<0:256>>
                             },
+                    io:fwrite("write futarchy_unmatched\n"),
                     futarchy_unmatched:dict_write(BFU2, Dict3)
             end,
     {Behind, Dict4, RA, WinAmount}.

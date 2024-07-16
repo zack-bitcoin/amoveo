@@ -284,7 +284,12 @@ inclusion_futarchy_bet2(
                         io:fwrite("tx_pool_feeder, inclusion note. your trade is completely matched with other trades\n"),
                             true = QF >= 0,
                             true = QS >= 0,
-                            {1, lists:reverse(AccTIDs), OID, QF, QS};
+                            %todo. increase QF and QS by amount2?
+                            {QF2, QS2} = case Goal of
+                                             1 -> {QF + Amount, QS + Amount2};
+                                             0 -> {QF + Amount2, QS + Amount}
+                                         end,
+                            {1, lists:reverse(AccTIDs), OID, QF2, QS2};
                         true ->
             %recurse to the next trade.
                             %NextOrder = trees:get(futarchy_unmatched, Next),

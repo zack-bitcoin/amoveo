@@ -1927,7 +1927,8 @@ no_counterfeit(Old, New, Txs, Height) ->
                     if
                         Diff > 0 -> io:fwrite("error, counterfeiting\n"),
                                     0=1;
-                        true -> ok
+                        true -> 1=2
+                                
                     end;
                 _ -> 
                     io:fwrite({OK, NK})
@@ -2106,10 +2107,26 @@ sum_amounts_helper(futarchy, Futarchy, _dict, _, _) ->
                shares_true_yes = STY,
                shares_true_no = STN,
                shares_false_yes = SFY,
-               shares_false_no = SFN
+               shares_false_no = SFN,
+               active = A
              } = Futarchy,
-    R = lmsr:veo_in_market(Bt, STY, STN) +
-        lmsr:veo_in_market(Bf, SFY, SFN),
+    R = case A of
+            1 ->
+                lmsr:veo_in_market(Bt, STY, STN) +
+                    lmsr:veo_in_market(Bf, SFY, SFN);
+            0 ->
+                Bf = STY,
+                Bf = STN,
+                Bf = SFY,
+                Bf = SFN,
+                Bf = 0,
+                true = Bt >= 0,
+                %we removed the liquidity from the reverted market, because that money went to the creator.
+                %we removed everything from the unreverted market, because that went to the contract.
+                
+                %shares in the reverted market are still around, they will get withdrawn in futarchy_matched/futarchy_unmatched txs. The value of this is stored in Bt.
+                Bt
+        end,
 %    io:fwrite("block sum amounts helper futarchy has: "),
 %    io:fwrite(base64:encode(FID)),
 %    io:fwrite(" : "),

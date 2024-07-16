@@ -1,5 +1,5 @@
 -module(futarchy_new_tx).
--export([go/4, make_dict/8]).
+-export([go/4, make_dict/8, times_l2/1, div_l2/1]).
 
 -include("../../records.hrl").
 
@@ -64,10 +64,12 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     % so B is C_0 / ln(2).
 
     %beta for the market that gets reverted if we decide on False.
-    BT = TrueLiquidity * ?l2bottom div ?l2top,
+    %BT = TrueLiquidity * ?l2bottom div ?l2top,
+    BT = div_l2(TrueLiquidity),
 
     %beta for the market that gets reverted if we decide on True
-    BF = FalseLiquidity * ?l2bottom div ?l2top,
+    %BF = FalseLiquidity * ?l2bottom div ?l2top,
+    BF = div_l2(FalseLiquidity),
 
     F = #futarchy{decision_oid = DecisionOID,
                   fid = FID,
@@ -77,5 +79,10 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                   liquidity_true = BT,
                   liquidity_false = BF},
     futarchy:dict_write(F, Dict2).
+
+div_l2(X) ->
+    X * ?l2bottom div ?l2top.
+times_l2(X) ->
+    X * ?l2top div ?l2bottom.
     
     

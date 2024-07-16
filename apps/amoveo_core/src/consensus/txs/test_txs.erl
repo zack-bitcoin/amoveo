@@ -4708,26 +4708,32 @@ test(73) ->
     absorb(Stx4),
     1 = many_txs(),
 
-    %mine_blocks(1),
-    %0 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
 
     OIL_gov = trees:get(governance, oracle_initial_liquidity),
     OIL = governance:value(OIL_gov),
     Tx5 = oracle_bet_tx:make_dict(MP, Fee, DOID, 1, OIL+1),
     Stx5 = keys:sign(Tx5),
     absorb(Stx5),
-    2 = many_txs(),
+    1 = many_txs(),
 
-    Tx6 = oracle_close_tx:make_dict(constants:master_pub(),Fee, DOID),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Tx6 = oracle_close_tx:make_dict(MP,Fee, DOID),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
-    3 = many_txs(),
+    1 = many_txs(),
+
+    mine_blocks(1),
+    0 = many_txs(),
 
     Tx7 = futarchy_resolve_tx:make_dict(
              MP, FID, DOID, Fee),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
-    4 = many_txs(),
+    1 = many_txs(),
     mine_blocks(1),
     0 = many_txs(),
 
@@ -4805,25 +4811,26 @@ test(74) ->
     2 = many_txs(),
 
     mine_blocks(1),
-    1=2,
+    0 = many_txs(),
+    %1=2,
 
     OIL_gov = trees:get(governance, oracle_initial_liquidity),
     OIL = governance:value(OIL_gov),
     Tx6 = oracle_bet_tx:make_dict(MP, Fee, DOID, 1, OIL+1),
     Stx6 = keys:sign(Tx6),
     absorb(Stx6),
-    3 = many_txs(),
+    1 = many_txs(),
 
     Tx7 = oracle_close_tx:make_dict(constants:master_pub(),Fee, DOID),
     Stx7 = keys:sign(Tx7),
     absorb(Stx7),
-    4 = many_txs(),
+    2 = many_txs(),
 
     Tx8 = futarchy_resolve_tx:make_dict(
              MP, FID, DOID, Fee),
     Stx8 = keys:sign(Tx8),
     absorb(Stx8),
-    5 = many_txs(),
+    3 = many_txs(),
     mine_blocks(1),
     0 = many_txs(),
 
@@ -4850,6 +4857,9 @@ test(76) ->
     %combination of keys made the verkle database crash.
 
     %got these "keys" by looking at the proof written on the block.
+    restart_chain(),
+    mine_blocks(4),
+
     {NewKeys, Keys} = 
         {[
            {sub_accounts,<<169,61,183,149,112,32,246,231,201,95,165,
@@ -4895,7 +4905,7 @@ test(76) ->
     Pairs2 = [{sub_accounts, hash:doit(1)}],
     {Proof0, As0} = trees2:get_proof(Pairs2, P2, fast),
     %{Proof02,[]} = trees2:restore_leaves_proof(Proof0, As0),
-    {true, _} = trees2:verify_proof(Proof0, As0),
+    {true, _} = trees2:verify_proof(Proof0, As0, 5),
 
 
     %showing that we can prove and verify this at the verkle level, so the error must be in encoding or decoding.
@@ -4919,12 +4929,12 @@ test(76) ->
 %    io:fwrite({proof1, Proof, vproof, VProof, proof_control, Proof0}),
 %    io:fwrite({{Proof0, As0}, {Proof, As}}),
     
-    io:fwrite("try restore leaves proof\n"),
-    Proof2 = trees2:restore_leaves_proof(Proof, As),
+    %io:fwrite("try restore leaves proof\n"),
+    %Proof2 = trees2:restore_leaves_proof(Proof, As, 6),
     %io:fwrite(Proof2),
 
 
-    {true, _} = trees2:verify_proof(Proof, As),
+    {true, _} = trees2:verify_proof(Proof, As, 6),
     Keys,
     {P2};
 
