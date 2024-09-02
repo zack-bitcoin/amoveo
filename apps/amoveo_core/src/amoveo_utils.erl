@@ -238,7 +238,7 @@ recent_miners2(N, L) ->
     Bool = is_in(A, L),
     if 
         Bool -> recent_miners2(N-1, L);
-        true -> A
+        true -> {A, N}
     end.
             
     
