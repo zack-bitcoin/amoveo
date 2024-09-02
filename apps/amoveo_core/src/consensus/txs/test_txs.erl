@@ -4545,7 +4545,7 @@ test(72) ->
     Goal = 1,
     OtherDecision = 0,
     OtherGoal = 0,
-    LimitPrice = round(math:pow(2, 31)),
+    LimitPrice = round(math:pow(2, 14)),
     FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
     {UID1, _, Tx4} = futarchy_bet_tx:make_dict(
                     Pub, FID, Decision, Goal, 1*VEO,
@@ -4632,6 +4632,7 @@ test(72) ->
                            Tx12 = futarchy_unmatched_tx:make_dict(
                                     Pub, U, Fee),
                            Stx12 = keys:sign(Tx12),
+                           io:fwrite("absorb\n"),
                            absorb(Stx12)
                            %trees:get(futarchy_unmatched,U)
                    end, UIDs),
@@ -4851,92 +4852,98 @@ test(74) ->
 test(75) ->
     %testing futarchy_bet_tx
     % price went out of range during the lmsr step, so partially unmatched
-
-    ok;
-test(76) ->
-    %combination of keys made the verkle database crash.
-
-    %got these "keys" by looking at the proof written on the block.
     restart_chain(),
-    mine_blocks(4),
+    mine_blocks(6),
+    MP = constants:master_pub(),
+    Pub = base64:decode(<<"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=">>),
+    Fee = constants:initial_fee()*2,
+    Tx1 = oracle_new_tx:make_dict(Pub, Fee, <<"Decision">>, block:height() + 1, 0, 0),
+    Stx1 = keys:sign(Tx1),
+    absorb(Stx1),
+    1 = many_txs(),
+    DOID = oracle_new_tx:id(Tx1),
+    Tx2 = oracle_new_tx:make_dict(Pub, Fee, <<"Goal">>, block:height() - 1, 0, 0),
+    GOID = oracle_new_tx:id(Tx2),
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    2 = many_txs(),
+    mine_blocks(1),
 
-    {NewKeys, Keys} = 
-        {[
-           {sub_accounts,<<169,61,183,149,112,32,246,231,201,95,165,
-                           92,254,122,105,49,128,76,156,169,169,241,
-                           108,203,95,60,149,124,50,234,196,125>>}
-         ],
-         [
-          {oracle,<<73,53,221,96,177,113,132,195,218,111,50,24,103,
-                    132,155,237,141,100,201,135,96,135,166,202,207,
-                    66,111,143,42,186,89,44>>,
-           0,
-           <<205,191,105,117,232,163,91,13,3,85,139,230,130,45,250,
-             225,102,72,44,36,251,134,176,67,63,96,232,22,127,92,145,
-             228>>,
-           8,3,1,
-           <<0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-             0,0,0,0>>,
-           <<4,133,89,134,205,122,130,218,16,254,229,12,186,57,121,
-             105,43,173,164,137,130,226,246,188,49,236,32,10,247,161,
-             232,193,46,14,58,3,190,212,42,97,158,69,121,135,20,133,
-             143,208,46,58,66,6,181,227,170,244,237,22,35,120,150,45,
-             13,134,58>>,
-           9,0,0}
-         ]},
-    {sub_accounts, BSA_ID} = hd(NewKeys),
+    VEO = 100000000,
 
-    Pointer = 1,
-    Leaves = make_leaves(Keys),
-    Pairs = make_pairs_from(NewKeys),
+    TrueLiquidity =  2 * VEO,
+    FalseLiquidity = 1 * VEO,
+    Period = 1,
+    Salt2 = <<22:256>>,
+    Tx3 = futarchy_new_tx:make_dict(
+            Pub, DOID, GOID, Period, 
+            TrueLiquidity, FalseLiquidity, Fee, 
+            block:height()),
+    Tx3Nonce = Tx3#futarchy_new_tx.nonce,
+    FID = futarchy:make_id(Pub, <<Tx3Nonce:256>>, block:height()),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
 
-    CFG = tree:cfg(amoveo),
-%    Leaves2 = lists:sort(fun({leaf, <<A:256>>, _, _}, 
-%                             {leaf, <<B:256>>, _, _}) -> 
-%                                 A =< B
-%                         end, Leaves),
-    {P2, _, _} = store_verkle:batch(Leaves, Pointer, CFG),
+    Decision = 1,
+    Goal = 1,
+    OtherDecision = 0,
+    OtherGoal = 0,
+    %LimitPrice = round(math:pow(2, 32)-math:pow(2, 16)),
+    LimitPrice = round(math:pow(2, 16)*0.6),
+    FutarchyHash1 = (trees:get(futarchy, FID))#futarchy.root_hash,
+    {_UID1, MID1, Tx4} = futarchy_bet_tx:make_dict(
+                    Pub, FID, Decision, Goal, VEO*20,
+                    LimitPrice, FutarchyHash1, Fee),
+    %io:fwrite(Tx4),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    1 = many_txs(),
 
-   % P2 = trees2:store_leaves(Leaves, Pointer),
+    mine_blocks(1),
+    0 = many_txs(),
 
-    %{leaf, 32 bytes, 32 bytes, meta-bytes}
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
+    Tx5 = oracle_bet_tx:make_dict(MP, Fee, DOID, 1, OIL+1),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    1 = many_txs(),
 
-    %sanity check that the proof system does work.
-    Pairs2 = [{sub_accounts, hash:doit(1)}],
-    {Proof0, As0} = trees2:get_proof(Pairs2, P2, fast),
-    %{Proof02,[]} = trees2:restore_leaves_proof(Proof0, As0),
-    {true, _} = trees2:verify_proof(Proof0, As0, 5),
+    mine_blocks(1),
+    0 = many_txs(),
 
+    Tx6 = oracle_close_tx:make_dict(MP,Fee, DOID),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    1 = many_txs(),
 
-    %showing that we can prove and verify this at the verkle level, so the error must be in encoding or decoding.
-    Key3 = trees2:hash_key(sub_accounts, BSA_ID),
-    {VProof, _VMetasDict} = get_verkle:batch([Key3], P2, CFG, fast),
-%    io:fwrite({VProof}), %{[root, {125, {key, hash}}]
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Tx7 = futarchy_resolve_tx:make_dict(
+             MP, FID, DOID, Fee),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    1 = many_txs(),
+    mine_blocks(1),
+    0 = many_txs(),
+
+    Tx8 = futarchy_matched_tx:make_dict(Pub, MID1, 0, Fee),
+    Stx8 = keys:sign(Tx8),
+    absorb(Stx8),
+    1 = many_txs(),
     
+    mine_blocks(1),
 
+    %todo
+    %resolve the futarchy, 
+    %futarchy_to_binary_tx, to convert it to a subcurrency, 
+    %get the veo out.
 
-    {true, _, _} = verify_verkle:proof(VProof, CFG),
-
-
-    {Proof, As} = trees2:get_proof(
-                    %[{sub_accounts, hash:doit(1)}],
-                    NewKeys,
-                    P2, fast),
-%    io:fwrite({Proof, As}),
-%    {Proof, As} = trees2:get_proof(Pairs, P2, small),
-    %Proof2a = trees2:remove_leaves_proof(Proof),
-    %{Proof2,[]} = trees2:restore_leaves_proof(Proof, As),
-%    io:fwrite({proof1, Proof, vproof, VProof, proof_control, Proof0}),
-%    io:fwrite({{Proof0, As0}, {Proof, As}}),
-    
-    %io:fwrite("try restore leaves proof\n"),
-    %Proof2 = trees2:restore_leaves_proof(Proof, As, 6),
-    %io:fwrite(Proof2),
-
-
-    {true, _} = trees2:verify_proof(Proof, As, 6),
-    Keys,
-    {P2};
+    success;
 
 
     

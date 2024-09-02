@@ -46,6 +46,9 @@ make_dict(Pubkey, FID, Decision, Goal,
     UID = (futarchy_unmatched:make_id(FU, Height))#futarchy_unmatched.id,
     Nonce = Account#acc.nonce+1,
     MID = futarchy_matched:taker_id(FID, Nonce, Pubkey),
+    io:fwrite("MID futarchy_bet_tx:make_dict\n"),
+    io:fwrite(packer:pack(MID)),
+    io:fwrite("\n"),
     {UID, MID, #futarchy_bet_tx{
        pubkey = Pubkey,
        nonce = Nonce,
@@ -96,14 +99,14 @@ go({signed, Tx, _Sig, Proved},
 %    Nonce = nonce_check:doit(
 %              NonceCheck, 
 %              Nonce0),
-    io:fwrite("accounting: pay Fee and Amount from Pubkey\n"),
-    io:fwrite(integer_to_list(-Fee - Amount)),
-    io:fwrite("\n"),
+%    io:fwrite("accounting: pay Fee and Amount from Pubkey\n"),
+%    io:fwrite(integer_to_list(-Fee - Amount)),
+%    io:fwrite("\n"),
     Acc = accounts:dict_update(
              Pubkey, Dict, 
             -Fee - Amount, 
             Nonce),
-    io:fwrite("write account\n"),
+%    io:fwrite("write account\n"),
     Dict2 = accounts:dict_write(Acc, Dict),
     Futarchy = futarchy:dict_get(FID, Dict2),
     #futarchy{active = Active, root_hash = RootHash2} =
@@ -133,6 +136,7 @@ go({signed, Tx, _Sig, Proved},
         case Proved of 
             {0, TIDAhead, TIDBehind} ->
   %This is the case where your trade is added to the order book.
+                io:fwrite("futarchy_bet_tx added to the order book\n"),
                 FBehind=futarchy_unmatched:dict_get(TIDBehind,Dict2),
                 FAhead= futarchy_unmatched:dict_get(TIDAhead, Dict2),
                 case FBehind of
@@ -209,7 +213,6 @@ go({signed, Tx, _Sig, Proved},
                 Dict6a;
             {1, TIDsMatched, TIDPartiallyMatched, Q1b, Q2b} ->
     %This is the case where your trade is completely matched.
-                %check that they bought one kind of shares.
                 io:fwrite("futarchy_bet_tx qs\n"),
                 io:fwrite("q1: "),
                 io:fwrite(integer_to_list(Q1)),
@@ -292,10 +295,10 @@ go({signed, Tx, _Sig, Proved},
                             FUb2 = FUb#futarchy_unmatched{
                                      revert_amount = FURA - Rest
                                     },
-                            io:fwrite("accounting: lose Rest from futarchy_unmatched. \n"),
-                            io:fwrite(integer_to_list(-Rest)),
-                            io:fwrite("\n"),
-                            io:fwrite("write futarchy_unmatched\n"),
+%                            io:fwrite("accounting: lose Rest from futarchy_unmatched. \n"),
+%                            io:fwrite(integer_to_list(-Rest)),
+%                            io:fwrite("\n"),
+%                            io:fwrite("write futarchy_unmatched\n"),
                             Dict3c = futarchy_unmatched:dict_write(
                                        FUb2, Dict3b),
                             FMID2 = futarchy_matched:maker_id(
@@ -312,10 +315,10 @@ go({signed, Tx, _Sig, Proved},
                              },
                             empty = futarchy_matched:dict_get(
                                       FMID2, Dict3c),
-                            io:fwrite("accounting: gain Rest from futarchy_matched. (counts as zero) \n"),
-                            io:fwrite(integer_to_list(Rest)),
-                            io:fwrite("\n"),
-                            io:fwrite("write futarchy_matched\n"),
+%                            io:fwrite("accounting: gain Rest from futarchy_matched. (counts as zero) \n"),
+%                            io:fwrite(integer_to_list(Rest)),
+%                            io:fwrite("\n"),
+%                            io:fwrite("write futarchy_matched\n"),
                             Dict3d = futarchy_matched:dict_write(
                                        FMb2, Dict3c),
                             Dict3d;
@@ -329,9 +332,6 @@ go({signed, Tx, _Sig, Proved},
                 %FMID = hash:doit(<<FID/binary, Pubkey/binary, Nonce0:32>>),
                 FMID = futarchy_matched:taker_id(
                          FID, Nonce0, Pubkey),
-                %io:fwrite("making futarchy matched: "),
-                %io:fwrite(packer:pack(FMID)),
-                %io:fwrite("\n"),
 
                 %io:fwrite({PartMatch, AD, MatchedAmount}),%0,0,0
 
@@ -347,10 +347,10 @@ go({signed, Tx, _Sig, Proved},
                   win_amount = WinAmount + (Q1b + Q2b - Q1 - Q2)
                       },
                 empty = futarchy_matched:dict_get(FMID, Dict3b),
-                io:fwrite("accounting: gain PartMatch from futarchy_matched. \n"),
-                io:fwrite(integer_to_list(PartMatch)),
-                io:fwrite("\n"),
-                io:fwrite("write futarchy_matched\n"),
+%                io:fwrite("accounting: gain PartMatch from futarchy_matched. \n"),
+%                io:fwrite(integer_to_list(PartMatch)),
+%                io:fwrite("\n"),
+%                io:fwrite("write futarchy_matched\n"),
                 Dict4b = futarchy_matched:dict_write(
                            FMb, Dict3b),
                 Futarchyb = futarchy:dict_get(FID, Dict4b),
@@ -361,26 +361,27 @@ go({signed, Tx, _Sig, Proved},
                 Futarchyb3 = update_orders(
                                Decision, Goal, 
                                TIDPartiallyMatched, Futarchyb2),
-                io:fwrite("accounting: edit futarchy \n"),
-                io:fwrite(integer_to_list(Q1)),
-                io:fwrite(" "),
-                io:fwrite(integer_to_list(Q2)),
-                io:fwrite("\n"),
-                io:fwrite(integer_to_list(Q1b)),
-                io:fwrite(" "),
-                io:fwrite(integer_to_list(Q2b)),
-                io:fwrite("\n"),
-                io:fwrite("write futarchy\n"),
+%                io:fwrite("accounting: edit futarchy \n"),
+%                io:fwrite(integer_to_list(Q1)),
+%                io:fwrite(" "),
+%                io:fwrite(integer_to_list(Q2)),
+%                io:fwrite("\n"),
+%                io:fwrite(integer_to_list(Q1b)),
+%                io:fwrite(" "),
+%                io:fwrite(integer_to_list(Q2b)),
+%                io:fwrite("\n"),
+%                io:fwrite("write futarchy\n"),
                 Dict5b = futarchy:dict_write(Futarchyb3, Dict4b),
-                io:fwrite("accounting futarchy \n"),
+%                io:fwrite("accounting futarchy \n"),
                 %io:fwrite({Futarchy, Futarchyb3}),
-                io:fwrite(integer_to_list(block:sum_amounts_helper(futarchy, Futarchyb3, 0, 0, 0) - block:sum_amounts_helper(futarchy, Futarchy, 0, 0, 0))),
-                io:fwrite("\n"),
+%                io:fwrite(integer_to_list(block:sum_amounts_helper(futarchy, Futarchyb3, 0, 0, 0) - block:sum_amounts_helper(futarchy, Futarchy, 0, 0, 0))),
+%                io:fwrite("\n"),
                 Dict5b;
             %{2, TIDsMatched, TIDAfterMatched??, NewTopTID, Q1b, Q2b} ->
             {2, TIDsMatched, %all of these were matched.
              NewTopTID, %the new pointer in futarchy.
              Q1b, Q2b} ->
+                io:fwrite("futarchy_bet_tx partial match case\n"),
     %This is the case where your trade is partially matched.
                 %this is the same as saying that the price went out of range during the lmsr step.
                 %check that they bought one kind of shares.
@@ -644,6 +645,9 @@ remove_first(TID, Dict) ->
     Dict2 = futarchy_unmatched:dict_write(FU2, Dict),
 %    futarchy_matched:maker_id(FID, FUNonce, TID, Owner),
     MID = futarchy_matched:maker_id(TID, Dict),
+    io:fwrite("MID futarchy_bet_tx FMID2 maker id: \n"),
+    io:fwrite(packer:pack(MID)),
+    io:fwrite("\n"),
     %next create the matched trade.
 
     FM = #futarchy_matched

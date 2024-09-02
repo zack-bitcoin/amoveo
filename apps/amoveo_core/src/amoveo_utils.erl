@@ -233,7 +233,7 @@ recent_miners(L) ->
 recent_miners2(0, _) -> ok;
 recent_miners2(N, L) -> 
     B = block:get_by_height(N),
-    Tx = hd(element(10, B)),
+    Tx = hd(element(11, B)),
     A = element(2, Tx),
     Bool = is_in(A, L),
     if 

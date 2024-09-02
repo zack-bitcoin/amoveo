@@ -77,15 +77,15 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     pubkey = Pubkey, nonce = Nonce0, fee = Fee,
     fid = FID, decision_oid = Decision, creator = Creator
    } = Tx,
-    io:fwrite("futarchy_resolve_tx start \n\n"),
+    %io:fwrite("futarchy_resolve_tx start \n\n"),
     Nonce = nonce_check:doit(
               NonceCheck, 
               Nonce0),
     Acc = accounts:dict_update(
             Pubkey, Dict, -Fee, Nonce),
-    io:fwrite("accounting account \n"),
-    io:fwrite(integer_to_list(-Fee)),
-    io:fwrite("\n"),
+    %io:fwrite("accounting account \n"),
+    %io:fwrite(integer_to_list(-Fee)),
+    %io:fwrite("\n"),
     Dict2 = accounts:dict_write(Acc, Dict),
     Futarchy = futarchy:dict_get(FID, Dict, NewHeight),
     #futarchy{decision_oid = Decision,
@@ -116,15 +116,15 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
 
     %in the oracle, 1="true", 2="false", 3="bad question"
     %put unreverted liquidity and unreverted shares of yes and no into the contract.volume.
-    io:fwrite("shares data\n"),
-    io:fwrite(integer_to_list(SFY)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(SFN)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(STY)),
-    io:fwrite(", "),
-    io:fwrite(integer_to_list(STN)), %TODO. same value as money deleted...
-    io:fwrite("\n"),
+    %io:fwrite("shares data\n"),
+    %io:fwrite(integer_to_list(SFY)),
+    %io:fwrite(", "),
+    %io:fwrite(integer_to_list(SFN)),
+    %io:fwrite(", "),
+    %io:fwrite(integer_to_list(STY)),
+    %io:fwrite(", "),
+    %io:fwrite(integer_to_list(STN)), %TODO. same value as money deleted...
+    %io:fwrite("\n"),
 
 %    io:fwrite("oracle result is "),
 %    io:fwrite(integer_to_list(OracleResult)),
@@ -144,9 +144,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
         %{volume = Contract#contract.volume + VolumeBoost},
         {volume = Contract#contract.volume + MoreShares},
 
-    io:fwrite("accounting contract \n"),
-    io:fwrite(integer_to_list(MoreShares)),
-    io:fwrite("\n"),
+    %io:fwrite("accounting contract \n"),
+    %io:fwrite(integer_to_list(MoreShares)),
+    %io:fwrite("\n"),
     %unreverted liquidity
 %  + unreverted shares of yes and no
 
@@ -169,10 +169,12 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     {ExtraTrues, ExtraFalses} = 
         case OracleResult of
             1 ->
+                io:fwrite("futarchy resolve tx oracle result true\n"),
                 %C = lmsr:veo_in_market(LT, STY, STN),
                 C = lmsr:veo_in_market(LT0, STY, STN),
                 {C - STY, C - STN};
             2 ->
+                io:fwrite("futarchy resolve tx oracle result false\n"),
                 %C = lmsr:veo_in_market(LF, SFY, SFN),
                 C = lmsr:veo_in_market(LF0, SFY, SFN),
                 {C - SFY, C - SFN};
@@ -192,9 +194,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
                                %ExtraVeo, 
                                ADiff,
                                none),
-                io:fwrite("accounting creator account \n"),
-                io:fwrite(integer_to_list(ADiff)),
-                io:fwrite("\n"),
+                %io:fwrite("accounting creator account \n"),
+                %io:fwrite(integer_to_list(ADiff)),
+                %io:fwrite("\n"),
                 accounts:dict_write(CreatorAcc, Dict4);
             _ -> 
                 %todo. if the creator account was deleted, the extra money should get deleted, so accounting works right.
@@ -203,17 +205,32 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
   
     MaxExtra = max(ExtraTrues, ExtraFalses),
     ExtraDiff = MaxExtra - ExtraVeo,
+    io:fwrite("futarchy_resolve_tx trues falses\n"),
+    io:fwrite(integer_to_list(ExtraTrues)),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(ExtraFalses)),
+    io:fwrite("\n"),
     Dict6 = if
                 (ExtraDiff == 0) ->
                     %no extra liquidity.
                     Dict5;
                 (ExtraTrues > ExtraFalses) ->
                     %send extra shares of True to the creator of the futarchy market. Because they originally provided the liquidity for the lmsr.
+                    io:fwrite("creator: "),
+                    io:fwrite(packer:pack(Creator)),
+                    io:fwrite("\ncontract_key: "),
+                    io:fwrite(packer:pack(ContractKey)),
+                    io:fwrite("\type: 1"),
                     spend_or_create_sub(
                       Dict5, Creator, ContractKey, 
                       ExtraDiff, 1);
                 true ->
                     %send extra shares of False...
+                    io:fwrite("creator: "),
+                    io:fwrite(packer:pack(Creator)),
+                    io:fwrite("\ncontract_key: "),
+                    io:fwrite(packer:pack(ContractKey)),
+                    io:fwrite("\type: 0"),
                     spend_or_create_sub(
                       Dict5, Creator, ContractKey, 
                       ExtraDiff, 0)
@@ -242,9 +259,9 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
           shares_false_no = 0,
           active = 0
         },
-    io:fwrite("accounting futarchy \n"),
-    io:fwrite(integer_to_list(block:sum_amounts_helper(futarchy, Futarchy3, 0, 0, 0) - block:sum_amounts_helper(futarchy, Futarchy, 0, 0, 0))),
-    io:fwrite("\n"),
+    %io:fwrite("accounting futarchy \n"),
+    %io:fwrite(integer_to_list(block:sum_amounts_helper(futarchy, Futarchy3, 0, 0, 0) - block:sum_amounts_helper(futarchy, Futarchy, 0, 0, 0))),
+    %io:fwrite("\n"),
     Dict7 = futarchy:dict_write(Futarchy3, Dict6),
     Dict7.
     

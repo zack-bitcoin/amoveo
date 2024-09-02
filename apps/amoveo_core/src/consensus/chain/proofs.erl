@@ -1162,7 +1162,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
               fid = FID, decision_oid = DOID, pubkey = Pubkey, 
               creator = Creator
              } = Tx,
-                Futarchy = trees:get(futarchy, FID),
+                io:fwrite("futarchy resolve tx proof start\n"),
+                Futarchy = trees:get(futarchy, FID, dict:new(), Trees),
                 {CID, _, _} = futarchy_resolve_tx:cid_oid(Futarchy),
                 Oracle = trees:get(oracles, DOID),
                 R = Oracle#oracle.result,
@@ -1184,13 +1185,43 @@ txs_to_querys2([STx|T], Trees, Height) ->
                             {SFY, SFN}
                     end,
 
+                io:fwrite("subaccount key info \n"),
+                io:fwrite("\ncreator: "),
+                io:fwrite(packer:pack(Creator)),
+                io:fwrite("\n, CID: "),
+                io:fwrite(packer:pack(CID)),
+                io:fwrite("\n, D: "),
+                io:fwrite(integer_to_list(D)),
+                io:fwrite("\ntrues falses\n"),
+                io:fwrite(integer_to_list(SY)),
+                io:fwrite(", "),
+                io:fwrite(integer_to_list(SN)),
+                io:fwrite("\n"),
+                io:fwrite("all: "),
+                io:fwrite(integer_to_list(STY)),
+                io:fwrite(", "),
+                io:fwrite(integer_to_list(STN)),
+                io:fwrite(", "),
+                io:fwrite(integer_to_list(SFY)),
+                io:fwrite(", "),
+                io:fwrite(integer_to_list(SFN)),
+                io:fwrite("\n"),
                 ToKey = 
                     if
                         SY > SN ->
+                            io:fwrite(base64:encode(Creator)),
+                            io:fwrite("\n, proofs: shares of true are bigger \n "),
+                            io:fwrite(base64:encode(CID)),
+                            io:fwrite("\n1\n"),
                             sub_accounts:make_v_key(Creator, CID, 1);
                         true ->
+                            io:fwrite(base64:encode(Creator)),
+                            io:fwrite("\n, proofs: shares of false are bigger \n "),
+                            io:fwrite(base64:encode(CID)),
+                            io:fwrite("\n0\n"),
                             sub_accounts:make_v_key(Creator, CID, 0)
                     end,
+                io:fwrite("futarchy resolve tx proof end\n"),
                 
                 [{accounts, Pubkey},
                  {accounts, Creator},
@@ -1202,8 +1233,8 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 #futarchy_unmatched_tx{
               pubkey = Pubkey, fid = FID, bet_id = UID
              } = Tx,
-                Futarchy = trees:get(futarchy, FID),
-                Unmatched = trees:get(futarchy_unmatched, UID),
+                Futarchy = trees:get(futarchy, FID, dict:new(), Trees),
+                Unmatched = trees:get(futarchy_unmatched, UID, dict:new(), Trees),
                 Owner = Unmatched#futarchy_unmatched.owner,
                 [{accounts, Pubkey},
                  {accounts, Owner},
@@ -1213,13 +1244,13 @@ txs_to_querys2([STx|T], Trees, Height) ->
                 #futarchy_matched_tx{
               pubkey = Pubkey, bet = MID, revert = Revert
              } = Tx,
-                Matched = trees:get(futarchy_matched, MID),
+                Matched = trees:get(futarchy_matched, MID, dict:new(), Trees),
                 #futarchy_matched
                     {
                       futarchy_id = FID, owner = Owner, 
                       decision = Decision
                     } = Matched,
-                Futarchy = trees:get(futarchy, FID),
+                Futarchy = trees:get(futarchy, FID, dict:new(), Trees),
                 {CID, _OID, _} = futarchy_resolve_tx:cid_oid(
                                   Futarchy), 
                 OID = Futarchy#futarchy.decision_oid,

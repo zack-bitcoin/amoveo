@@ -11,6 +11,7 @@
 -include("../../records.hrl").
 
 hard_coded(_, 1) -> 1370;%block reward
+%10382390
 hard_coded(_, 2) -> 429;%developer reward
 hard_coded(_, 3) -> 890;%max block size
 hard_coded(_, 4) -> %block period

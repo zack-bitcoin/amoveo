@@ -142,22 +142,58 @@ inclusion_futarchy_bet2(
   Pubkey, Nonce, Goal, <<0:256>>, OurOrders, Amount, OurShares, 
   TheirShares, LimitPrice, B, AccTIDs) -> 
     %when the order id is <<0:256>>, that means there is nothing left to match with.
-    io:fwrite("tx pool feeder inclusion futarchy bet 2 case 0\n"),
+    io:fwrite("tx_pool_feeder inclusion futarchy bet 2 case 0\n"),
     QD = lmsr:max_buy(B, TheirShares, OurShares, Amount),
+    io:fwrite("lmsr max buy with all Amount: "),
+    io:fwrite(integer_to_list(QD + OurShares)),
+    io:fwrite("\n"),
     {QF, QS} = case Goal of
                    1 -> {OurShares + QD, TheirShares};
                    0 -> {TheirShares, OurShares + QD}
                end,
 %    io:fwrite({LimitPrice, B, TheirShares}),
         %[{4294967295,288539008,0}],
-    Q2 = lmsr:q2({rat, LimitPrice, futarchy_bet_tx:one_square()}, B, TheirShares),
-    LMSRProvides = 
-        -lmsr:change_in_market(
-           B, OurShares, TheirShares,
-           Q2, TheirShares),
+    io:fwrite("tx_pool_feeder limit price: "),
+    io:fwrite(integer_to_list(LimitPrice)),
+    io:fwrite("\n"),
+    %limit price implies a price of (LimitPrice/futarchy_bet_tx:one()) for a share in terms of veo.
+
+    %limit price is set up so that LimA * LimB > 2^32 if the prices match. 1/3 matches with 301/100. So these limits are really expressing odds.
+    %odds =A/B implies price = A/(B+A).
+
+    Price1 = {rat, LimitPrice, futarchy_bet_tx:one_square()},
+    Price = {rat, futarchy_bet_tx:one(), 
+             LimitPrice + futarchy_bet_tx:one()},
+    io:fwrite("their shares: "),
+    io:fwrite(integer_to_list(TheirShares)),
+    io:fwrite("\n"),
+    io:fwrite("B: "),
+    io:fwrite(integer_to_list(B)),
+    io:fwrite("\n"),
+    %lmsr:q2 returns the value of Q2 so that lmsr:price works.
+    %Q2 = lmsr:q2({rat, LimitPrice, futarchy_bet_tx:one_square()}, 
+    Q2 = lmsr:q2(Price, 
+                 B, TheirShares),
+    io:fwrite("lmsr Q2: "),
+    io:fwrite(integer_to_list(Q2)),
+    io:fwrite("\n"),
+    %true = Q2 >= 0,
+
     if
-        LMSRProvides > Amount -> 
-            QD = lmsr:max_buy(B, TheirShares, OurShares, Amount),
+        (Q2 >= (QD + OurShares)) ->
+            %trade can be completely matched by lmsr.
+            io:fwrite("trade completely matched by lmsr\n"),
+
+            LMSRProvides = 
+                -lmsr:change_in_market(
+                   B, OurShares, TheirShares,
+                   Q2, TheirShares),
+    %io:fwrite("lmsr provides: "),
+    %io:fwrite(integer_to_list(LMSRProvides)),
+    %io:fwrite("\n"),
+%    if
+%        LMSRProvides > Amount -> 
+%            io:fwrite("totally matched by lmsr\n"),
             TheirSharesA = TheirShares + QD,
             {QFa, QSa} = 
                 case Goal of
@@ -194,7 +230,7 @@ inclusion_futarchy_bet2(
     %return the final Q1, Q2, any leftover veo, the list of TID that got matched, and the next tid in the order book.
 
     %it is possible that price ends up somewhere the market maker is providing liquidity, instead of partially matching a bet, and this can happen either because we hit the price limit, or because we run out of money to trade with.
-    io:fwrite("tx pool feeder inclusion futarchy bet 2 case 1\n"),
+    io:fwrite("tx_pool_feeder inclusion futarchy bet 2 case 1\n"),
     Order = trees:get(futarchy_unmatched, TheirOrderID),
 %    Order = trees:get(futarchy_unmatched, hd(AccTIDs)),
 %    Order = futarchy_unmatched:dict_get(TheirOrderID, Dict),
@@ -316,7 +352,7 @@ inclusion_futarchy_bet2(
                                  end,
                     case AccTIDs of
                         [] -> 
-                            io:fwrite("tx pool feeder, adding a trade to the the order book\n"),
+                            io:fwrite("tx_pool_feeder, adding a trade to the the order book\n"),
                             {TIDAhead, TIDBehind} = 
                                 futarchy_unmatched:id_pair(
                                   LimitPrice, OurOrderID),
