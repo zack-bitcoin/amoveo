@@ -3,7 +3,7 @@
 -export([absorb/1, absorb_with_block/1, read/1, read_ewah/1, top/0, dump/0, top_with_block/0,
          make_header/9, serialize/1, deserialize/1,
          difficulty_should_be/2, 
-	 ewah_range/2, recent_header/1,
+	 ewah_range/2, recent_header/1, mining_hash/1,
 	 test/0]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../../records.hrl").
@@ -207,9 +207,13 @@ absorb([Header | T], CommonHash) ->
 		    end
 	    end
     end.
+mining_hash(Header) ->
+    Data = block:hash(Header#header{nonce = <<0:256>>}).
+    
 check_pow(Header) ->
     MineDiff = Header#header.difficulty,
-    Data = block:hash(Header#header{nonce = <<0:256>>}),
+%    Data = block:hash(Header#header{nonce = <<0:256>>}),
+    Data = mining_hash(Header),
     <<Nonce:256>> = Header#header.nonce,
     F2 = forks:get(2),
     Height = Header#header.height,

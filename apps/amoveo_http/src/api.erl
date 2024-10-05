@@ -80,6 +80,11 @@ block_hash(N) ->
     %returns the hash of block N
     B = block:get_by_height(N),
     block:hash(B).
+block_hash(2, N) ->
+    %returns the hash of the Nth block, but where the nonce is set to zero.
+    B = block:get_by_height(N),
+    H = block:block_to_header(B),
+    headers:mining_hash(H).
 ewah(Start, End) ->
     headers:ewah_range(Start, End).
 top() ->
