@@ -1276,16 +1276,20 @@ verify_proof(Proof0, Things, Height) ->
 %    Proof1 = get_verkle:deserialize_proof(Proof),
 %    verify_verkle:proof(Proof1, CFG).
 
-merge_same([], []) -> true;
+merge_same([], []) -> 
+    %io:fwrite("merge same done"),
+    true;%merging same done.
 merge_same([X|T1], %what we need
            T2 = [{D, X}|_] %what we got
           ) 
   when is_integer(D) ->
+    %case 1
     %io:fwrite("merged same pair\n"),
     %io:fwrite(integer_to_list(size(term_to_binary([X|T1])))),
     %io:fwrite(" - "),
     %io:fwrite(integer_to_list(size(term_to_binary(T2)))),
     %io:fwrite("\n"),
+    %io:fwrite("merge same case 1\n"),
     merge_same(T1, T2);%we leave the X in the got pile, because it is possible we still need to match more things with this leaf. This leaf is evidence that certain locations are empty.
 
 %merge_same([X|T1], [X|T2]) ->
@@ -1294,11 +1298,13 @@ merge_same([X|T1], %what we need
 merge_same([{Key, 0}|T1], %what you need.
            [{D, {LKey, Val}}|T2]) %what you got. 
   when is_integer(D) ->
+    %case 2
     %io:fwrite("merged empty \n"),
     %io:fwrite(integer_to_list(size(term_to_binary(T1)))),
     %io:fwrite(" - "),
     %io:fwrite(integer_to_list(size(term_to_binary(T2)))),
     %io:fwrite("\n"),
+    %io:fwrite("merge same case 2\n"),
     CFG = tree:cfg(amoveo),
     <<Key0:256>> = Key,
     Key2 = leaf_verkle:path_maker(Key0, CFG),
@@ -1332,6 +1338,7 @@ merge_same([{Key, 0}|T1], %what you need.
             1=2
     end;
 merge_same([{Key, 0}|T1], [{Branch, 0}|T2]) ->
+    %case 3
     %if doesn't match branch, recurse to see if it matches the next branch.
     %if it does match, keep the branch to see if more match.
     %io:fwrite("empty empty\n"),
@@ -1339,6 +1346,7 @@ merge_same([{Key, 0}|T1], [{Branch, 0}|T2]) ->
     %io:fwrite(" - "),
     %io:fwrite(integer_to_list(length(T2))),
     %io:fwrite("\n"),
+    %io:fwrite("merge same case: 3\n"),
     CFG = tree:cfg(amoveo),
     <<Key0:256>> = Key,
     Key2 = leaf_verkle:path_maker(Key0, CFG),
@@ -1364,12 +1372,14 @@ merge_same([{Key, 0}|T1], [{Branch, 0}|T2]) ->
     end;
 %merge_same([{_, 0}], []) -> true;
 merge_same(X, [{Branch, 0}|T2]) ->
+    %case 4
     %nothing left to match with this branch.
     %io:fwrite("nothing left to match with this branch\n"),
     %io:fwrite(integer_to_list(length(X))),
     %io:fwrite(" - "),
     %io:fwrite(integer_to_list(length(T2))),
     %io:fwrite("\n"),
+    %io:fwrite("merge same case: 4\n"),
     merge_same(X, T2);
 merge_same(X, [{D, {K, V}}|T2]) 
   when is_integer(D) and 
@@ -1377,6 +1387,7 @@ merge_same(X, [{D, {K, V}}|T2])
        is_binary(V) and 
        (32 == size(K)) and 
        (32 == size(V)) ->
+    %io:fwrite("merge same case: 5\n"),
     %io:fwrite("nothing left to match with this leaf\n"),%maybe was used to show that a branch is empty.
     %io:fwrite(integer_to_list(length(X))),
     %io:fwrite(" - "),

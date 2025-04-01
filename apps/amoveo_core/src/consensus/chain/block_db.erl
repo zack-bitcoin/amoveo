@@ -11,20 +11,18 @@
          set_ram_height/1, read_internal/2,
          test/0]).
 -include("../../records.hrl").
--define(LOC, constants:block_db_dict()).
--define(LOC2, constants:block_db_dict2()).
--define(blocks_loc, constants:blocks_file2()).
+-define(LOC, constants:block_db_dict()). %this file stores the #d record. The ram part of this gen server.
+-define(LOC2, constants:block_db_dict2()). %this file stores the ETS. it stores the recent blocks in ram. when in version 2.
+-define(blocks_loc, constants:blocks_file2()). %this is where we store pages of blocks.
+
 -define(version, 2).%1 stores the recent blocks in a dictionary, 2 stores them in ets.
-%-define(ram_limit, 20000000).%20 megabytes
-%-define(ram_limit, 200000).%200 kilobytes
-%-define(ram_limit, 10000).
--record(d, {dict = dict:new(), %blocks in ram
-            many_blocks = 0,
-            page_number = 0,
-            pages = dict:new(),
-            ram_bytes = 0,
-            hd_bytes = 0,
-            blocks_hd,
+-record(d, {dict = dict:new(), %recent blocks in ram. only used in version 1.
+            many_blocks = 0, %how many blocks are in ram
+            page_number = 0, %the next page that will get written
+            pages = dict:new(), %This dictionary stores pointers to the location on the hard drive where the page is stored.
+            ram_bytes = 0, %unused
+            hd_bytes = 0, %how many bytes are we using on the hard drive to store blocks.
+            blocks_hd, %pointer to the file constant:blocks_file2, which is where pages of blocks are stored on the hard drive.
             ram_height = 0,%the lowest height block in ram before we switch to storing on the hard drive.
             genesis %the genesis block
            }).
@@ -32,13 +30,13 @@ init(ok) ->
      
     %io:fwrite("start block_db\n"),
     process_flag(trap_exit, true),
-        {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
-        X = db:read(?LOC),
-        Ka = if
-                      X == "" ->
-                      #d{};
-                      true -> X
-                                   end,
+    {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
+    X = db:read(?LOC),
+    Ka = if
+             X == "" ->
+                 #d{};
+             true -> X
+         end,
     case ets:info(?MODULE) of
         undefined ->
             case ets:file2tab(?LOC2) of

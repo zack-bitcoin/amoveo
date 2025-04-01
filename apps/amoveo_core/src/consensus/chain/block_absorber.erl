@@ -1,8 +1,11 @@
+%this is the part that writes the block to the hard drive. It updates the verkle tree that records the current consensus state. So, this part is not parallelizeable. 
+
+
 -module(block_absorber).
 -behaviour(gen_server).
 -include("../../records.hrl").
--export([recover/1,
-	 check/0,
+-export([recover/1, %unused
+	 check/0, %unused
 	 save/1,    %% returns after saving
 	 do_save/2]). %% run without gen_server
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
@@ -188,6 +191,7 @@ absorb_internal(Block) ->
     end.
 do_save(BlockPlus, BH) ->
     %found_block_timer:add(),%put it into headers instead.
+    block_db3:write(BlockPlus, BH),
     block_db:write(BlockPlus, BH).
 %CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
 %    Hash = block:hash(BlockPlus),

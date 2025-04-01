@@ -224,6 +224,114 @@ get_headers3(Peer, N) ->
             get_headers3(Peer, N+HB-1);
         true -> ok
     end.
+
+stream_get_blocks(Peer, N, TheirBlockHeight) ->
+    true = N < TheirBlockHeight,
+    PM = packer:pack({N, TheirBlockHeight}),
+    Peer2 = Peer ++ "blocks",
+    httpc:request(
+      post, 
+      {Peer, 
+       [{"Content-Type", "application/json"}], 
+       "application/json", 
+       iolist_to_binary(PM)}, 
+      [],
+      [{timeout, 2000}, 
+       {stream, self},
+       {sync, false}]),
+    receive
+        {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
+            blocks_process_stream(<<>>, block:get_by_height(N));
+        X ->
+            io:fwrite("unhandled stream header\n"),
+            X
+    after 1000 ->
+            io:fwrite("failed to start receiving stream\n"),
+            ok
+    end.
+blocks_process_stream(Data0, MyTopBlock) ->
+    receive
+        {http, {_Ref, stream, Data}} ->
+            io:fwrite("process stream, more data\n"),
+            Data2 = <<Data0/binary, Data/binary>>,
+            {Data3, NewTop} = try_process_block(Data2, MyTopBlock),
+            blocks_process_stream(Data3, NewTop);
+        {http, {_Ref, stream_end, _}} -> <<>>;
+        X -> 
+            io:fwrite("unhandled stream body"),
+            io:fwrite(X)
+    after 2000 -> 
+            io:fwrite("cut off mid stream\n"),
+            ok
+    end.
+   
+try_process_block(<<Size:64, Data/binary>>, MyTopBlock) -> 
+    {ok, MTV} = application:get_env(
+                  amoveo_core, minimum_to_verify),
+    {ok, TestMode} = application:get_env(
+                       amoveo_core, test_mode),
+    Height = MyTopBlock#block.height,
+    F52 = forks:get(52),
+    if
+        ((Height > F52) and ((Height rem 20) == 0)) or 
+        ((Height rem 200) == 0) ->
+            {_, T1, T2} = erlang:timestamp(),
+            io:fwrite("absorb in reverse " ++
+                          integer_to_list(Height) ++
+                          " time: " ++
+                          integer_to_list(T1) ++
+                          " " ++
+                          integer_to_list(T2) ++
+                          "\n");
+        true -> ok
+    end,
+    S = size(Data),
+    if
+        (S >= Size) -> 
+            %we got another block
+            <<Blockx:(Size*8), Rest/binary>> = Data,
+            Block = block_db3:uncompress(<<Blockx:(Size*8)>>),
+            #block{
+               height = Height
+              } = Block,
+            Block2 = 
+                if
+                    (TestMode or (Height > F52)) ->
+                     %after verkle update
+                        {NewDict4, _, _, ProofTree} = 
+                            block:check3(Block, Block),
+                        false = is_integer(ProofTree),
+                        block:root_hash_check(
+                          MyTopBlock, Block, NewDict4, ProofTree),
+                        {NDict, NNewDict, NProofTree, Hash} = 
+                            block:check0(Block),
+                        Block3 = Block#block{
+                                   trees = {NDict, NNewDict, NProofTree, Hash}
+                                  },
+                        Block3;
+                    ((Height < MTV) or (Height < F52)) ->
+                        %before minimum to verify height
+                        BH = block:hash(Block),
+                        {ok, Header} = headers:read(BH),
+                        true = (Header#header.height == 
+                                    Block#block.height),
+                        Block;
+                    (Height == F52) ->
+                        B52_hash = block:hash(Block),
+                        B52_hash == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>,
+                        {ok, Header} = headers:read(B52_hash),
+                        true = (Header#header.height == 
+                                    Block#block.height),
+                        Block
+                end,
+            {Rest, Block2};
+        true ->
+            Data
+    end;
+try_process_block(Small, Top) -> 
+    {Small, Top}.
+        
+
 new_get_blocks(Peer, N, TheirBlockHeight, _) when (N > TheirBlockHeight) ->
     io:fwrite("done syncing");
 new_get_blocks(Peer, N, TheirBlockHeight, 0) ->

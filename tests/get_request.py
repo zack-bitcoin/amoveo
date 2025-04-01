@@ -1,4 +1,5 @@
-import urllib2, json
+#import urllib2, json
+import requests, json
 from time import sleep
 
 node2url = {}
@@ -16,8 +17,8 @@ def byteify(input):
                 for key, value in input.iteritems()}
     elif isinstance(input, list):
         return [byteify(element) for element in input]
-    elif isinstance(input, unicode):
-        return str(input)
+#    elif isinstance(input, unicode):
+#        return str(input)
     else:
         return input
 
@@ -29,11 +30,15 @@ def request_ext(node, action, args, seconds_to_sleep=0):
     return request_helper(url, action, args, seconds_to_sleep)
 def request_helper(url, action, args, seconds_to_sleep):
     d2 = json.dumps(byteify([action] + args))
-    req = urllib2.Request(url=url, data = d2)
-    #f = urlopen_with_retry(req)
-    f = urllib2.urlopen(req)
-    sleep(seconds_to_sleep)
-    return f.read()
+    #req = urllib2.Request(url=url, data = d2)
+    response = requests.get(url)
+    print(response)
+    return(response.json)
+#    req = urllib2.Request(url=url, data = d2)
+#    f = urllib2.urlopen(req)
+#    sleep(seconds_to_sleep)
+#    return f.read()
+
 #def urlopen_with_retry(req, max_retry=5):
 #    for _ in range(max_retry):
 #        try:

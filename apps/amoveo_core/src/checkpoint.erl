@@ -546,7 +546,115 @@ reverse_sync(Height, Peer) ->
     %Roots = NBlock#block.roots,%trees2:root_hash(NBlock#block.trees)
     Roots = Block#block.trees_hash,
     reverse_sync2(Height, Peer, Block2, Roots).
+%reverse_sync2_stream(Height, Peer, Block2, Roots).
 
+reverse_sync2_stream(Height, Peer, Block2, Roots) ->
+    PM = packer:pack({Height, 0}),
+    Peer2 =  Peer++"blocks",
+    httpc:request(
+      post, 
+      {Peer, 
+       [{"Content-Type", "application/json"}], 
+       "application/json", 
+       iolist_to_binary(PM)}, 
+      [],
+      [{timeout, 2000}, 
+       {stream, self},
+       {sync, false}]),
+    receive
+        {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
+            rs_process_stream(Height, Block2, Roots, <<>>);
+        X ->
+            io:fwrite("unhandled stream header\n"),
+            X
+    after 1000 ->
+            io:fwrite("failed to start receiving stream\n"),
+            ok
+    end.
+rs_process_stream(Height, Block, Roots, Data0) ->
+    receive
+        {http, {_Ref, stream, Data}} ->
+            io:fwrite("process stream, more data\n"),
+            Data2 = <<Data0/binary, Data/binary>>,
+            {Height2, Block2, Roots2, Data3} = 
+                try_process_block(Height, Block, Roots, Data2),
+            rs_process_stream(Height2, Block2, Roots2, Data3);
+        {http, {_Ref, stream_end, _}} -> <<>>;
+        X -> 
+            io:fwrite("unhandled stream body"),
+            io:fwrite(X)
+    after 2000 -> 
+            io:fwrite("cut off mid stream\n"),
+            ok
+    end.
+try_process_block(
+  Height, Block, Roots, X = <<Size:64, Data/binary>>) ->
+    {ok, MTV} = application:get_env(
+                  amoveo_core, minimum_to_verify),
+    {ok, TestMode} = application:get_env(
+                       amoveo_core, test_mode),
+    F52 = forks:get(52),
+    if
+        ((Height > F52) and ((Height rem 20) == 0)) or 
+        ((Height rem 200) == 0) ->
+            {_, T1, T2} = erlang:timestamp(),
+            io:fwrite("absorb in reverse " ++
+                          integer_to_list(Height) ++
+                          " time: " ++
+                          integer_to_list(T1) ++
+                          " " ++
+                          integer_to_list(T2) ++
+                          "\n");
+        true -> ok
+    end,
+    S = size(Data),
+    if
+        (S >= Size) -> 
+            %we got another block
+            <<Blockx:(Size*8), Rest/binary>> = Data,
+            Block2 = block_db3:uncompress(<<Blockx:(Size*8)>>),
+            true = (Block2#block.height + 1 == Block#block.height),
+            Block4 = 
+                if
+                    (TestMode or (Height > F52)) ->
+                     %after verkle update
+                        {NewDict4, _, _, ProofTree} = 
+                            block:check3(Block2, Block),
+                        false = is_integer(ProofTree),
+                        block:root_hash_check(
+                          Block2, Block, NewDict4, ProofTree),
+                        {NDict, NNewDict, NProofTree, Hash} = 
+                            block:check0(Block2),
+                        Block3 = Block2#block{
+                                   trees = {NDict, NNewDict, NProofTree, Hash}
+                                  },
+                        Block3;
+                    ((Height < MTV) or (Height < F52)) ->
+                    %before the minimum to verify height
+                        BH = block:hash(Block2),
+                        {ok, Header} = headers:read(BH),
+                        true = (Header#header.height == 
+                                    Block2#block.height),
+                        Block2;
+                    (Height == F52) ->
+                        B52_hash = block:hash(Block2),
+                        B52_hash == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>,
+                        {ok, Header} = headers:read(B52_hash),
+                        true = (Header#header.height == 
+                                    Block2#block.height),
+                        Block2
+                end,
+            {Height-1, Block4, Block#block.roots, Rest};
+        true ->
+            {Height, Block, Roots, X}
+    end;
+try_process_block(Height, Block, Roots, SmallBinary) ->
+    {Height, Block, Roots, SmallBinary}.
+            
+             
+    
+    
+    
 
 reverse_sync2(Height, Peer, Block2, Roots) ->
     io:fwrite("reverse_sync2\n"),
@@ -666,7 +774,9 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     %io:fwrite(integer_to_list(Height)),
     %io:fwrite("\n"),
     NB02 = dict:find(B#block.prev_hash, P),
+    SS = sync:status(),
     if
+        (SS == stop) -> ok;
         (Height < 1) -> 
             Genesis = block:get_by_height(0),
             NewRoots = [],
@@ -724,12 +834,12 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     if
         %((not TestMode) and (Height < MTV)) -> 
         ((Height < MTV)) -> 
-            %io:fwrite("before min to verify\n"),
+            %If you don't verify that the block has the correct block hash before storing it, then you run the risk of storing incorrect data.
+            %As long as the human verifies that one recent block is correct, then all the blocks that came before must be correct.
             BH = block:hash(B),
             {ok, Header} = headers:read(BH),
             true = (Header#header.height == 
                         B#block.height),
-            %Maybe we should verify that this header is in the longest chain.
             verify_blocks(
               NB0, P, B#block.roots, N-1);
         (Height > F52) ->

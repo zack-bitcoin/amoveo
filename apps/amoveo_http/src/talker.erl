@@ -1,5 +1,5 @@
 -module(talker).
--export([talk/2, talk/3, talk_timeout/3]).
+-export([talk/2, talk/3, talk_timeout/3, stream_test/0]).
 
 -define(RETRY, 3).
 
@@ -93,3 +93,46 @@ talk_helper(Msg, Peer, N, TimeOut) ->
             check_print(X),
             error
     end.
+
+stream_test() ->
+    PM = packer:pack({1,1}),
+    Peer =  build_string_peer({127,0,0,1},3010)++"blocks",
+    httpc:request(
+      post, 
+      {Peer, 
+       [{"Content-Type", "application/json"}], 
+       "application/json", 
+       iolist_to_binary(PM)}, 
+      [],
+      [{timeout, 2000}, 
+       {stream, self},
+       {sync, false}]),
+    handle_stream().
+handle_stream() ->
+    receive
+        {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
+            process_stream();
+        X ->
+            io:fwrite("unhandled stream header\n"),
+            X
+    after 1000 ->
+            io:fwrite("failed to start receiving stream\n"),
+            ok
+    end.
+
+process_stream() ->
+    receive
+        {http, {_Ref, stream, Data}} ->
+            io:fwrite("process stream, more data\n"),
+            Data2 = process_stream(),
+            <<Data/binary, Data2/binary>>;
+        {http, {_Ref, stream_end, _}} -> <<>>;
+        X -> 
+            io:fwrite("unhandled stream body"),
+            io:fwrite(X)
+    after 2000 -> 
+            io:fwrite("cut off mid stream\n"),
+            ok
+    end.
+    
+    %httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, 1000}, {stream, "TESTFILE"}], []).

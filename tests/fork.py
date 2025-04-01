@@ -31,6 +31,9 @@ def test_mine_and_sync():
     height1 = request(1, 'height', [1], 0.05)
     height2 = request(2, 'height', [1], 0.05)
     height3 = request(3, 'height', [1], 0.05)
+    print(height1)
+    print("\n")
+    print(height2)
     assertEqual(height1, height2)
     assertEqual(height1, height3)
     #assertEqual(1, 2)
@@ -53,8 +56,8 @@ def test_orphan_txs():
     #pub3 = "BGRv3asifl1g/nACvsJoJiB1UiKU7Ll8O1jN/VD2l/rV95aRPrMm1cfV1917dxXVERzaaBGYtsGB5ET+4aYz7ws="
     pub2 = "BOnadmMfDIoCmio3ReSinirULreS3TbCEdr0R6FDDvoVB5xoAJnvwlL3yMgNhBzEb5l36z7bgizw2EKGn0W9rY8="
     print("orphan tx 0")
-    request(2, "add_peer", [[127,0,0,1], 3010])
     request(1, "add_peer", [[127,0,0,1], 3020])
+    request(2, "add_peer", [[127,0,0,1], 3010])
     request(2, 'mine_block', [1, 1000000], 0.1)
     request(1, 'mine_block', [10, 1000000], 2.5)
     request(1, "spend", [pub2, 1000], 0.1)
@@ -99,7 +102,7 @@ def test_orphan_txs():
     print("orphan tx 2.2")
     request(2, 'mine_block', [], 0.1)
     request(1, 'mine_block', [], 0.5)
-    assertEqual(1, 2)
+#    assertEqual(1, 2)
     request(1, 'mine_block', [], 0.1)
     height1 = request(1, 'height', [1], 0.05)
     height2 = request(2, 'height', [1], 0.05)

@@ -74,10 +74,15 @@ headers_file2() -> root() ++ "headers2.db".
 block_hashes() -> root() ++ "block_hashes.db".
 block_db_dict() -> root() ++ "block_db_dict.db".
 block_db_dict2() -> root() ++ "block_db_dict2.db".
+block_db2_dict() -> root() ++ "block_db2_dict.db".
+block_db2_dict2() -> root() ++ "block_db2_dict2.db".
+block_db3_dict() -> root() ++ "block_db3_dict.db".
 checkpoints() -> root() ++ "checkpoints.db".
 top() -> root() ++ "top.db".
 recent_blocks() -> root() ++ "recent_blocks.db".
 blocks_file2() -> root() ++ "blocks.db".
+blocks_file3() -> root() ++ "blocks3.db".
+blocks_file4() -> root() ++ "blocks4.db".
 blocks_file() -> custom_root() ++ "blocks/".
 soft_fork() -> custom_root() ++ "soft_fork.db".
 

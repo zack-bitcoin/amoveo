@@ -1,3 +1,34 @@
+we need to stream blocks.
+* set up block_db3 to receive the blocks whenever block_db does.
+* every place that reads from block_db, have them use block_db3 instead.
+* remove block_db
+* make an api to stream blocks and read from block_db3.
+
+
+
+
+
+would be nice if absorbing blocks in reverse could use all my cores instead of just one at a time.
+
+
+the update to store blocks in better compression.
+* first do a hard update to turn off market_cap, channels_veo, ... etc from being in the header, so we don't need to include it in the block.
+* serialization library for blocks.
+* awk code for zlib dictionary to do compression of serialized block.
+* write block_db2.erl
+* update the http server to stream blocks.
+* update checkpoint:load_pages to use the new streaming api.
+* make sure nothing is using block_db.erl
+* remove block_db.erl
+
+
+
+
+
+fix fork.py, the part where we share txs while blocks are getting orphaned.
+
+
+
 get futarchy working.
 
 

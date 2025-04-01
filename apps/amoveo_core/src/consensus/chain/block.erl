@@ -192,6 +192,14 @@ header_by_height_in_chain(N, Hash) when N > -1 ->
 %  170,112,91,209,249,9,142,146,59,137,192,225,144,165,110,
 %  199,5,185>>);
 get_by_height(N) ->
+    L = block_db3:read(N, N),
+    case L of
+        [] -> error;
+        erro -> error;
+        [X] -> X
+    end.
+             
+get_by_height_old(N) ->
     {ok, DBV} = application:get_env(amoveo_core, db_version),
     if
         ((N == 0) and (DBV > 1)) -> block_db:genesis();
@@ -1613,7 +1621,8 @@ initialize_chain() ->
     %only run genesis maker once, or else it corrupts the database.
     %{ok, L} = file:list_dir("blocks"),
     %B = length(L) < 1,
-    B = (element(2, headers:top_with_block()) == 0),
+    %B = (element(2, headers:top_with_block()) == 0),
+    B = get_by_height(0) == error,
     %B = true,
     {GB, Bool} = if
                      B -> G = genesis_maker(),

@@ -83,6 +83,7 @@ handle_call({add_with_block, Hash, Header}, _From, State) ->
 %                     spawn(fun() ->
 %                                   timer:sleep(10000),
 %                                   io:fwrite("headers is attempting to restore orphaned txs\n"),
+                     block_db3:set_top(Hash),
                      restore_orphaned_txs(Top, Header),
 %                           end),
 		     found_block_timer:add(),

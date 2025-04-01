@@ -18,7 +18,16 @@ sync(1) ->
 height() ->    
     (headers:top())#header.height.
 height(1) ->
-    block:height().
+    block:height();
+height(2) ->
+    X = <<"0000000000000000000000000000000X">>,
+    XX = <<X/binary, X/binary>>,
+    X4 = <<XX/binary, XX/binary>>,
+    X8 = <<X4/binary, X4/binary>>,
+    X16 = <<X8/binary, X8/binary>>,
+    X32 = <<X16/binary, X16/binary>>,
+    X64 = <<X32/binary, X32/binary>>,
+    X64.
 block(1, N) ->
     B = block:get_by_height(N),
     B#block.txs;
@@ -33,26 +42,29 @@ block(2, H) ->
     block:get_by_hash(H).
 blocks(Start, End) ->
     %returns a list of blocks in a JSON data structure.
-    L = block_db:read(End - Start, Start),
-    if
-        is_binary(L) -> 
-            D = block_db:uncompress(L),
-            K = dict:fetch_keys(D),
-            sync:low_to_high(sync:dict_to_blocks(K, D));
-        is_list(L) -> L
-    end.
+    block_db3:read(Start, End).
+%    L = block_db:read(End - Start, Start),
+%    if
+%        is_binary(L) -> 
+%            D = block_db:uncompress(L),
+%            K = dict:fetch_keys(D),
+%            sync:low_to_high(sync:dict_to_blocks(K, D));
+%        is_list(L) -> L
+%    end.
 
 blocks(4, Start, End) ->
-    block_db:read_internal(Start, End).
+    block_db3:read(Start, End).
+%block_db:read_internal(Start, End).
 
 tx_scan(L) ->
     %scan the N recent blocks to see if the txids from list L have been published.
-    RH = block_db:ram_height(),
+%    RH = block_db:ram_height(),
     BH = block:height(),
-    N = BH - RH,
+%    N = BH - RH,
     %true = (BH - N) > RH,
-    Blocks = lists:reverse(block_db:read(N, RH)),
-    {RH, BH, tx_scan2(L, Blocks)}.
+%    Blocks = lists:reverse(block_db:read(N, RH)),
+    Blocks = lists:reverse(block_db3:read(max(0, BH-20), BH)),
+    {0, BH, tx_scan2(L, Blocks)}.
 tx_scan2(L, []) -> mark_height(0, L);
 tx_scan2(L, [B|T]) ->
     Txs = tl(B#block.txs),
@@ -701,6 +713,8 @@ mine_block(Periods, Times) ->
     timer:sleep(100),
     block:mine(Times),
     mine_block(Periods-1, Times).
+mine_block(0, 0, 0) -> %only creates a headers, no blocks.
+    potential_block:new();
 mine_block(_, _, _) -> %only creates a headers, no blocks.
 %This is only used for testing purposes.
     PB = potential_block:read(),

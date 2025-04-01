@@ -87,6 +87,7 @@ doit({futarchy_matched, TID}) ->
     {ok, api:tree_common(futarchy_matched, TID)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
+doit({height, 2}) -> {ok, api:height(2)};
 doit({version}) -> {ok, version:doit(block:height())};
 doit({version, 1}) -> 
     {ok, Version} = application:get_env(amoveo_core, db_version),
@@ -120,13 +121,12 @@ doit({block, N}) when (is_integer(N) and (N > -1))->
 doit({block, 2, H}) ->
     {ok, block:get_by_hash(H)};
 doit({blocks, Many, N}) -> 
-    %true = Many < 60,
-    %X = block_reader:doit(Many, N),
-    X = block_db:read(Many, N),
-    %X = many_blocks(Many, N),
+    %X = block_db:read(Many, N),
+    X = block_db3:read(N, Many+N),
     {ok, X};
 doit({blocks, -1, Many, Highest}) ->
-    X = block_db:read_reverse(Many, Highest),
+    %X = block_db:read_reverse(Many, Highest),
+    X = block_db3:read(Highest - Many, Highest),
     {ok, X};
 doit({header, N}) when is_integer(N) -> 
     {ok, block:block_to_header(block:get_by_height(N))};

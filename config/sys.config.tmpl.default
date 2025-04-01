@@ -62,10 +62,11 @@
     {headers_version, 2},
     {trie_mode, hd},%hd or ram. hd mode saves like 5 mb of ram, but is slower.
     {db_version, 2},%version 1 stores each block compressed as its own page on the hard drive. version 2 stores the recent blocks in ram, and stores pages of hundreds of older blocks compressed together. When we are serving the blocks, version 2 sends entire pages together without decompressing them, saving a lot of bandwidth.
-    {get_block_buffer, 10},%how many blocks to download and store in a queue ready to be synced. Increasing this takes more ram, and makes some data structures slower, but it can help if your internet connection has high latency.
+    {blocks_per_page, 1000},%When we compress blocks to store on the hard drive, we do it in pages so that the compression algorithm has lots of repeated data to compress. if you change this number, then you will need to resync all the blocks, because your node wont understand how to read the blocks you already have from your hard drive.
     {block_cache, 5000000}, %5 megabytes, this is how many blocks measured in bytes in ram get compressed into a page of blocks on the hard drive.
+    {get_block_buffer, 10},%how many blocks to download and store in a queue ready to be synced. Increasing this takes more ram, and makes some data structures slower, but it can help if your internet connection has high latency.
     {compression_level, 2},%integer between 1 and 9, 9 is the most compression.
-    {block_threads, 2},
+    {block_threads, 1},
     {push_blocks_batch, 50},
 
     {checkpoint_depth, 1000},%we want to keep this bigger than the fork_tolerance.

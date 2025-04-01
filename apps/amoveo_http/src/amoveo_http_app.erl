@@ -42,6 +42,7 @@ start_external() ->
     Dispatch =
         cowboy_router:compile(
           [{'_', [{"/ext/:file", get_api_handler, []},
+                  {"/blocks", block_handler, []},
 		  {"/:file", ext_file_handler, []},
 		  {"/crypto/:file", ext_file_handler, []},
 		  {"/vm/:file", ext_file_handler, []},
@@ -52,11 +53,20 @@ start_external() ->
                  ]}]),
     {ok, Port} = application:get_env(amoveo_core, port),
     {ok, IP} = application:get_env(amoveo_core, external_ip),
-    %{ok, _} = cowboy:start_http(http, 100,
-    %                            [{ip, IP}, {port, Port}],
-    %                            [{env, [{dispatch, Dispatch}]}]),
     {ok, _} = cowboy:start_clear(http,
 				 [{ip, IP}, {port, Port}],
 				 #{env => #{dispatch => Dispatch}}),
+%    Dispatch2 =
+%          [{'_', [{"/", block_stream_dummy_handler, []}
+%                 ]}],
+%    {ok, _Pid} = 
+%        cowboy:start_clear(
+%          blockstream,
+%          [{port, 8082}],
+%          #{
+%            env => #{dispatch => Dispatch2},
+%            stream_handlers => [block_stream_handler, cowboy_compress_h, cowboy_stream_h]
+%           }
+%         ),
     ok.
 
