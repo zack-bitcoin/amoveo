@@ -831,15 +831,17 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
               {ok, NB01} -> NB01
           end,
     F52 = forks:get(52),
+            BH = block:hash(B),
     if
         %((not TestMode) and (Height < MTV)) -> 
         ((Height < MTV)) -> 
             %If you don't verify that the block has the correct block hash before storing it, then you run the risk of storing incorrect data.
             %As long as the human verifies that one recent block is correct, then all the blocks that came before must be correct.
-            BH = block:hash(B),
             {ok, Header} = headers:read(BH),
             true = (Header#header.height == 
                         B#block.height),
+            block_db3:write(B, BH),
+            block_db3:set_top(BH),
             verify_blocks(
               NB0, P, B#block.roots, N-1);
         (Height > F52) ->
@@ -854,6 +856,8 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
             NB2 = NB0#block{
                     trees = {NDict, NNewDict, 
                              NProofTree, Hash}},
+            block_db3:write(B, BH),
+            block_db3:set_top(BH),
             %verify_blocks(NB2, P, 0, N-1);
             verify_blocks(NB2, P, B#block.roots, N-1);
         true ->
@@ -902,6 +906,8 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
                 end,
             {NDict, NNewDict, NProofTree, Hash} = block:check0(NB0),
             NB2 = NB0#block{trees = {NDict, NNewDict, NProofTree, Hash}},
+            block_db3:write(B, BH),
+            block_db3:set_top(BH),
             verify_blocks(NB2, P, B#block.roots, N-1)
     end
     end.
