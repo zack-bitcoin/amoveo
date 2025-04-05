@@ -1,8 +1,11 @@
 we need to stream blocks.
-* set up block_db3 to receive the blocks whenever block_db does.
+X * set up block_db3 to receive the blocks whenever block_db does.
 * every place that reads from block_db, have them use block_db3 instead.
 * remove block_db
-* make an api to stream blocks and read from block_db3.
+X * make an api to stream blocks and read from block_db3.
+* sync should use the new streaming api
+* sync reverse should use the new streaming api
+* the explorer should use the new streaming api
 
 
 

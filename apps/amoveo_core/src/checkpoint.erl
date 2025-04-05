@@ -545,8 +545,8 @@ reverse_sync(Height, Peer) ->
     %{ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
     %Roots = NBlock#block.roots,%trees2:root_hash(NBlock#block.trees)
     Roots = Block#block.trees_hash,
-    reverse_sync2(Height, Peer, Block2, Roots).
-%reverse_sync2_stream(Height, Peer, Block2, Roots).
+    %reverse_sync2(Height, Peer, Block2, Roots).
+    reverse_sync2_stream(Height, Peer, Block2, Roots).
 
 reverse_sync2_stream(Height, Peer, Block2, Roots) ->
     PM = packer:pack({Height, 0}),

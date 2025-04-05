@@ -225,17 +225,26 @@ get_headers3(Peer, N) ->
         true -> ok
     end.
 
+ip_url_format({{A, B, C, D}, _}) ->
+    integer_to_list(A) ++ "." ++
+    integer_to_list(B) ++ "." ++
+    integer_to_list(C) ++ "." ++
+    integer_to_list(D).
+
 stream_get_blocks(Peer, N, TheirBlockHeight) ->
     true = N < TheirBlockHeight,
     PM = packer:pack({N, TheirBlockHeight}),
-    Peer2 = Peer ++ "blocks",
+    %Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks",
+    %io:fwrite(Url),
+    %io:fwrite("\n"),
     httpc:request(
       post, 
-      {Peer, 
+      {Peer,
        [{"Content-Type", "application/json"}], 
+       %{list_to_binary(Url), []},
        "application/json", 
        iolist_to_binary(PM)}, 
-      [],
+      [<<"/blocks">>],
       [{timeout, 2000}, 
        {stream, self},
        {sync, false}]),
@@ -616,6 +625,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
                     io:fwrite(integer_to_list(CommonHeight)),
                     io:fwrite("\n"),
                     new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
+                    %stream_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight)
             end;
 	%true ->
 	(TheirBlockHeight == MyBlockHeight) ->

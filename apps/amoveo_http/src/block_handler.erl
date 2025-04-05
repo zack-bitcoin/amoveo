@@ -8,15 +8,15 @@ terminate(_Reason, _Req, _State) -> ok.
 
 init(Req0, Opts) -> handle(Req0, Opts).	
 handle(Req, State) ->
-    {ok, Data, Req2} = cowboy_req:read_body(Req),
+    {ok, _Data, Req2} = cowboy_req:read_body(Req),
     {IP, _} = cowboy_req:peer(Req2),
-    {Start, End} = packer:unpack(Data),
+%    {Start, End} = packer:unpack(Data),
 
-%    #{path := Path} = Req2,
-%    SE = string:slice(Path, 8),
-%    [Start0, End0] = string:split(SE, "_"),
-%    Start = binary_to_integer(Start0),
-%    End = binary_to_integer(End0),
+    #{path := Path} = Req2,
+    SE = string:slice(Path, 8),
+    [Start0, End0] = string:split(SE, "_"),
+    Start = binary_to_integer(Start0),
+    End = binary_to_integer(End0),
     Headers = #{ <<"content-type">> => <<"application/octet-stream">>,
 	       <<"Access-Control-Allow-Origin">> => <<"*">>},
     case request_frequency:doit(IP) of

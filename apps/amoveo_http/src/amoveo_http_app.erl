@@ -42,7 +42,7 @@ start_external() ->
     Dispatch =
         cowboy_router:compile(
           [{'_', [{"/ext/:file", get_api_handler, []},
-                  {"/blocks", block_handler, []},
+                  {"/blocks/[...]", block_handler, []},
 		  {"/:file", ext_file_handler, []},
 		  {"/crypto/:file", ext_file_handler, []},
 		  {"/vm/:file", ext_file_handler, []},
