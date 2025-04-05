@@ -537,26 +537,34 @@ reverse_sync(Height, Peer) ->
     %{ok, NBlock} = talker:talk({block, Height}, Peer),%one above bottom.
     io:fwrite("reverse sync/2 got block 2\n"),
 
-    {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
+    %{BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
+    Trees = block:check0(Block),
     io:fwrite("reverse sync/2 check0\n"),
-    Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
+    %Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
+    Block2 = Block#block{trees = Trees},
     %TDB = Block#block.trees,
     %Roots = block:make_roots(TDB),
     %{ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
     %Roots = NBlock#block.roots,%trees2:root_hash(NBlock#block.trees)
     Roots = Block#block.trees_hash,
-    %reverse_sync2(Height, Peer, Block2, Roots).
-    reverse_sync2_stream(Height, Peer, Block2, Roots).
+    reverse_sync2(Height, Peer, Block2, Roots).
+    %reverse_sync2_stream(Height, Peer, Block, Roots).
+
+ip_url_format({{A, B, C, D}, _}) ->
+    integer_to_list(A) ++ "." ++
+    integer_to_list(B) ++ "." ++
+    integer_to_list(C) ++ "." ++
+    integer_to_list(D).
 
 reverse_sync2_stream(Height, Peer, Block2, Roots) ->
-    PM = packer:pack({Height, 0}),
-    Peer2 =  Peer++"blocks",
+    %PM = packer:pack({Height, 0}),
+    %Peer2 =  Peer++"blocks",
+    Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(Height-1) ++ "_0",
+    io:fwrite(Url),
+    io:fwrite("\n"),
     httpc:request(
-      post, 
-      {Peer, 
-       [{"Content-Type", "application/json"}], 
-       "application/json", 
-       iolist_to_binary(PM)}, 
+      get,
+      {list_to_binary(Url), []},
       [],
       [{timeout, 2000}, 
        {stream, self},
@@ -574,7 +582,7 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
 rs_process_stream(Height, Block, Roots, Data0) ->
     receive
         {http, {_Ref, stream, Data}} ->
-            io:fwrite("process stream, more data\n"),
+            %io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Height2, Block2, Roots2, Data3} = 
                 try_process_block(Height, Block, Roots, Data2),
@@ -588,63 +596,73 @@ rs_process_stream(Height, Block, Roots, Data0) ->
             ok
     end.
 try_process_block(
-  Height, Block, Roots, X = <<Size:64, Data/binary>>) ->
+  Height, Block, Roots, %looks like roots us unused and should be removed.
+  X = <<Size:64, Data/binary>>) ->
+    go = sync_kill:status(),
     {ok, MTV} = application:get_env(
                   amoveo_core, minimum_to_verify),
     {ok, TestMode} = application:get_env(
                        amoveo_core, test_mode),
     F52 = forks:get(52),
-    if
-        ((Height > F52) and ((Height rem 20) == 0)) or 
-        ((Height rem 200) == 0) ->
-            {_, T1, T2} = erlang:timestamp(),
-            io:fwrite("absorb in reverse " ++
-                          integer_to_list(Height) ++
-                          " time: " ++
-                          integer_to_list(T1) ++
-                          " " ++
-                          integer_to_list(T2) ++
-                          "\n");
-        true -> ok
-    end,
     S = size(Data),
     if
         (S >= Size) -> 
             %we got another block
+            %io:fwrite("got a block in checkpoint:try_process_block\n"),
+            if
+                ((Height > F52) and ((Height rem 20) == 0)) or 
+                ((Height rem 200) == 0) ->
+                    {_, T1, T2} = erlang:timestamp(),
+                    io:fwrite("absorb in reverse 611 " ++
+                                  integer_to_list(Height) ++
+                                  " time: " ++
+                                  integer_to_list(T1) ++
+                                  " " ++
+                                  integer_to_list(T2) ++
+                                  "\n");
+                true -> ok
+            end,
             <<Blockx:(Size*8), Rest/binary>> = Data,
-            Block2 = block_db3:uncompress(<<Blockx:(Size*8)>>),
+            Block2 = block_db3:uncompress(<<Blockx:(Size*8)>>),%block 2 is block's parent.
+            %Block2 is NB0
+            BH = block:hash(Block),
+            %io:fwrite("checkpoint heights " ++ integer_to_list(Block2#block.height) ++ " " ++ integer_to_list(Block#block.height) ++ "\n"),
             true = (Block2#block.height + 1 == Block#block.height),
-            Block4 = 
+            if
+                (Block#block.height == F52) -> 
+                    %hardcode verkle update block hash, so we don't have to check blocks from before this point.
+                    true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
+                true -> ok
+            end,
+            Block4 = %block4 is the version of block after it is verified.
                 if
-                    (TestMode or (Height > F52)) ->
-                     %after verkle update
-                        {NewDict4, _, _, ProofTree} = 
-                            block:check3(Block2, Block),
+                    (TestMode or ((Height > F52) and (Height > MTV))) ->
+                        Trees3 = block:check0(Block),
+                        Block3 = Block#block{
+                                   trees = Trees3},
+                        {NewDict4, _, _, ProofTree} =
+                            %block:check3(Block2, Block),
+                            block:check3(Block2, Block3),
                         false = is_integer(ProofTree),
                         block:root_hash_check(
                           Block2, Block, NewDict4, ProofTree),
-                        {NDict, NNewDict, NProofTree, Hash} = 
-                            block:check0(Block2),
-                        Block3 = Block2#block{
-                                   trees = {NDict, NNewDict, NProofTree, Hash}
-                                  },
-                        Block3;
-                    ((Height < MTV) or (Height < F52)) ->
-                    %before the minimum to verify height
-                        BH = block:hash(Block2),
-                        {ok, Header} = headers:read(BH),
-                        true = (Header#header.height == 
-                                    Block2#block.height),
-                        Block2;
-                    (Height == F52) ->
-                        B52_hash = block:hash(Block2),
-                        B52_hash == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>,
-                        {ok, Header} = headers:read(B52_hash),
-                        true = (Header#header.height == 
-                                    Block2#block.height),
-                        Block2
+                        %Trees3 = 
+                        %    block:check0(Block2),
+                        %Block3 = Block2#block{
+                        %           trees = Trees3},
+                        block_db3:write(Block, BH),
+                        block_db3:set_top(BH),
+                        Block;
+                    true ->
+                        Block
                 end,
-            {Height-1, Block4, Block#block.roots, Rest};
+            {ok, Header} = headers:read(BH),
+            true = (Header#header.height == 
+                        Block#block.height),
+            headers:absorb_with_block([Header]),
+            %block_db3:write(Block4),
+
+            {Height-1, Block2, Block#block.roots, Rest};
         true ->
             {Height, Block, Roots, X}
     end;
@@ -807,7 +825,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
         ((Height rem 200) == 0) ->
         %((Height rem 1) == 0) ->
             {_, T1, T2} = erlang:timestamp(),
-            io:fwrite("absorb in reverse " ++
+            io:fwrite("absorb in reverse 826 " ++
                           integer_to_list(B#block.height) ++
                           " time: " ++
                           integer_to_list(T1) ++
@@ -856,7 +874,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
             NB2 = NB0#block{
                     trees = {NDict, NNewDict, 
                              NProofTree, Hash}},
-            block_db3:write(B, BH),
+            block_db3:write(B#block{trees=0}, BH),
             block_db3:set_top(BH),
             %verify_blocks(NB2, P, 0, N-1);
             verify_blocks(NB2, P, B#block.roots, N-1);

@@ -233,24 +233,20 @@ ip_url_format({{A, B, C, D}, _}) ->
 
 stream_get_blocks(Peer, N, TheirBlockHeight) ->
     true = N < TheirBlockHeight,
-    PM = packer:pack({N, TheirBlockHeight}),
-    %Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks",
-    %io:fwrite(Url),
-    %io:fwrite("\n"),
+    %PM = packer:pack({N, TheirBlockHeight}),
+    Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(N) ++ "_" ++ integer_to_list(TheirBlockHeight),
+    io:fwrite(Url),
+    io:fwrite("\n"),
     httpc:request(
-      post, 
-      {Peer,
-       [{"Content-Type", "application/json"}], 
-       %{list_to_binary(Url), []},
-       "application/json", 
-       iolist_to_binary(PM)}, 
-      [<<"/blocks">>],
+      get,
+      {list_to_binary(Url), []},
+      [],
       [{timeout, 2000}, 
        {stream, self},
        {sync, false}]),
     receive
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
-            blocks_process_stream(<<>>, block:get_by_height(N));
+            blocks_process_stream(<<>>, block:top());
         X ->
             io:fwrite("unhandled stream header\n"),
             X
@@ -261,7 +257,7 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
 blocks_process_stream(Data0, MyTopBlock) ->
     receive
         {http, {_Ref, stream, Data}} ->
-            io:fwrite("process stream, more data\n"),
+            %io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Data3, NewTop} = try_process_block(Data2, MyTopBlock),
             blocks_process_stream(Data3, NewTop);
@@ -274,7 +270,8 @@ blocks_process_stream(Data0, MyTopBlock) ->
             ok
     end.
    
-try_process_block(<<Size:64, Data/binary>>, MyTopBlock) -> 
+try_process_block(FullData = <<Size:64, Data/binary>>, MyTopBlock) -> 
+    go = sync_kill:status(),
     {ok, MTV} = application:get_env(
                   amoveo_core, minimum_to_verify),
     {ok, TestMode} = application:get_env(
@@ -285,7 +282,7 @@ try_process_block(<<Size:64, Data/binary>>, MyTopBlock) ->
         ((Height > F52) and ((Height rem 20) == 0)) or 
         ((Height rem 200) == 0) ->
             {_, T1, T2} = erlang:timestamp(),
-            io:fwrite("absorb in reverse " ++
+            io:fwrite("absorb height " ++
                           integer_to_list(Height) ++
                           " time: " ++
                           integer_to_list(T1) ++
@@ -298,44 +295,39 @@ try_process_block(<<Size:64, Data/binary>>, MyTopBlock) ->
     if
         (S >= Size) -> 
             %we got another block
+            %io:fwrite("got a block in try_process_block\n"),
             <<Blockx:(Size*8), Rest/binary>> = Data,
             Block = block_db3:uncompress(<<Blockx:(Size*8)>>),
+            BH = block:hash(Block),
+            true = (MyTopBlock#block.height + 1 == Block#block.height),
             #block{
-               height = Height
+               height = Height2
               } = Block,
-            Block2 = 
-                if
-                    (TestMode or (Height > F52)) ->
-                     %after verkle update
-                        {NewDict4, _, _, ProofTree} = 
-                            block:check3(Block, Block),
-                        false = is_integer(ProofTree),
-                        block:root_hash_check(
-                          MyTopBlock, Block, NewDict4, ProofTree),
-                        {NDict, NNewDict, NProofTree, Hash} = 
-                            block:check0(Block),
-                        Block3 = Block#block{
-                                   trees = {NDict, NNewDict, NProofTree, Hash}
-                                  },
-                        Block3;
-                    ((Height < MTV) or (Height < F52)) ->
-                        %before minimum to verify height
-                        BH = block:hash(Block),
-                        {ok, Header} = headers:read(BH),
-                        true = (Header#header.height == 
-                                    Block#block.height),
-                        Block;
-                    (Height == F52) ->
-                        B52_hash = block:hash(Block),
-                        B52_hash == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>,
-                        {ok, Header} = headers:read(B52_hash),
-                        true = (Header#header.height == 
-                                    Block#block.height),
-                        Block
-                end,
+            if
+                (Height2 == F52) -> 
+                    %hardcode verkle update block hash, so we don't have to check blocks from before this point.
+                    true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
+                true -> ok
+            end,
+            Block2 = if
+                         (TestMode or ((Height2 > F52) and (Height2 > MTV))) ->
+                   %after verkle update
+                             X = block:check0(Block),
+                             {true, Block3} = block:check2(MyTopBlock, Block#block{trees = X}),
+                             Block3;
+                         true ->
+                             Block
+                     end,
+            %check every block matches it's header, even from before the verkle update height
+            {ok, Header} = headers:read(BH),
+            true = (Header#header.height == 
+                        Block#block.height),
+            headers:absorb_with_block([Header]),
+            block_db3:write(Block2),
             {Rest, Block2};
         true ->
-            Data
+            %io:fwrite("less than entire block " ++ integer_to_list(size(Data)) ++ " " ++ integer_to_list(Size) ++ "\n"),
+            {FullData, MyTopBlock}
     end;
 try_process_block(Small, Top) -> 
     {Small, Top}.
@@ -578,6 +570,8 @@ trade_txs(Peer) ->
 %    end.
    
 sync_peer(Peer) ->
+    io:fwrite("sync peer \n"),
+    io:fwrite("\n"),
     spawn(fun() -> trade_peers(Peer) end),
     MyTop = headers:top(),
     spawn(fun() -> get_headers(Peer) end),
@@ -621,9 +615,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
                     %todo, download and sync from a checkpoint.
                     ok;
                 true -> 
-                    io:fwrite("new get blocks start, common height is: "),
-                    io:fwrite(integer_to_list(CommonHeight)),
-                    io:fwrite("\n"),
+                    io:fwrite("new get blocks start, common height " ++ integer_to_list(CommonHeight) ++ " their height: " ++ integer_to_list(TheirBlockHeight) ++ "\n"),
                     new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
                     %stream_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight)
             end;

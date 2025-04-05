@@ -1091,8 +1091,10 @@ check3(OldBlock, Block) ->
 	     false -> ok
     end,
     %BlockReward = governance:dict_get_value(block_reward, Dict, Height),
-    BlockReward_gov = trees:get(governance, block_reward, Dict, OldTrees),
-    BlockReward = governance:value(BlockReward_gov),
+   % BlockReward_gov = trees:get(governance, block_reward, Dict, OldTrees),
+   % BlockReward = governance:value(BlockReward_gov),
+    BlockReward = governance:dict_get_value(block_reward, Dict, Height),
+    
     
     
 

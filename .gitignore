@@ -28,3 +28,4 @@ sys.config.tmpl
 *.chunk
 backup.tar.gz
 backup_temp/*
+/scripts/Blocks

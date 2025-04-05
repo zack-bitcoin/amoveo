@@ -254,6 +254,13 @@ write(Block) ->
     write(Block, Hash),
     Hash.
 write(Block, Hash) ->
+    Bool = (is_integer(Block#block.trees)),
+    Bool2 = is_record(Block#block.trees, trees),
+    if
+        Bool -> ok;
+        Bool2 -> ok;
+        true -> io:fwrite(Block)
+    end,
     gen_server:cast(?MODULE, {write, Block, Hash}).
 set_top(Hash) ->
     gen_server:cast(?MODULE, {set_top, Hash}).
