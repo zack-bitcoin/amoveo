@@ -858,7 +858,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
             {ok, Header} = headers:read(BH),
             true = (Header#header.height == 
                         B#block.height),
-            block_db3:write(B, BH),
+            block_db3:write(B#block{trees=0}, BH),
             block_db3:set_top(BH),
             verify_blocks(
               NB0, P, B#block.roots, N-1);
@@ -924,7 +924,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
                 end,
             {NDict, NNewDict, NProofTree, Hash} = block:check0(NB0),
             NB2 = NB0#block{trees = {NDict, NNewDict, NProofTree, Hash}},
-            block_db3:write(B, BH),
+            block_db3:write(B#block{trees = 0}, BH),
             block_db3:set_top(BH),
             verify_blocks(NB2, P, B#block.roots, N-1)
     end

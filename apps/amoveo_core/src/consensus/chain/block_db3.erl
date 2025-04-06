@@ -259,7 +259,7 @@ write(Block, Hash) ->
     if
         Bool -> ok;
         Bool2 -> ok;
-        true -> io:fwrite(Block)
+        true -> io:fwrite(Block#block.trees)
     end,
     gen_server:cast(?MODULE, {write, Block, Hash}).
 set_top(Hash) ->
