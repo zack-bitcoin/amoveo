@@ -249,6 +249,7 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
             blocks_process_stream(<<>>, block:top());
         X ->
             io:fwrite("unhandled stream header\n"),
+            io:fwrite(X),
             X
     after 1000 ->
             io:fwrite("failed to start receiving stream\n"),
@@ -616,8 +617,8 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
                     ok;
                 true -> 
                     io:fwrite("new get blocks start, common height " ++ integer_to_list(CommonHeight) ++ " their height: " ++ integer_to_list(TheirBlockHeight) ++ "\n"),
-                    new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
-                    %stream_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight)
+                    %new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
+                    stream_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight)
             end;
 	%true ->
 	(TheirBlockHeight == MyBlockHeight) ->

@@ -1,4 +1,3 @@
-
 -module(checkpoint).
 -behaviour(gen_server).
 -export([backup_p/1,
@@ -547,8 +546,8 @@ reverse_sync(Height, Peer) ->
     %{ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
     %Roots = NBlock#block.roots,%trees2:root_hash(NBlock#block.trees)
     Roots = Block#block.trees_hash,
-    reverse_sync2(Height, Peer, Block2, Roots).
-    %reverse_sync2_stream(Height, Peer, Block, Roots).
+    %reverse_sync2(Height, Peer, Block2, Roots).
+    reverse_sync2_stream(Height, Peer, Block, Roots).
 
 ip_url_format({{A, B, C, D}, _}) ->
     integer_to_list(A) ++ "." ++
@@ -570,10 +569,16 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
        {stream, self},
        {sync, false}]),
     receive
+        %{http,{#Ref<0.1619049968.3220963330.162403>,{{"HTTP/1.1",404,"Not Found"},[{"date","Mon, 07 Apr 2025 18:41:41 GMT"},{"server","Cowboy"},{"content-length","0"}],<<>>}}}],[{file,"io.erl"},{line,99},{error_info,#{cause => {device,format},module => erl_stdlib_errors}}]},{checkpoint,reverse_sync2_stream,4,[{file,"/home/zack/Hacking/amoveo/apps/amoveo_core/src/checkpoint.erl"},{line,577}]}]}
+
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
             rs_process_stream(Height, Block2, Roots, <<>>);
+        {http, {_Ref, {{_, 404, _},_, _}}} ->
+            io:fwrite("404 error\n"),
+            ok;
         X ->
             io:fwrite("unhandled stream header\n"),
+            io:fwrite(X),
             X
     after 1000 ->
             io:fwrite("failed to start receiving stream\n"),
@@ -587,7 +592,9 @@ rs_process_stream(Height, Block, Roots, Data0) ->
             {Height2, Block2, Roots2, Data3} = 
                 try_process_block(Height, Block, Roots, Data2),
             rs_process_stream(Height2, Block2, Roots2, Data3);
-        {http, {_Ref, stream_end, _}} -> <<>>;
+        {http, {_Ref, stream_end, _}} -> 
+            io:fwrite("stream ended normally\n"),
+            <<>>;
         X -> 
             io:fwrite("unhandled stream body"),
             io:fwrite(X)
@@ -596,7 +603,7 @@ rs_process_stream(Height, Block, Roots, Data0) ->
             ok
     end.
 try_process_block(
-  Height, Block, Roots, %looks like roots us unused and should be removed.
+  Height, Block, Roots, %looks like roots is unused and should be removed.
   X = <<Size:64, Data/binary>>) ->
     go = sync_kill:status(),
     {ok, MTV} = application:get_env(
@@ -613,7 +620,7 @@ try_process_block(
                 ((Height > F52) and ((Height rem 20) == 0)) or 
                 ((Height rem 200) == 0) ->
                     {_, T1, T2} = erlang:timestamp(),
-                    io:fwrite("absorb in reverse 611 " ++
+                    io:fwrite("absorb in reverse, streamed " ++
                                   integer_to_list(Height) ++
                                   " time: " ++
                                   integer_to_list(T1) ++
@@ -634,33 +641,38 @@ try_process_block(
                     true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
                 true -> ok
             end,
-            Block4 = %block4 is the version of block after it is verified.
-                if
-                    (TestMode or ((Height > F52) and (Height > MTV))) ->
-                        Trees3 = block:check0(Block),
-                        Block3 = Block#block{
-                                   trees = Trees3},
-                        {NewDict4, _, _, ProofTree} =
-                            %block:check3(Block2, Block),
-                            block:check3(Block2, Block3),
-                        false = is_integer(ProofTree),
-                        block:root_hash_check(
-                          Block2, Block, NewDict4, ProofTree),
-                        %Trees3 = 
-                        %    block:check0(Block2),
-                        %Block3 = Block2#block{
-                        %           trees = Trees3},
-                        block_db3:write(Block, BH),
-                        block_db3:set_top(BH),
-                        Block;
-                    true ->
-                        Block
+            if
+                (TestMode or ((Height > F52) and (Height > MTV))) ->
+                    Trees3 = block:check0(Block),
+                    Block3 = Block#block{
+                               trees = Trees3},
+                    {NewDict4, _, _, ProofTree} =
+                                                %block:check3(Block2, Block),
+                        block:check3(Block2, Block3),
+                    false = is_integer(ProofTree),
+                    block:root_hash_check(
+                      Block2, Block, NewDict4, ProofTree);
+                    true -> ok
                 end,
             {ok, Header} = headers:read(BH),
             true = (Header#header.height == 
                         Block#block.height),
             headers:absorb_with_block([Header]),
+            block_db3:write(Block, BH),
+            block_db3:set_top(BH),
             %block_db3:write(Block4),
+            %io:fwrite(Block),
+
+            if
+                (Height == 2) ->
+                    Hash2 = block:hash(Block2),
+                    {ok, Header1} = headers:read(Hash2),
+                    headers:absorb_with_block([Header1]),
+                    block_db3:write(Block2, Hash2),
+                    block_db3:set_top(Hash2),
+                    io:fwrite("synced to genesis");
+                true -> ok
+            end,
 
             {Height-1, Block2, Block#block.roots, Rest};
         true ->
@@ -788,6 +800,13 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
               N) -> 
     %timer:sleep(30),
     Height = B#block.height,
+    HeightCheck = (Height > (block:bottom() - 500)),
+    if
+        not(HeightCheck) ->
+            io:fwrite("failed to sync blocks in reverse."),
+            1=2;
+        true -> ok
+    end,
     %io:fwrite("verify blocks first "),
     %io:fwrite(integer_to_list(Height)),
     %io:fwrite("\n"),

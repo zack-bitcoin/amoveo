@@ -1546,6 +1546,7 @@ one_root_clean(Pointer, CFG) ->
     Hash = scan_verkle(NewPointer, CFG),
     NewPointer.
 
+
 one_root_maker(Pointer, CFG) ->
     %delete the contents of the files in the cleaner folder.
     %os:cmd("truncate -s 0 cleaner/data/*"),
