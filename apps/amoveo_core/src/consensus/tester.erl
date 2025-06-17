@@ -46,11 +46,13 @@ coverage_test3(Start, End, D)
   when not(End > Start) ->
     D;
 coverage_test3(Start, End, D) ->
+    1=2,
     io:fwrite("coverage test height: "),
     io:fwrite(integer_to_list(Start)),
     io:fwrite("\n"),
-    Bs0 = block_db:read_by_height(Start),
-    Bs = block_db:uncompress(Bs0),
+    %Bs0 = block_db:read_by_height(Start),
+    %Bs = block_db:uncompress(Bs0),
+    Bs = block_db3:read(Start, Start),
     %Bs is a dictionary storing blocks by blockhash.
     Keys = dict:fetch_keys(Bs),
     D2 = lists:foldl(

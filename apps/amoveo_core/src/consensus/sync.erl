@@ -177,9 +177,9 @@ get_headers() ->
           end).
 get_headers(Peer) -> 
     N = (headers:top())#header.height,
-    %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-    %Start = max(0, N - FT), 
-    Start = max(0, N+1), 
+    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+    Start = max(0, N - FT), 
+    %Start = max(0, N+1), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
     {ok, HB} = ?HeadersBatch,
@@ -247,6 +247,10 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
     receive
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
             blocks_process_stream(<<>>, block:top());
+        {http, {_Ref, {{"HTTP/1.1",404,"Not Found"},[_,_,_],_}}} ->
+            io:fwrite("stream returned 404 - Not Found"),
+            ok;
+%i{http,{#Ref<0.3209288097.2305294337.37580>,{{"HTTP/1.1",404,"Not Found"},[{"date","Tue, 03 Jun 2025 09:55:56 GMT"},{"server","Cowboy"},{"content-length","0"}],<<>>}}}
         X ->
             io:fwrite("unhandled stream header\n"),
             io:fwrite(X),

@@ -435,7 +435,8 @@ sync(IP, Port, CPL) ->
                     StemHashb = stem_verkle:hash(Stem1),
                     StemHashb = stem_verkle:hash(Stem2),
                     BlockB = NBlock#block{trees = NewPointer},
-                    gen_server:cast(block_db, {write, BlockB, CP1}),
+                    %gen_server:cast(block_db, {write, BlockB, CP1}),
+                    block_db3:write(BlockB, CP1),
                     io:fwrite("successfully updated the block\n"),
                     ok;
                 true -> ok
@@ -595,6 +596,10 @@ rs_process_stream(Height, Block, Roots, Data0) ->
         {http, {_Ref, stream_end, _}} -> 
             io:fwrite("stream ended normally\n"),
             <<>>;
+        {http, {_Ref, stream_start, _}} -> 
+            io:fwrite("stream start\n"),
+            %rs_process_stream(Height, Block, Roots, <<>>);
+            rs_process_stream(Height, Block, Roots, Data0);
         X -> 
             io:fwrite("unhandled stream body"),
             io:fwrite(X)
@@ -657,9 +662,13 @@ try_process_block(
             {ok, Header} = headers:read(BH),
             true = (Header#header.height == 
                         Block#block.height),
+            %io:fwrite("absorbing the header"),
             headers:absorb_with_block([Header]),
+            %io:fwrite("absorbing the block"),
             block_db3:write(Block, BH),
+            %io:fwrite("setting the top"),
             block_db3:set_top(BH),
+            %io:fwrite("done"),
             %block_db3:write(Block4),
             %io:fwrite(Block),
 

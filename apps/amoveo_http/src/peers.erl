@@ -24,10 +24,7 @@ init(ok) ->
     spawn(fun() ->
 		  timer:sleep(1000),
 		  %{ok, Peers} = application:get_env(amoveo_core, peers),
-                  Peers = case application:get_env(amoveo_core, peers) of
-                              {ok, P} -> P;
-                              undefined -> []
-                          end,
+                  Peers = peers_check(),
 		  {ok, Port} = application:get_env(amoveo_core, port),
 		  add(Peers),
 		  IP = my_ip(),
@@ -121,6 +118,15 @@ add({IP, Port}) ->
 	    end
     end.
 
+peers_check() ->
+    case application:get_env(amoveo_core, peers) of
+        {ok, P} -> P;
+        undefined -> []
+    end.
+is_in(A, [A|_]) -> true;
+is_in(A, [_|T]) -> is_in(A, T);
+is_in(A, []) -> false.
+
 update(Peer, Properties) ->
     gen_server:cast(?MODULE, {update, Peer, Properties}).
 
@@ -128,8 +134,16 @@ remove(Peer) ->
     %io:fwrite("removing peer "),
     %io:fwrite(packer:pack(Peer)),
     %io:fwrite("\n"),
-    blacklist_peer:add(Peer),
-    gen_server:cast(?MODULE, {remove, Peer}).
+    
+    %TODO if it is in the config peers list, then do not remove it.
+    Peers = peers_check(),
+    IsIn = is_in(Peer, Peers),
+    if
+        IsIn -> ok;
+        true ->
+            blacklist_peer:add(Peer),
+            gen_server:cast(?MODULE, {remove, Peer})
+    end.
 
 read(Peer) -> gen_server:call(?MODULE, {read, Peer}).
 

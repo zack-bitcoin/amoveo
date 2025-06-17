@@ -1,7 +1,13 @@
+in peers.erl, if a peer is in the default list, then never remove them from the list of peers. there is a TODO in peers.erl
+
+
+
 we need to stream blocks.
+X * remove block.prev_hashes
 X * set up block_db3 to receive the blocks whenever block_db does.
-* every place that reads from block_db, have them use block_db3 instead.
-* remove block_db
+X * every place that reads from block_db, have them use block_db3 instead.
+* remove block_db from list of gen_servers
+* remove block_db from codebase.
 X * make an api to stream blocks and read from block_db3.
 * sync should use the new streaming api
 * sync reverse should use the new streaming api

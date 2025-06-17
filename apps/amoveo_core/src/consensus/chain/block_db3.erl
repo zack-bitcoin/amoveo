@@ -6,6 +6,7 @@
 read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, test/1, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
 compress/1, uncompress/1, compress/2, uncompress/2,
 compress2/1,
+exists/1,
 copy_everything_from_block_db/1]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db3_dict()). %this file stores the #d record. The ram part of this gen server.
@@ -239,6 +240,8 @@ uncompress2(X) ->
 
 check() ->
     gen_server:call(?MODULE, check).
+exists(Hash) ->
+    not(read(Hash) == <<>>).
 read(Hash) ->
     gen_server:call(?MODULE, {read, Hash}).
 read(Start, End) ->
@@ -256,9 +259,11 @@ write(Block) ->
 write(Block, Hash) ->
     Bool = (is_integer(Block#block.trees)),
     Bool2 = is_record(Block#block.trees, trees),
+    Bool3 = is_record(Block#block.trees, trees5),
     if
         Bool -> ok;
         Bool2 -> ok;
+        Bool3 -> ok;
         true -> io:fwrite(Block#block.trees)
     end,
     gen_server:cast(?MODULE, {write, Block, Hash}).
@@ -271,16 +276,6 @@ get_pid() ->
 top() ->
     gen_server:call(?MODULE, top).
 
-    
-test(0) ->
-    Height = block:height(),
-    Blocks = block_db:read(10, Height-10),
-    lists:map(fun(X) -> 
-                      Hash = block:hash(X),
-                      write(X, Hash),
-                      set_top(Hash)
-              end, Blocks),
-    read(Height-10, Height-1);
 test(1) ->
     copy_everything_from_block_db(0),
     set_top(block:hash(block:get_by_height(350000))).

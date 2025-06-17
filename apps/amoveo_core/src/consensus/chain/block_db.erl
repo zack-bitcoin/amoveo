@@ -674,7 +674,8 @@ write(Block, Hash) ->
                  0 -> Block;
                  _ ->
                     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
-                     PrevHashes = block:calculate_prev_hashes(PrevHeader),
+                     %PrevHashes = block:calculate_prev_hashes(PrevHeader),
+                     PrevHashes = 0,
                      Block#block{prev_hashes = PrevHashes}
                      %Block
              end,

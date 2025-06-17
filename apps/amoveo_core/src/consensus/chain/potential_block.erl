@@ -114,6 +114,7 @@ new_internal2(TP) ->
     PB = block:get_by_height(T),
     if
 	PB == empty -> "";
+	PB == error -> "";
 	%PB == empty -> 
         %    io:fwrite("potential block new internal2 loop\n"),
         %    timer:sleep(100),

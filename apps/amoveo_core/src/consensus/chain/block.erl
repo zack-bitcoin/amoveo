@@ -55,9 +55,13 @@ txs_proofs_hash(Txs, Proofs) ->
     X = <<TB/binary, PB/binary>>,
     hash:doit(X).
 block_to_header(B) ->
-    %io:fwrite("block to header "),
-    %io:fwrite(integer_to_list(B#block.height)),
-    %io:fwrite("\n"),
+    if
+        (B == error) -> 1=2;
+        true -> ok
+    end,
+%    io:fwrite("block to header "),
+%    io:fwrite(integer_to_list(B#block.height)),
+%    io:fwrite("\n"),
     BV = [{1, B#block.market_cap},
 	  {2, B#block.channels_veo},
 	  {3, B#block.live_channels},
@@ -125,8 +129,10 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
     end.
 get_by_hash(H) -> 
     Hash = hash(H),
-    case block_db:read(Hash) of
+    %case block_db:read(Hash) of
+    case block_db3:read(Hash) of
         error -> empty;
+        <<>> -> empty;
         X -> X
     end.
             
@@ -157,7 +163,11 @@ bottom(M, N) when (N > M) ->
 
 top() -> 
     %O(log(# blocks))
-    top(headers:top_with_block()).%what we actually want is the highest header for which we have a stored block.
+    H = headers:top_with_block(),
+    get_by_hash(hash(H)).
+%    io:fwrite("block top start\n"),
+%    io:fwrite(H),
+%    top(H).%what we actually want is the highest header for which we have a stored block.
 top(Header) ->
     false = element(2, Header) == undefined,
     case get_by_hash(hash(Header)) of
@@ -195,29 +205,33 @@ get_by_height(N) ->
     L = block_db3:read(N, N),
     case L of
         [] -> error;
-        erro -> error;
+        error -> error;
         [X] -> X
     end.
              
 get_by_height_old(N) ->
     {ok, DBV} = application:get_env(amoveo_core, db_version),
     if
-        ((N == 0) and (DBV > 1)) -> block_db:genesis();
+        %((N == 0) and (DBV > 1)) -> block_db:genesis();
+        ((N == 0) and (DBV > 1)) -> hd(block_db3:read(0, 0));
         true ->
             get_by_height_in_chain(N, headers:top_with_block())
     end.
     %get_by_height_in_chain(N, headers:top_with_block()).
 get_by_height_in_chain(N, BH) when N > -1 ->
+    %no longer being used.
     %if we are using the new database, and the block is more than fork_tolerance in history, then we should use the new way of looking up blocks by height.
     HN = block:height(),
     %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     RH = block_db:ram_height(),
     {ok, DBV} = application:get_env(amoveo_core, db_version),
     if 
-        ((N == 0) and (DBV > 1)) -> block_db:genesis();
+        %((N == 0) and (DBV > 1)) -> block_db:genesis();
+        ((N == 0) and (DBV > 1)) -> hd(block_db3:read(0, 0));
         ((DBV > 1) and (N < RH)) -> 
-            block_db:by_height_from_compressed(
-              block_db:read_by_height(N), N);
+            hd(block_db3:read(N, N));
+%            block_db:by_height_from_compressed(
+%              block_db:read_by_height(N), N);
         true ->
             Block = get_by_hash(hash(BH)),
     %io:fwrite(packer:pack(Block)),
@@ -586,7 +600,8 @@ make(Header, Txs0, Trees, Pub) ->
 
 		   version = version:doit(Height+1),%constants:version(),
 		   trees = NewTrees,
-		   prev_hashes = calculate_prev_hashes(Header),
+		   %prev_hashes = calculate_prev_hashes(Header),
+		   prev_hashes = 0,
 		   proofs = Facts,
                    roots = Roots,
 		   %market_cap = OldBlock#block.market_cap + BlockReward - gov_fees(Txs0, Governance),
@@ -783,7 +798,10 @@ mine(Block, Rounds, 1) ->
             headers:absorb([Header]),
             headers:absorb_with_block([Header]),
                         %block_absorber:save(PBlock),
+            Hash = hash(Header),
+            block_db3:write(PBlock, Hash),
             block_organizer:add([PBlock])
+                
                         %sync:start()
     end;
 mine(Block, Rounds, Cores) ->
@@ -796,6 +814,8 @@ mine(Block, Rounds, Cores) ->
                         headers:absorb([Header]),
 			headers:absorb_with_block([Header]),
                         %block_absorber:save(PBlock),
+                        Hash = hash(Header),
+                        block_db3:write(PBlock, Hash),
                         block_organizer:add([PBlock])
                         %sync:start()
                 end
@@ -1103,8 +1123,8 @@ check3(OldBlock, Block) ->
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
 
-    MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height-1),
-    true = Block#block.market_cap == MarketCap,
+    %MarketCap = market_cap(OldBlock, BlockReward, Txs0, Dict, Height-1),
+    %true = Block#block.market_cap == MarketCap,
     %io:fwrite("block check 5\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),

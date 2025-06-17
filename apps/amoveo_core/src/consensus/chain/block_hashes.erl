@@ -80,7 +80,8 @@ sci2([H|LI], LO, S) ->
                 _ -> sci2(LI, [H|LO], S)
             end;
         _ ->
-            case block_db:exists(H) of
+            %case block_db:exists(H) of
+            case block_db3:exists(H) of
                 false -> sci2(LI, LO, i_remove(H, S));
                 true -> sci2(LI, [H|LO], S)
             end
