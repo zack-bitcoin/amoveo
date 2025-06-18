@@ -22,7 +22,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
-    %io:fwrite("sync main \n"),
+    io:fwrite("sync main \n"),
     BL = case application:get_env(amoveo_core, kind) of
 	     {ok, "production"} ->%don't blacklist peers in test mode.
 		 blacklist_peer:check(Peer);
