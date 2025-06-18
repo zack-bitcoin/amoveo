@@ -30,17 +30,21 @@ handle_cast({main, Peer}, _) ->
 	 end,
     S = status(),
     if 
-	BL -> ok;
-	Peer == error -> ok;
+	BL -> 
+            io:fwrite("peer is blacklisted\n"),
+            ok;
+	Peer == error -> 
+            io:fwrite("peer is error\n"),
+            ok;
 	not(S == go) -> 
-	    %io:fwrite("not syncing with this peer now "),
-	    %io:fwrite(packer:pack(Peer)),
-	    %io:fwrite("\n"),
+	    io:fwrite("not syncing with this peer now "),
+	    io:fwrite(packer:pack(Peer)),
+	    io:fwrite("\n"),
 	    ok;
 	true ->
-	    %io:fwrite("syncing with this peer now "),
-	    %io:fwrite(packer:pack(Peer)),
-	    %io:fwrite("\n"),
+	    io:fwrite("syncing with this peer now "),
+	    io:fwrite(packer:pack(Peer)),
+	    io:fwrite("\n"),
 	    sync_peer(Peer),
 	    case application:get_env(amoveo_core, kind) of
 		{ok, "production"} ->
