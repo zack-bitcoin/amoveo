@@ -146,7 +146,10 @@ doit({headers, _H}) ->
 %		  end
 %	  end),
     {ok, 0};
-doit({headers, _Many, N}) -> 
+doit({headers, Many0, N}) -> 
+    Many = min(Many0, 5000),
+    {ok, many_headers(Many, N)};
+doit({headers, _Many, N}) ->  % unused
     
     %todo. if we look up earlier than 260000, the output is 5000 blocks earlier than we had wanted.
     %todo. doesn't include top header in output.
