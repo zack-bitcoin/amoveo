@@ -467,6 +467,7 @@ sequential_loop([Prev|[Block|Rest]]) ->
     
 process_block_sequential(Block, Prev) ->
     BH = block:hash(Block),
+    io:fwrite(Prev),
     true = (Prev#block.height + 1 == Block#block.height),
     #block{
        height = Height2
