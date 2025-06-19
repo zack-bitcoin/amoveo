@@ -253,12 +253,15 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
             blocks_process_stream(<<>>, block:top());
         {http, {_Ref, {{"HTTP/1.1",404,"Not Found"},[_,_,_],_}}} ->
             io:fwrite("stream returned 404 - Not Found"),
+            spawn(fun() ->
+                          new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
+                  end),
             ok;
 %i{http,{#Ref<0.3209288097.2305294337.37580>,{{"HTTP/1.1",404,"Not Found"},[{"date","Tue, 03 Jun 2025 09:55:56 GMT"},{"server","Cowboy"},{"content-length","0"}],<<>>}}}
         X ->
             io:fwrite("unhandled stream header\n"),
             io:fwrite(X),
-            X
+            ok
     after 1000 ->
             io:fwrite("failed to start receiving stream\n"),
             ok
@@ -450,7 +453,10 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
             %io:fwrite("\n"),
             %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
             io:fwrite("adding blocks to block organizer\n"),
-            block_organizer:add(L)
+            lists:map(fun(BlockX) ->
+                              block_db3:write(BlockX)
+                      end, L)
+            %block_organizer:add(L)
                 %split_add(S2, Cores, L)
     end.
 wait_do(FB, F, T) ->
@@ -495,7 +501,8 @@ merge([H1|T1], [H2|T2]) ->
         true -> [H1|merge(T1, [H2|T2])]
     end.
             
-remove_self(L) ->%assumes that you only appear once or zero times in the list.
+remove_self(L) ->
+%assumes that you only appear once or zero times in the list.
     MyIP = peers:my_ip(),
     {ok, MyPort} = application:get_env(amoveo_core, port),
     Me = {MyIP, MyPort},
