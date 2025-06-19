@@ -498,7 +498,7 @@ process_block_sequential(Block, Prev) ->
     true = (Header#header.height == 
                 Block#block.height),
     headers:absorb_with_block([Header]),
-    block_db3:write(Block2),
+    block_db3:write(Block2, BH),
     Block2.
 wait_do(FB, F, T) ->
     spawn(fun() ->

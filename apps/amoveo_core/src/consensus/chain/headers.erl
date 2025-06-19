@@ -160,6 +160,7 @@ absorb([First|T], R) when is_binary(First) ->
     A = deserialize(First),
     absorb([A|T], R);
 absorb([Header | T], CommonHash) ->
+    io:fwrite("absorb header " ++ integer_to_list(Header#header.height) ++ " \n"),
     Bool = Header#header.difficulty >= constants:initial_difficulty(),
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     AH = api:height(),
