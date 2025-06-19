@@ -310,32 +310,34 @@ try_process_block(FullData = <<Size:64, Data/binary>>, MyTopBlock) ->
             %io:fwrite("got a block in try_process_block\n"),
             <<Blockx:(Size*8), Rest/binary>> = Data,
             Block = block_db3:uncompress(<<Blockx:(Size*8)>>),
-            BH = block:hash(Block),
-            true = (MyTopBlock#block.height + 1 == Block#block.height),
-            #block{
-               height = Height2
-              } = Block,
-            if
-                (Height2 == F52) -> 
+            Block2 = process_block_sequential(Block, MyTopBlock), 
+
+%            BH = block:hash(Block),
+%            true = (MyTopBlock#block.height + 1 == Block#block.height),
+%            #block{
+%               height = Height2
+%              } = Block,
+%            if
+%                (Height2 == F52) -> 
                     %hardcode verkle update block hash, so we don't have to check blocks from before this point.
-                    true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
-                true -> ok
-            end,
-            Block2 = if
-                         (TestMode or ((Height2 > F52) and (Height2 > MTV))) ->
+%                    true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
+%                true -> ok
+%            end,
+%            Block2 = if
+%                         (TestMode or ((Height2 > F52) and (Height2 > MTV))) ->
                    %after verkle update
-                             X = block:check0(Block),
-                             {true, Block3} = block:check2(MyTopBlock, Block#block{trees = X}),
-                             Block3;
-                         true ->
-                             Block
-                     end,
+%                             X = block:check0(Block),
+%                             {true, Block3} = block:check2(MyTopBlock, Block#block{trees = X}),
+%                             Block3;
+%                         true ->
+%                             Block
+%                     end,
             %check every block matches it's header, even from before the verkle update height
-            {ok, Header} = headers:read(BH),
-            true = (Header#header.height == 
-                        Block#block.height),
-            headers:absorb_with_block([Header]),
-            block_db3:write(Block2),
+%            {ok, Header} = headers:read(BH),
+%            true = (Header#header.height == 
+%                        Block#block.height),
+%            headers:absorb_with_block([Header]),
+%            block_db3:write(Block2),
             {Rest, Block2};
         true ->
             %io:fwrite("less than entire block " ++ integer_to_list(size(Data)) ++ " " ++ integer_to_list(Size) ++ "\n"),
@@ -453,15 +455,49 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
             %io:fwrite("\n"),
             %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
             io:fwrite("adding blocks to block organizer\n"),
-            lists:map(fun(BlockX) ->
-                              BH = block:hash(BlockX),
-                              {ok, Header} = headers:read(BH),
-                              headers:absorb_with_block([Header]),
-                              block_db3:write(BlockX)
-                      end, L)
+            Top = block:get_by_height(((hd(L))#block.height - 1)),
+            sequential_loop([Top|L])
             %block_organizer:add(L)
                 %split_add(S2, Cores, L)
     end.
+sequential_loop([X]) -> ok;
+sequential_loop([Prev|[Block|Rest]]) -> 
+    process_block_sequential(Block, Prev),
+    sequential_loop([Block|Rest]).
+    
+process_block_sequential(Block, Prev) ->
+    BH = block:hash(Block),
+    true = (Prev#block.height + 1 == Block#block.height),
+    #block{
+       height = Height2
+      } = Block,
+    F52 = forks:get(52),
+    {ok, MTV} = application:get_env(
+                  amoveo_core, minimum_to_verify),
+    {ok, TestMode} = application:get_env(
+                       amoveo_core, test_mode),
+    if
+        (Height2 == F52) -> 
+           %hardcode verkle update block hash, so we don't have to check blocks from before this point.
+            true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
+        true -> ok
+    end,
+    Block2 = if
+                 (TestMode or ((Height2 > F52) and (Height2 > MTV))) ->
+                   %after verkle update
+                     X = block:check0(Block),
+                     {true, Block3} = block:check2(Prev, Block#block{trees = X}),
+                     Block3;
+                 true ->
+                     Block
+             end,
+            %check every block matches it's header, even from before the verkle update height
+    {ok, Header} = headers:read(BH),
+    true = (Header#header.height == 
+                Block#block.height),
+    headers:absorb_with_block([Header]),
+    block_db3:write(Block2),
+    Block2.
 wait_do(FB, F, T) ->
     spawn(fun() ->
                   go = sync_kill:status(),
