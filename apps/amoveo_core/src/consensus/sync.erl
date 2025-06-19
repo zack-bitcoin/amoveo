@@ -506,7 +506,8 @@ remove_self2([], _) -> [];
 remove_self2([{{127,0,0,1}, MyPort}|T], {MyIP, MyPort}) ->
     Me = {MyIP, MyPort},
     remove_self2(T, Me);
-remove_self2([Me|T], Me) -> T;
+remove_self2([Me|T], Me) -> 
+    remove_self2(T, Me);
 remove_self2([H|T], Me) ->
     [H|remove_self2(T, Me)].
 shuffle([]) -> [];
