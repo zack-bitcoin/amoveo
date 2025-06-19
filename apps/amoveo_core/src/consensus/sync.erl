@@ -581,8 +581,10 @@ trade_txs(Peer) ->
 sync_peer(Peer) ->
     io:fwrite("sync peer \n"),
     io:fwrite("\n"),
+    io:fwrite("trade peers \n"),
     spawn(fun() -> trade_peers(Peer) end),
     MyTop = headers:top(),
+    io:fwrite("trade headers \n"),
     spawn(fun() -> get_headers(Peer) end),
     {ok, HB} = ?HeadersBatch,
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
@@ -598,7 +600,7 @@ sync_peer(Peer) ->
         true -> sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
-    %io:fwrite("sync_peer2\n"),
+    io:fwrite("sync_peer2\n"),
     TTHH = TheirTopHeader#header.height,
     MTHH = (headers:top())#header.height,
     if
