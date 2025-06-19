@@ -454,6 +454,9 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
             %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
             io:fwrite("adding blocks to block organizer\n"),
             lists:map(fun(BlockX) ->
+                              BH = block:hash(BlockX),
+                              {ok, Header} = headers:read(BH),
+                              headers:absorb_with_block([Header]),
                               block_db3:write(BlockX)
                       end, L)
             %block_organizer:add(L)
