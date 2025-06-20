@@ -173,11 +173,9 @@ trade_peers(Peer) ->
     remote_peer({peers, MyPeers}, Peer),
     peers:add(TheirsPeers).
 get_headers() -> 
-    Peers = peers:all(),
-    Peers2 = shuffle(Peers),
-    Peers3 = remove_self(Peers),
+    Peers = shuffle(remove_self(peers:all())),
     spawn(fun() ->
-                  get_headers(hd(Peers3))
+                  get_headers(hd(Peers))
           end).
 get_headers(Peer) -> 
     N = (headers:top())#header.height,
@@ -188,6 +186,8 @@ get_headers(Peer) ->
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
     {ok, HB} = ?HeadersBatch,
     io:fwrite("get headers 2 inputs " ++ integer_to_list(HB) ++ " " ++ integer_to_list(N) ++ "\n"),
+    {{P1, P2, P3, P4}, _} = Peer,
+    io:fwrite("peer is " ++ integer_to_list(P1) ++ "." ++ integer_to_list(P2) ++ "." ++ integer_to_list(P3) ++ "." ++ integer_to_list(P4) ++ " \n"),
     Headers = remote_peer({headers, HB, N}, Peer),
     case Headers of
 	error -> 
@@ -197,6 +197,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
             io:fwrite("get headers error 2\n"),
             error;
 	_ ->
+            io:fwrite("absorbing " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height)),
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),
             %io:fwrite("headers length"),
