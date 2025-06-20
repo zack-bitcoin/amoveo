@@ -3,6 +3,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,
          handle_cast/2,handle_info/2,init/1,terminate/2,
+         peers_check/0,
          remove_all/0]).
 
 %% API
@@ -124,12 +125,26 @@ add({IP, Port}) ->
 update(Peer, Properties) ->
     gen_server:cast(?MODULE, {update, Peer, Properties}).
 
+is_in(A, [A|_]) -> true;
+is_in(A, [_|T]) -> is_in(A, T);
+is_in(A, []) -> false.
+peers_check() ->
+    case application:get_env(amoveo_core, peers) of
+        {ok, P} -> P;
+        undefined -> []
+    end.
 remove(Peer) -> 
     %io:fwrite("removing peer "),
     %io:fwrite(packer:pack(Peer)),
     %io:fwrite("\n"),
-    blacklist_peer:add(Peer),
-    gen_server:cast(?MODULE, {remove, Peer}).
+    Peers = peers_check(),
+    IsIn = is_in(Peer, Peers),
+    if
+        IsIn -> ok;
+        true ->
+            blacklist_peer:add(Peer),
+            gen_server:cast(?MODULE, {remove, Peer})
+    end.
 
 read(Peer) -> gen_server:call(?MODULE, {read, Peer}).
 

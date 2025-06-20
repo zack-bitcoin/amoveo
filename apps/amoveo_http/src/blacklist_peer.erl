@@ -34,9 +34,20 @@ handle_call(_, _From, X) -> {reply, X, X}.
 remove(Peer) ->
     {{_,_,_,_},_} = Peer,
     gen_server:cast(?MODULE, {remove, Peer}).
+is_in(A, [A|_]) -> true;
+is_in(A, [_|T]) -> is_in(A, T);
+is_in(A, []) -> false.
 add(Peer) ->
-    {{_,_,_,_},_} = Peer,
-    gen_server:cast(?MODULE, {add, Peer, now()}).
+    Peers = peers:peers_check(),
+    IsIn = is_in(Peer, Peers),
+    if
+        IsIn -> ok;
+        true ->
+            {{_,_,_,_},_} = Peer,
+            gen_server:cast(?MODULE, {add, Peer, now()})
+    end.
+    %{{_,_,_,_},_} = Peer,
+    %gen_server:cast(?MODULE, {add, Peer, now()}).
 check(Peer) ->
     gen_server:call(?MODULE, {check, Peer}).
 time_diff({N1, N2, _N3}, {O1, O2, _O3}) ->
