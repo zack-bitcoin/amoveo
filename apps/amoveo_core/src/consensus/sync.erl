@@ -190,14 +190,11 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
             io:fwrite("get headers error 2\n"),
             error;
 	_ ->
+            %io:fwrite("got " ++ integer_to_list(length(Headers)) ++ " headers"),
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),
-            %io:fwrite("headers length"),
-            %io:fwrite(integer_to_list(L)),
-            %io:fwrite("\n"),
-            %io:fwrite("headers requested height start "),
-            %io:fwrite(integer_to_list(N)),
-            %io:fwrite("\n"),
+            io:fwrite("headers length" ++ integer_to_list(L) ++ " \n"),
+            io:fwrite("headers requested height start " ++ integer_to_list(N) ++ "\n"),
 	    case CommonHash of
 		<<>> -> 
 		    if 
