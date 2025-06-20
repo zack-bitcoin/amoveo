@@ -169,11 +169,9 @@ trade_peers(Peer) ->
     remote_peer({peers, MyPeers}, Peer),
     peers:add(TheirsPeers).
 get_headers() -> 
-    Peers = peers:all(),
-    Peers2 = shuffle(Peers),
-    Peers3 = remove_self(Peers),
+    Peers = shuffle(remove_self(peers:all())),
     spawn(fun() ->
-                  get_headers(hd(Peers3))
+                  get_headers(hd(Peers))
           end).
 get_headers(Peer) -> 
     N = (headers:top())#header.height,
