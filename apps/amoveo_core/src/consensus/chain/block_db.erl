@@ -30,15 +30,16 @@
            }).
 init(ok) ->
      
-    %io:fwrite("start block_db\n"),
+    io:fwrite("start block_db\n"),
     process_flag(trap_exit, true),
-        {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
-        X = db:read(?LOC),
-        Ka = if
-                      X == "" ->
-                      #d{};
-                      true -> X
-                                   end,
+    io:fwrite("blocks loc is " ++ ?blocks_loc),
+    {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
+    X = db:read(?LOC),
+    Ka = if
+             X == "" ->
+                 #d{};
+             true -> X
+         end,
     case ets:info(?MODULE) of
         undefined ->
             case ets:file2tab(?LOC2) of
