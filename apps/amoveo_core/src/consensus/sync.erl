@@ -175,7 +175,7 @@ get_headers() ->
           end).
 get_headers(Peer) -> 
     N = (headers:top())#header.height,
-    %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     Start = max(0, N - FT), 
     %Start = max(0, N+1), 
     get_headers2(Peer, Start).
