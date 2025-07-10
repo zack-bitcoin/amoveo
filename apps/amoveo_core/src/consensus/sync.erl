@@ -489,6 +489,7 @@ sequential_loop([Prev|[Block|Rest]]) ->
     sequential_loop([Block2|Rest]).
     
 process_block_sequential(Block, Prev) ->
+    go = sync_kill:status(),
     BH = block:hash(Block),
     %io:fwrite(Prev),
     true = (Prev#block.height + 1 == Block#block.height),
