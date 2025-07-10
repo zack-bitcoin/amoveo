@@ -261,12 +261,25 @@ write(Block, Hash) ->
     Bool2 = is_record(Block#block.trees, trees),
     Bool3 = is_record(Block#block.trees, trees5),
     if
-        Bool -> ok;
-        Bool2 -> ok;
-        Bool3 -> ok;
-        true -> io:fwrite(Block#block.trees)
+        Bool -> %io:fwrite("cant store block 1\n"),
+                ok;
+        Bool2 -> %io:fwrite("can't store block 2\n"),
+                 ok;
+        Bool3 -> %io:fwrite("can't store block 3\n"),
+                 ok;
+        true -> %io:fwrite(Block#block.trees)
+            ok
     end,
-    gen_server:cast(?MODULE, {write, Block, Hash}).
+    H = headers:top_with_block(),
+    Hash2 = block:hash(H),
+    gen_server:cast(?MODULE, {write, Block, Hash}),
+    %if this is the top of the headers, then do a set_top(Hash).
+    if
+        (Hash2 == Hash) ->
+            set_top(Hash);
+        true -> ok
+    end.
+    
 set_top(Hash) ->
     gen_server:cast(?MODULE, {set_top, Hash}).
 genesis() ->

@@ -196,7 +196,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 	bad_peer -> 
             io:fwrite("get headers error 2\n"),
             error;
-	_ ->
+	[_|_] ->
             io:fwrite("absorbing " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height)),
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),
@@ -215,7 +215,11 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 		_ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
 						%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
 		     CommonHash
-	    end
+	    end;
+        [] -> ok;
+        _ ->
+            io:fwrite("headers not a list"),
+            io:fwrite(Headers)
     end.
 get_headers3(Peer, N) ->
     AH = api:height(),
@@ -238,6 +242,7 @@ ip_url_format({{A, B, C, D}, _}) ->
     integer_to_list(D).
 
 stream_get_blocks(Peer, N, TheirBlockHeight) ->
+    io:fwrite("stream get blocks\n"),
     true = N < TheirBlockHeight,
     %PM = packer:pack({N, TheirBlockHeight}),
     Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(N) ++ "_" ++ integer_to_list(TheirBlockHeight),
@@ -457,19 +462,35 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
             %io:fwrite("\n"),
             %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
             io:fwrite("adding blocks to block organizer\n"),
-            Top = block:get_by_height(((hd(L))#block.height - 1)),
-            sequential_loop([Top|L])
-            %block_organizer:add(L)
-                %split_add(S2, Cores, L)
+            skip_ahead_to_the_checkpoint(L)
     end.
+skip_ahead_to_the_checkpoint([]) -> ok;
+skip_ahead_to_the_checkpoint(L) ->
+    Start = (hd(L))#block.height - 1,
+    io:fwrite("skip ahaead checkpoint " ++ integer_to_list(Start) ++ "\n"),
+    BH = block:height(),
+    if
+        (Start > (BH+1)) -> 
+            io:fwrite("too far\n"),
+            ok;
+        true ->
+            Top = block:get_by_height(Start),
+            case Top of
+                error -> skip_ahead_to_the_checkpoint(tl(L));
+                _ -> 
+                    sequential_loop([Top|L]),
+                    sync:start()
+            end
+    end.
+            
 sequential_loop([X]) -> ok;
 sequential_loop([Prev|[Block|Rest]]) -> 
-    process_block_sequential(Block, Prev),
-    sequential_loop([Block|Rest]).
+    Block2 = process_block_sequential(Block, Prev),
+    sequential_loop([Block2|Rest]).
     
 process_block_sequential(Block, Prev) ->
     BH = block:hash(Block),
-    io:fwrite(Prev),
+    %io:fwrite(Prev),
     true = (Prev#block.height + 1 == Block#block.height),
     #block{
        height = Height2
@@ -493,6 +514,7 @@ process_block_sequential(Block, Prev) ->
                      {true, Block3} = block:check2(Prev, Block#block{trees = X}),
                      Block3;
                  true ->
+                     io:fwrite("block left unverified\n"),
                      Block
              end,
             %check every block matches it's header, even from before the verkle update height
@@ -644,11 +666,18 @@ sync_peer(Peer) ->
     TheirBlockHeight = remote_peer({height}, Peer),
     TheirHeaders = remote_peer({headers, HB, max(0, MyBlockHeight - FT)}, Peer),
     TopCommonHeader = top_common_header(TheirHeaders),
+    
+    io:fwrite("start if statement\n"),
     if
         is_atom(TheirTop) -> error;
         is_atom(TheirBlockHeight) -> error;
-        is_atom(TopCommonHeader) -> error;
-        true -> sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
+        is_atom(TopCommonHeader) -> 
+            io:fwrite("failed to calculate top common header\n"),
+            io:fwrite(TopCommonHeader),
+            error;
+        true -> 
+            io:fwrite("exited if statement\n"),
+            sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
     io:fwrite("sync_peer2\n"),

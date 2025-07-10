@@ -437,6 +437,7 @@ sync(IP, Port, CPL) ->
                     BlockB = NBlock#block{trees = NewPointer},
                     %gen_server:cast(block_db, {write, BlockB, CP1}),
                     block_db3:write(BlockB, CP1),
+                    block_db3:set_top(CP1),
                     io:fwrite("successfully updated the block\n"),
                     ok;
                 true -> ok

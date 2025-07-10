@@ -1,3 +1,11 @@
+trying to get the new node to be able to sync blocks from the old code.
+Currently, it stores a block in block_db3, but then when we try to read it, it is like it does not exist.
+
+
+
+
+
+
 in peers.erl, if a peer is in the default list, then never remove them from the list of peers. there is a TODO in peers.erl
 
 

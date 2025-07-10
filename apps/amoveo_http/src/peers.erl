@@ -136,7 +136,6 @@ remove(Peer) ->
     %io:fwrite(packer:pack(Peer)),
     %io:fwrite("\n"),
     
-    %TODO if it is in the config peers list, then do not remove it.
     Peers = peers_check(),
     IsIn = is_in(Peer, Peers),
     if
