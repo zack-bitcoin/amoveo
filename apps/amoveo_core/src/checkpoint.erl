@@ -577,7 +577,9 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
             rs_process_stream(Height, Block2, Roots, <<>>);
         {http, {_Ref, {{_, 404, _},_, _}}} ->
             io:fwrite("404 error\n"),
-            ok;
+            Trees = block:check0(Block2),
+            Block3 = Block2#block{trees = Trees},
+            reverse_sync2(Height, Peer, Block3, Roots);
         X ->
             io:fwrite("unhandled stream header\n"),
             io:fwrite(X),
@@ -854,7 +856,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
         ((Height rem 200) == 0) ->
         %((Height rem 1) == 0) ->
             {_, T1, T2} = erlang:timestamp(),
-            io:fwrite("absorb in reverse 826 " ++
+            io:fwrite("absorb in reverse in pages " ++
                           integer_to_list(B#block.height) ++
                           " time: " ++
                           integer_to_list(T1) ++
