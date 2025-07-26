@@ -110,7 +110,7 @@ absorb_internal(Block) ->
 			normal -> 
                             %todo. after orphan tx restoring is done in the headers, remove it from here.
 			    push_block:add(Block2),
-			    recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
+			    %recent_blocks:add(BH, Header#header.accumulative_difficulty, Height),
 			    %Txs0 = (tx_pool:get())#tx_pool.txs,
 			    %TB = block:top(),
 			    %TWBH0 = block:hash(headers:top_with_block()),
@@ -145,9 +145,9 @@ absorb_internal(Block) ->
                                               
                             ok;
 			quick -> 
-                            spawn(fun() ->
-                                          recent_blocks:add(BH, Header#header.accumulative_difficulty, Height)%garbage collection
-                                  end),
+%                            spawn(fun() ->
+                                          %recent_blocks:add(BH, Header#header.accumulative_difficulty, Height)%garbage collection
+%                                  end),
 			    %0.45 0.4 0.3
 			    %io:fwrite("block absorber 6\n"),
 			    %io:fwrite(packer:pack(erlang:timestamp())),

@@ -1,9 +1,10 @@
 -module(trees2).
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/4, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/3, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
-         one_root_clean/2, one_root_maker/2, recover_from_clean_version/1,
+         one_root_clean/2, one_root_maker/2, recover_from_clean_version/0,
          copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
          recover/1, to_keys/1, store_leaves/2, get_proof/3,
          cs2v/1, restore_leaves_proof/3, remove_leaves_proof/2,
+         multi_root_clean/0,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -826,6 +827,15 @@ deserialize(N, B) ->
     1=2,
     ok.
 
+to_flagged_keys([]) -> [];
+to_flagged_keys([{A, B}|T]) when is_binary(B) and is_atom(A) -> 
+    [{A, B}|to_flagged_keys(T)];
+to_flagged_keys([#acc{pubkey = P}|T]) -> 
+    [{accounts, P}|to_flagged_keys(T)];
+to_flagged_keys([X|_]) -> 
+    io:fwrite("trees2 to flagged account unsupported \n"),
+    io:fwrite(X),
+    ok.
     
 %to_keys(L) -> lists:map(fun(X) -> key(X) end, L).
 to_keys([]) -> [];
@@ -1537,17 +1547,37 @@ merkle2verkle(
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
 one_root_clean(Pointer, CFG) ->
-    Hash = scan_verkle(Pointer, CFG),
-    NewPointer = one_root_maker(Pointer, CFG),
+    Hash = scan_verkle(Pointer, CFG),%sanity check of the verkle tree data.
+    NewPointer = one_root_maker(Pointer, CFG),%copies everything that can be proven from a single root over to a new database, the clean version
     io:fwrite("one root clean 2\n"),
-    CFG2 = CFG#cfg{id = cleaner},
-    recover_from_clean_version(NewPointer),
+    recover_from_clean_version(),%reloads the database from the clean version.
     io:fwrite("one root clean 4\n"),
-    Hash = scan_verkle(NewPointer, CFG),
+    Hash = scan_verkle(NewPointer, CFG),%another sanity check to make sure that everything is ok.
     NewPointer.
 
+multi_root_clean() ->
+    RecentHashes = recent_blocks:read(),
+    L = lists:map(fun(H) ->
+                      Block = block:get_by_hash(H),
+                      Block#block.trees
+              end, RecentHashes),
+    multi_root_clean(L).
 
-one_root_maker(Pointer, CFG) ->
+multi_root_clean(Pointers) ->
+    %the pointers are to the roots of the blocks that we want to keep.
+    CFG = tree:cfg(amoveo),
+    io:fwrite("checksum building\n"),
+    Top = hd(lists:reverse(Pointers)),
+    Hashes = scan_verkle_many([Top], CFG),
+    io:fwrite("getting new pointers\n"),
+    NewPointers = multi_root_maker(Pointers, CFG),
+    io:fwrite("recover from the clean version\n"),
+    recover_from_clean_version(),
+    io:fwrite("checksum sanity check\n"),
+    Hashes = scan_verkle_many([Top], CFG),
+    ok.
+
+setup_clean_db(CFG) ->
     %delete the contents of the files in the cleaner folder.
     %os:cmd("truncate -s 0 cleaner/data/*"),
     %os:cmd("rm cleaner/data/*"),
@@ -1558,9 +1588,10 @@ one_root_maker(Pointer, CFG) ->
     timer:sleep(500),
     %reload the cleaner verkle tree, it should be empty.
     %io:fwrite("one_root_clean: reload the now empty cleaner db\n"),
-    bits:reset(accounts_cleaner),
     bits:reset(cleaner_v_leaf),
     bits:reset(cleaner_v_stem),
+
+    bits:reset(accounts_cleaner),
     bits:reset(contracts_cleaner),
     bits:reset(markets_cleaner),
     bits:reset(matched_cleaner),
@@ -1589,7 +1620,21 @@ one_root_maker(Pointer, CFG) ->
     dump:reload(futarchy_matched_cleaner),
 
     tree:reload_ets(cleaner),
-    timer:sleep(500),
+    timer:sleep(500).
+    
+
+multi_root_maker(Pointers, CFG) ->
+    io:fwrite("setup clean db\n"),
+    setup_clean_db(CFG),
+    io:fwrite("multi_root_clean: copy the data for that one root to the cleaner db\n"),
+    CFG2 = CFG#cfg{id = cleaner},
+    NewPointers = multi_root_clean_stem(Pointers, CFG, CFG2),
+    io:fwrite("multi_root_clean: back up the cleaner db to the hard disk\n"),
+    tree:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
+    NewPointers.
+
+one_root_maker(Pointer, CFG) ->
+    setup_clean_db(CFG),
     %build the clean version
     io:fwrite("one_root_clean: copy the data for that one root to the cleaner db\n"),
     CFG2 = CFG#cfg{id = cleaner},
@@ -1600,10 +1645,8 @@ one_root_maker(Pointer, CFG) ->
 
     NewPointer.
 
-recover_from_clean_version(Pointer) ->
+recover_from_clean_version() ->
     io:fwrite("one_root_clean: copying everything from the cleaner db back to the main db\n"),
-    io:fwrite("clean pointer: "),
-    io:fwrite(integer_to_list(Pointer)),
     io:fwrite("\n"),
 
 
@@ -1721,6 +1764,40 @@ copy_bits(I, Top, CleanName, Name) ->
         true -> ok
     end,
     copy_bits(I+1, Top, CleanName, Name).
+   
+multi_root_clean_stem(
+  %so you can delete everything in the database, except for the contents of those blocks that you care about.
+  %it puts the data you care about into a new database. The output pointers are for the new database.
+  Pointers, 
+  CFG, %reading from this old database
+  CFG2) -> %writing to this new one
+    %make a new verkle database. copy over everything that we want to keep. It is a depth first scan of the old tree.
+    %to avoid scanning the same things twice, we need to consolidate descendents.
+    Stems = lists:map(fun(P) ->
+                              stem_verkle:get(P, CFG)
+                      end, Pointers),
+    SanityHashes = lists:map(fun(S) ->
+                                     stem_verkle:hash(S)
+                             end, Stems),
+    Ps = lists:map(fun(S) ->
+                           tuple_to_list(stem_verkle:pointers(S))
+                   end, Stems),
+    Ts = lists:map(fun(S) ->
+                           tuple_to_list(stem_verkle:types(S))
+                   end, Stems),
+    Hs = lists:map(fun(S) ->
+                           tuple_to_list(stem_verkle:hashes(S))
+                   end, Stems),
+    P2s = multi_root_clean2(Ps, Ts, Hs, CFG, CFG2),
+    Stems2 = lists:map(fun({S, P}) ->
+                               setelement(4, S, list_to_tuple(P))
+                       end, lists:zip(Stems, P2s)),
+    SanityHashes = lists:map(fun(S) ->
+                                     stem_verkle:hash(S)
+                             end, Stems2),
+    lists:map(fun(S) ->
+                      stem_verkle:put(S, CFG2)
+              end, Stems2).
     
 
 one_root_clean_stem(Pointer, 
@@ -1743,7 +1820,106 @@ one_root_clean_stem(Pointer,
     SanityHash = stem_verkle:hash(S2),
     %S2 = S#stem_verkle{pointers = list_to_tuple(P2)},
     stem_verkle:put(S2, CFG2).
+
+cars(X) ->
+    {lists:map(fun([H|_]) -> H end, X),
+     lists:map(fun([_|T]) -> T end, X)}.
+conds(A, B) ->
+    lists:map(fun({X, Y}) ->
+                      [X|Y]
+              end, lists:zip(A, B)).
+                     
+multi_root_clean2(X = [[]|_],_,_,_,_) -> 
+    %io:fwrite("multi_root_clean2 terminate 1\n"),
+    X;
+multi_root_clean2([],_,_,_,_) -> 
+    %io:fwrite("multi_root_clean2 terminate 2\n"),
+    [];
+multi_root_clean2(Pss, %list of each stem's pointers to it's children.
+                  Tss, %list of each stem's types
+                  Hss, %list of each stem's child's hash.
+                  CFG, CFG2) ->
+    %io:fwrite("multi root clean2 " ++ integer_to_list(length(hd(Pss)))++ "\n"),
+%Pss
+%[[pointer_stem1_child1, pointer_stem2_child2,...],
+% [pointer_stem2_child1, pointer_stem2_child2,...],
+% ...]
+    {Ph, Pt} = cars(Pss),
+    {Th, Tt} = cars(Tss),
+    {Hh, Ht} = cars(Hss),
+
+%Ph
+%[pointer_stem1_child1, pointer_stem2_child1...]
+
+    conds(mrc2(Ph, Th, Hh, CFG, CFG2),
+          multi_root_clean2(Pt, Tt, Ht, CFG, CFG2)).
+    %we are looking at data from a bunch of stems here, each stem is in the same location in a verkle tree. So they potentially share many children in common.
+    %so we need to consider the first child of each of these stems, then the second child, etc.
+    %this way, every time 2 stems share a descendent, we can realize this and not do the same calculation twice.
+
 -record(leaf, {key, value, meta}).
+load_transforms([], Dict) -> Dict;
+load_transforms([{A, B}|As], Dict) ->
+    D2 = dict:store(A, B, Dict),
+    load_transforms(As, D2).
+next_stems([], [], R) -> lists:reverse(R);
+next_stems([P|Ps], [1|Ts], R) -> 
+    B = is_in(P, R),
+    if
+        B -> next_stems(Ps, Ts, R);
+        true ->
+            next_stems(Ps, Ts, [P|R])
+    end;
+next_stems([_|Ps], [_|T], R) -> 
+    next_stems(Ps, T, R).
+next_leafs([], [], R, _, _) -> lists:reverse(R);
+next_leafs([P|Ps], [2|Ts], R, CFG, CFG2) ->
+    B = is_in(P, R),
+    if
+        B -> next_leafs(Ps, Ts, R, CFG, CFG2);
+        true -> 
+            Leaf = leaf_verkle:get(P, CFG),
+            #leaf{key = Key, value = LeafHash, meta = Meta} = Leaf,
+            Hash = store_verkle:leaf_hash(Leaf, CFG),
+            <<M1, Pointer2:(7*8)>> = Meta,
+            CS0 = dump:get(Pointer2, int2dump_name(M1)),
+            Pointer4 = dump:put(CS0, int2cleaner_name(M1)),
+            Meta2 = <<M1, Pointer4:(7*8)>>,
+            Leaf2 = Leaf#leaf{meta = Meta2},
+            Pointer3 = leaf_verkle:put(Leaf2, CFG2),
+            next_leafs(Ps, Ts, [{P, Pointer3}|R], CFG, CFG2)
+    end;
+next_leafs([_|Ps], [_|T], R, CFG, CFG2) ->
+    next_leafs(Ps, T, R, CFG, CFG2).
+
+            
+mrc2(Ps, Ts, Hs, CFG, CFG2) ->
+    %mrc2 should return one pointer for every pointer given
+    %we have 100 stems on the tree at the same position. Now we for each of those stems, we are considering a child. So each of these 100 children also share the same position in the tree.
+
+    %first, if there are any stems, process them together, because this is a depth first algorithm.
+
+    NextStems = next_stems(Ps, Ts, []),%pointers that need to be updated
+    NextStems2 = multi_root_clean_stem(NextStems, CFG, CFG2),
+    MemoizedStems = load_transforms(lists:zip(NextStems, NextStems2), dict:new()),
+    NextLeafs = next_leafs(Ps, Ts, [], CFG, CFG2), %[{old, new}, {old2, new2}...]
+    MemoizedLeafs = load_transforms(NextLeafs, dict:new()),
+    
+    %then, calculate the new pointers to return.
+    lists:map(fun({P, T}) ->
+                      case T of
+                          0 -> %empty
+                              H = <<0:256>>,
+                              0;
+                          1 -> %another stem
+                              dict:fetch(P, MemoizedStems);
+                          2 -> %a leaf
+                              dict:fetch(P, MemoizedLeafs)
+                     
+                      end
+              end, lists:zip(Ps, Ts)).
+            
+            
 one_root_clean2([], [], _, _, _) -> [];
 one_root_clean2(
   [Pointer|PT], [Type|TT], [Hash|HT], 
@@ -1808,6 +1984,9 @@ one_root_clean2(
                  Pointer3
          end,
     [P2|one_root_clean2(PT, TT, HT, CFG, CFG2)].
+
+scan_verkle_many(Pointers, CFG) ->
+    lists:map(fun(P) -> scan_verkle(P, CFG) end, Pointers).
 
 scan_verkle() ->
     Pointer = (block:top())#block.trees,
@@ -2056,10 +2235,10 @@ test(0) ->
     Root2 = stem_verkle:hash_point(hd(ProofTree4)),
     
     %efficiently update the hard drive with the new version. Faster that writing the leaves in a batch, because pedersen commitments are already computed.
-    Loc3 = store_verkle:verified(
-             Loc2, ProofTree4, CFG),
+%    Loc3 = store_verkle:verified(
+%             Loc2, ProofTree4, CFG),
 
-    Pruned = prune_verkle:doit_stem(Loc2, Loc3, CFG),
+%    Pruned = prune_verkle:doit_stem(Loc2, Loc3, CFG),
     %io:fwrite(Pruned),
     %{leaf, Key, Value, Meta}) ->
 
@@ -2086,7 +2265,12 @@ test(1) ->
     Loc = 1,
     Loc2 = store_things(As, Loc),
     
-    {Proof, As0b} = get_proof(to_keys(As2), Loc2, Height),
+    %io:fwrite(to_keys(As2)),%[<<>>]
+    As2Keys = lists:map(fun({X, _}) -> {accounts, X} end, 
+                        Keys),
+                        %to_keys(As2)),
+    %{Proof, As0b} = get_proof(to_keys(As2), Loc2, Height),
+    {Proof, As0b} = get_proof(As2Keys, Loc2, Height),
 %make sure in and out are same length!! todo
 
     {true, ProofTree} = verify_proof(Proof, As0b, Height),
@@ -2097,7 +2281,7 @@ test(1) ->
     
     Loc3 = store_verified(Loc2, ProofTree2),
 
-    {Proof3, As2b} = get_proof(to_keys(As2), Loc3, Height),
+    {Proof3, As2b} = get_proof(As2Keys, Loc3, Height),
     
     {true, V2} = verify_proof(Proof3, As2b, Height),
 
@@ -2184,7 +2368,9 @@ test(4) ->
     Loc2 = store_things(As1, Loc),
     %As0_1 = [hd(As0)] ++ As1,
     As0_1 = As,
-    Keys2 = to_keys(As0_1),
+    %Keys2 = to_keys(As0_1),
+    %Keys2 = lists:map(fun(A) -> {accounts, A#acc.pubkey} end, As0_1),
+    Keys2 = to_flagged_keys(As0_1),
     print_now(),
     io:fwrite("get proof\n"),
     {Proof, As2} = 
@@ -2210,7 +2396,11 @@ test(4) ->
     print_now(),
     io:fwrite("get proof 2\n"),
     %io:fwrite({to_keys(As2)}),
-    {Proof3, As2b} = get_proof(to_keys(As2), Loc3, Height),
+    %Keys3 = to_keys(As2),
+    %io:fwrite(As2),
+    Keys3 = to_flagged_keys(As2),
+    %Keys3 = lists:map(fun(A) -> {accounts, A#acc.pubkey} end, As2),
+    {Proof3, As2b} = get_proof(Keys3, Loc3, Height),
     print_now(),
     io:fwrite("verify proof 2\n"),
     %{true, V2} = verify_proof(Proof3, As3),
@@ -2242,13 +2432,63 @@ test(5) ->
     Loc3 = store_things(AsB, Loc2),
     Loc4 = store_things(As0, Loc3),
     
-    one_root_clean(Loc4, CFG),
-    ok.
+    one_root_clean(Loc, CFG),
+    ok;
+
     %timer:sleep(1000),
     %loc2 should be empty. loc3 and loc4 should not be.
     %Loc2V2 = stem_verkle:get(Loc2, CFG),
     %{Loc2V1, Loc2V2}.
+test(6) ->
+    %testing the tool for deleting everything besides the history connected to multiple roots.
+    Many = 20,
+    Keys = lists:map(fun(_) -> signing:new_key()
+                     end, range(1, Many)),
+    As = lists:map(
+           fun({P, _}) ->
+                   #acc{pubkey = P, 
+                        balance = 100000000, 
+                        nonce = 0} 
+           end, Keys),
+    AsB = lists:map(
+           fun({P, _}) ->
+                   #acc{pubkey = P, 
+                        balance = 100000001, 
+                        nonce = 0} 
+           end, Keys),
+    AsC = lists:map(
+           fun({P, _}) ->
+                   #acc{pubkey = P, 
+                        balance = 100000002, 
+                        nonce = 0} 
+           end, Keys),
+    Loc = 1,
+    {As0, As1} = lists:split(Many div 2, As),
+    Loc2 = store_things(As1, Loc),
+    CFG = tree:cfg(amoveo),
+    %Loc2V1 = stem_verkle:get(Loc2, CFG),
+    Loc3 = store_things(As0, Loc2),
+    Loc4 = store_things(AsB, Loc3),
+    Loc5 = store_things(AsC, Loc4),
+    multi_root_clean([Loc4, Loc5]),
+    Loc6 = store_things([hd(As0)], Loc5),
+    %Loc2V2 = stem_verkle:get(Loc2, CFG),
+    %{Loc2V1, Loc2V2}.
+    {Loc3, Loc4, Loc5, Loc6};
+test(7) ->
+    api:mine_block(),
+    api:mine_block(),
+    api:mine_block(),
+    api:mine_block(),
+    api:mine_block(),
+    api:mine_block(),
+    api:mine_block(),
+    [H1, H2|_] = lists:reverse(recent_blocks:read()),
+    multi_root_clean([H1, H2]),
+    success. 
+    
 
+    
     
 print_now() ->    
     {_, A, B} = erlang:timestamp(),

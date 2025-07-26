@@ -511,7 +511,7 @@ process_block_sequential(Block, Prev) ->
     Block2 = if
                  (TestMode or ((Height2 > F52) and (Height2 > MTV))) ->
                    %after verkle update
-                     io:fwrite("verifying block " ++ integer_to_list(Height2) ++ "\n"),
+                     %io:fwrite("verifying block " ++ integer_to_list(Height2) ++ "\n"),
                      X = block:check0(Block),
                      {true, Block3} = block:check2(Prev, Block#block{trees = X}),
                      Block3;

@@ -101,10 +101,10 @@ test(1) ->
     io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
     restart_chain(),
-    mine_blocks(4),
+    mine_blocks(10),
     BP = block:get_by_height(block:height()),
     PH = block:hash(BP),
-    Trees = block_trees(BP),
+    %Trees = block_trees(BP),
     %{NewPub,NewPriv} = signing:new_key(),
     {NewPub,NewPriv} = %signing:new_key(),
         {<<4,175,48,50,202,47,72,21,98,10,251,128,243,51,147,
@@ -117,7 +117,8 @@ test(1) ->
            255,155,228,98,10>>},
 
     Fee = constants:initial_fee() + 20,
-    {Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
+    %{Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     0 = many_txs(),
     absorb(Stx),
@@ -151,7 +152,10 @@ test(1) ->
     absorb(Stx4),
     3 = many_txs(),
     potential_block:new(),
-
+    potential_block:read(),
+    %timer:sleep(2000),
+    %1=2,
+    %api:mine_block(),
     mine_blocks(1),
 
 
@@ -667,7 +671,11 @@ test(16) ->
     3 = many_txs(),
     %1=2,
     potential_block:new(),
-    mine_blocks(5),
+    mine_blocks(1),
+    mine_blocks(1),
+    mine_blocks(1),
+    mine_blocks(1),
+    mine_blocks(1),
     %make some bets in the oracle with oracle_bet
     OIL_gov = trees:get(governance, oracle_initial_liquidity),
     OIL = governance:value(OIL_gov),
@@ -4132,7 +4140,7 @@ test(68) ->
     true = forks:get(52) < block:height(),
     TP = (block:top())#block.trees,
     {Proof, Leaves} = trees2:get_proof([{accounts, keys:pubkey()}], TP, fast),
-    {true, _ProofTree} = trees2:verify_proof(Proof, Leaves),
+    {true, _ProofTree} = trees2:verify_proof(Proof, Leaves, block:height()),
     success;
     
  
@@ -5102,7 +5110,8 @@ is_slash(STx) ->
 	     
 mine_blocks(Many) when Many < 1 -> 
     headers:top(),
-    potential_block:new(),
+    %tx_pool:dump(),
+    potential_block:new(),%crashes here.
     potential_block:read(),
     TP = tx_pool:get(),
     %timer:sleep(10),
@@ -5116,6 +5125,7 @@ mine_blocks(Many) ->
     %only works if you set the difficulty very low.
     tx_reserve:dump(),
     mine_block_no_tx_reserve_dump(),
+    tx_pool:dump(),
     mine_blocks(Many-1).
 mine_block_no_tx_reserve_dump() ->
     headers:top(),

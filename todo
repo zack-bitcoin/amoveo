@@ -1,3 +1,6 @@
+trees2:test(5) is failing. seems impossible, since we are actively using this tool.
+
+
 trying to get the new node to be able to sync blocks from the old code.
 Currently, it stores a block in block_db3, but then when we try to read it, it is like it does not exist.
 

@@ -273,6 +273,7 @@ write(Block, Hash) ->
     H = headers:top_with_block(),
     Hash2 = block:hash(H),
     gen_server:cast(?MODULE, {write, Block, Hash}),
+    recent_blocks:add(Hash, Block#block.height),
     %if this is the top of the headers, then do a set_top(Hash).
     if
         (Hash2 == Hash) ->

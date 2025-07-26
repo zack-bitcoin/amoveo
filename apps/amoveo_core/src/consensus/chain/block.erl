@@ -800,7 +800,8 @@ mine(Block, Rounds, 1) ->
                         %block_absorber:save(PBlock),
             Hash = hash(Header),
             block_db3:write(PBlock, Hash),
-            block_organizer:add([PBlock])
+            %block_organizer:add([PBlock])
+            ok
                 
                         %sync:start()
     end;
@@ -816,8 +817,9 @@ mine(Block, Rounds, Cores) ->
                         %block_absorber:save(PBlock),
                         Hash = hash(Header),
                         block_db3:write(PBlock, Hash),
-                        block_organizer:add([PBlock])
+                        %block_organizer:add([PBlock])
                         %sync:start()
+                        ok
                 end
         end,
     spawn_many(Cores-1, F),
