@@ -28,11 +28,18 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call({add, Hash, Height}, _, X) ->
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-    NewBottom = Height - FT,
-    X2 = X#r{height = NewBottom, blocks = remove_before(X#r.blocks, NewBottom) ++ [{Height, Hash}]},
-    {reply, ok, X2};
+    if
+        ((Height - FT) > X#r.height) -> 
+            NewBottom = Height - FT,
+            X2 = X#r{height = NewBottom, blocks = remove_before(X#r.blocks ++ [{Height, Hash}], NewBottom)},
+            {reply, ok, X2};
+        true ->
+            %when we are syncing in reverse
+            {reply, ok, X}
+    end;
 handle_call(read, _From, X) -> 
-    {reply, lists:map(fun({_, H}) -> H end, X#r.blocks), X};
+    #r{blocks = Blocks, height = Height} = X,
+    {reply, lists:map(fun({_, H}) -> H end, Blocks), X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 get_hashes([]) -> [];

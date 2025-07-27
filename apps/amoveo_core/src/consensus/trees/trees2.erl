@@ -4,7 +4,7 @@
          copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
          recover/1, to_keys/1, store_leaves/2, get_proof/3,
          cs2v/1, restore_leaves_proof/3, remove_leaves_proof/2,
-         multi_root_clean/0,
+         multi_root_clean/0, garbage_collect/0,
          val2int/1]).
 
 -include("../../records.hrl").
@@ -1573,9 +1573,10 @@ multi_root_clean(Pointers) ->
     NewPointers = multi_root_maker(Pointers, CFG),
     io:fwrite("recover from the clean version\n"),
     recover_from_clean_version(),
-    io:fwrite("checksum sanity check\n"),
-    Hashes = scan_verkle_many([Top], CFG),
-    ok.
+    io:fwrite("checksum sanitycheck\n"),
+    %io:fwrite({Pointers, NewPointers}),
+    Hashes = scan_verkle_many([hd(lists:reverse(NewPointers))], CFG),
+    NewPointers.
 
 setup_clean_db(CFG) ->
     %delete the contents of the files in the cleaner folder.
@@ -1670,7 +1671,7 @@ recover_from_clean_version() ->
     os:cmd("cp -r cleaner/data/matched_cleaner.db ../../../../db/data/matched_dump.db"),
     os:cmd("cp -r cleaner/data/oracles_cleaner.db ../../../../db/data/oracles_dump.db"),
     os:cmd("cp -r cleaner/data/receipts_cleaner.db ../../../../db/data/receipts_dump.db"),
-    os:cmd("cp -r cleaner/data/sub_acc_cleaner.db ../../../../db/data/sub_acc_dump.db"),
+    os:cmd("cp -r cleaner/data/sub_accs_cleaner.db ../../../../db/data/sub_accs_dump.db"),
     os:cmd("cp -r cleaner/data/trades_cleaner.db ../../../../db/data/trades_dump.db"),
     os:cmd("cp -r cleaner/data/unmatched_cleaner.db ../../../../db/data/unmatched_dump.db"),
     os:cmd("cp -r cleaner/data/jobs_cleaner.db ../../../../db/data/jobs_dump.db"),
@@ -1792,9 +1793,15 @@ multi_root_clean_stem(
     Stems2 = lists:map(fun({S, P}) ->
                                setelement(4, S, list_to_tuple(P))
                        end, lists:zip(Stems, P2s)),
-    SanityHashes = lists:map(fun(S) ->
+    SanityHashes2 = lists:map(fun(S) ->
                                      stem_verkle:hash(S)
                              end, Stems2),
+    if
+        not(SanityHashes == SanityHashes2) ->
+            io:fwrite("multi root clean stem sanity failure."),
+            io:fwrite({SanityHashes, SanityHashes2});
+        true -> ok
+    end,
     lists:map(fun(S) ->
                       stem_verkle:put(S, CFG2)
               end, Stems2).
@@ -2021,7 +2028,7 @@ scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], CFG) ->
             io:fwrite("trees2:scan_verkle2 bad cs data\n"),
             io:fwrite(integer_to_list(Pointer2)),
             io:fwrite("\n"),
-            io:fwrite({M1, Pointer2, CS});
+            io:fwrite({M1, Pointer2, LeafHash, CS0, CS});
             %1=2;
             %ok;
         true -> 
@@ -2432,7 +2439,7 @@ test(5) ->
     Loc3 = store_things(AsB, Loc2),
     Loc4 = store_things(As0, Loc3),
     
-    one_root_clean(Loc, CFG),
+    one_root_clean(Loc3, CFG),
     ok;
 
     %timer:sleep(1000),
@@ -2474,7 +2481,7 @@ test(6) ->
     Loc6 = store_things([hd(As0)], Loc5),
     %Loc2V2 = stem_verkle:get(Loc2, CFG),
     %{Loc2V1, Loc2V2}.
-    {Loc3, Loc4, Loc5, Loc6};
+    {Loc3, Loc4, Loc5, Loc6, stem_verkle:get(Loc5, CFG)};
 test(7) ->
     api:mine_block(),
     api:mine_block(),
@@ -2484,10 +2491,26 @@ test(7) ->
     api:mine_block(),
     api:mine_block(),
     [H1, H2|_] = lists:reverse(recent_blocks:read()),
-    multi_root_clean([H1, H2]),
-    success. 
-    
+    [A1, A2] = lists:map(fun(H) -> (block:get_by_hash(H))#block.trees end, [H1, H2]),
+    multi_root_clean([A1, A2]),
+    success;
+test(8) ->
+    test_txs:mine_blocks(100),
+    trees2:garbage_collect(),
+    success.
 
+    
+garbage_collect() ->
+    L = recent_blocks:read(),
+    A = lists:map(fun(H) -> (block:get_by_hash(H))#block.trees end, L),
+    A2 = multi_root_clean(A),
+    lists:map(fun({BH, P}) ->
+                      block_db3:update_pointer(BH, P)
+              end, lists:zip(L, A2)),
+    %todo. update the block.trees for each of those blocks.
+    %need to add a command to block_db3 for updating
+    success.
+    
     
     
 print_now() ->    

@@ -1,3 +1,7 @@
+note in trees2:multi_root_clean.
+we need to write the updated pointers onto each block.
+
+
 trees2:test(5) is failing. seems impossible, since we are actively using this tool.
 
 

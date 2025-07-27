@@ -5,8 +5,8 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, test/1, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
 compress/1, uncompress/1, compress/2, uncompress/2,
-compress2/1,
-exists/1,
+compress2/1, 
+update_pointer/2, exists/1,
 copy_everything_from_block_db/1]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db3_dict()). %this file stores the #d record. The ram part of this gen server.
@@ -79,6 +79,19 @@ handle_cast({zlib_reload, Binary}, X) ->
            zlib_dictionary = Binary
           },
     {noreply, X2};
+handle_cast({update_pointer, Hash, Pointer}, X) -> 
+    #d{hash2block = H2B, file = File, zlib_dictionary = ZD} = X,
+    case dict:find(Hash, H2B) of
+        error -> {noreply, X};
+        {ok, {OldLoc, Size1}} ->
+            Block = read_from_file(OldLoc, Size1, File, ZD, uncompressed),
+            Block2 = Block#block{trees = Pointer},
+            io:fwrite("change points " ++ Pointer, Block#block.trees),
+            {H2B2, Size2} = internal_write(Block2, Hash, OldLoc, File, H2B, ZD),
+            false = Size2 > Size1,
+            X2 = X#d{hash2block = H2B2},
+            {noreply, X2}
+    end;
 handle_cast(_, X) -> {noreply, X}.
 handle_call(zlib, _From, X) -> 
     #d{
@@ -252,6 +265,8 @@ zlib_dictionary() ->
     gen_server:call(?MODULE, zlib).
 zlib_reload(Bin) ->
     gen_server:cast(?MODULE, {zlib_reload, Bin}).
+update_pointer(Hash, Pointer) ->
+    gen_server:cast(?MODULE, {update_pointer, Hash, Pointer}).
 write(Block) ->
     Hash = block:hash(Block),
     write(Block, Hash),

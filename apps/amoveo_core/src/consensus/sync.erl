@@ -467,7 +467,7 @@ new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
 skip_ahead_to_the_checkpoint([]) -> ok;
 skip_ahead_to_the_checkpoint(L) ->
     Start = (hd(L))#block.height - 1,
-    io:fwrite("skip ahaead checkpoint " ++ integer_to_list(Start) ++ "\n"),
+    %io:fwrite("skip ahaead checkpoint " ++ integer_to_list(Start) ++ "\n"),
     BH = block:height(),
     if
         (Start > (BH+1)) -> 
