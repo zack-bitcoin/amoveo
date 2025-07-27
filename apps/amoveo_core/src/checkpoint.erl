@@ -670,6 +670,7 @@ try_process_block(
                 (TestMode or ((Height > F52) and (Height > MTV))) ->
                     try_process_block_helper(Block, Block2),
                     erlang:garbage_collect(),
+                    timer:sleep(100),
                     ok;
 %                    Trees3 = block:check0(Block),
 %                    io:fwrite(" 1.0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
