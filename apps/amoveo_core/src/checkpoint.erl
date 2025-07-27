@@ -629,7 +629,6 @@ try_process_block_helper(Block, Block2) ->
 try_process_block(
   Height, Block, Roots, %looks like roots is unused and should be removed.
   X = <<Size:64, Data/binary>>) ->
-    erlang:garbage_collect(),
     %io:fwrite(" 0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     go = sync_kill:status(),
     {ok, MTV} = application:get_env(
@@ -670,7 +669,7 @@ try_process_block(
             if
                 (TestMode or ((Height > F52) and (Height > MTV))) ->
                     try_process_block_helper(Block, Block2),
-                    erlang:collect_garbage(),
+                    erlang:garbage_collect(),
                     ok;
 %                    Trees3 = block:check0(Block),
 %                    io:fwrite(" 1.0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
