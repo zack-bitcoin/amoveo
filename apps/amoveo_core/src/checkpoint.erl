@@ -589,9 +589,10 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
             ok
     end.
 rs_process_stream(Height, Block, Roots, Data0) ->
+    io:fwrite("rs process stream\n"),
     receive
         {http, {_Ref, stream, Data}} ->
-            %io:fwrite("process stream, more data\n"),
+            io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Height2, Block2, Roots2, Data3} = 
                 try_process_block(Height, Block, Roots, Data2),
