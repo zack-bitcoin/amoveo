@@ -972,6 +972,7 @@ check0(Block) ->
     %This verifies the verkle proofs and the txs in ram. 
     %checks that the consensus state before processing the block matches what the previous headers says it should be.
     %is parallelizable
+    %io:fwrite(" 0 block:check0 system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     Height = Block#block.height,
     Header = block_to_header(Block),
     BlockHash = hash(Header),
@@ -991,6 +992,7 @@ check0(Block) ->
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
+    %io:fwrite(" 2 block:check0 system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
 
     %block.roots == prev_block.trees_hash
 
@@ -1013,9 +1015,11 @@ check0(Block) ->
                     _ -> ok
                 end,
  
+                %io:fwrite(" 4 block:check0 system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
                 {true, ProofTree0} = 
                     trees2:verify_proof(
                       Proof, Leaves, Height),
+                %io:fwrite(" 6 block:check0 system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
                 false = is_integer(ProofTree0),
                 Dict2 = proofs:facts_to_dict(
                          Facts, dict:new()),

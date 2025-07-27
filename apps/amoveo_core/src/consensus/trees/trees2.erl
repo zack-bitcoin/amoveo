@@ -1225,6 +1225,7 @@ dump_get(T, V) ->
     
 
 verify_proof(Proof0, Things, Height) ->
+    %io:fwrite(" 0 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     CFG = tree:cfg(amoveo),
     
     Proof1 = 
@@ -1233,11 +1234,15 @@ verify_proof(Proof0, Things, Height) ->
                 get_verkle:deserialize_proof(Proof0);
             true -> Proof0
         end,
+    %io:fwrite(" 1 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     {Proof, []} = 
         restore_leaves_proof(Proof1, Things, Height-1),%breaks here...
+    %io:fwrite(" 2 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     CFG = tree:cfg(amoveo),
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof, CFG),
+    %io:fwrite("prooftree size " ++ integer_to_list(size(term_to_binary(ProofTree)))),
+    %io:fwrite(" 3 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     lists:map(fun(X) ->
                       case X of
                           {unmatched, _, accounts, _, _} ->
@@ -1252,6 +1257,7 @@ verify_proof(Proof0, Things, Height) ->
 
     Ks = to_keys(Things),
     
+    %io:fwrite(" 4 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     Hs = lists:map(
            fun(A) -> 
                    case A of
@@ -1267,8 +1273,10 @@ verify_proof(Proof0, Things, Height) ->
                              serialize(A))
                    end
            end, Things),
+    %io:fwrite(" 5 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     KHs = lists:zipwith(fun(K, H) -> {K, H} end,
                         Ks, Hs),
+    %io:fwrite(" 6 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     %io:fwrite({Leaves, Ks}),
     %io:fwrite("starting what you need: \n"),
     %print_pairs(KHs),%this is missing an element if there are 2 things that start with the same first step in their paths. todo
@@ -1277,6 +1285,7 @@ verify_proof(Proof0, Things, Height) ->
     %io:fwrite("\n"),
     
     Bool = merge_same(KHs, Leaves),
+    %io:fwrite(" 7 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     %io:fwrite(
     %{lists:sort(KHs), lists:sort(Leaves)}),
     %{lists:sort(KHs) == lists:sort(Leaves),

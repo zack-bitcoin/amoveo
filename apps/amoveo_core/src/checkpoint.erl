@@ -610,9 +610,26 @@ rs_process_stream(Height, Block, Roots, Data0) ->
             io:fwrite("cut off mid stream\n"),
             ok
     end.
+
+try_process_block_helper(Block, Block2) ->
+    Trees3 = block:check0(Block),
+    %io:fwrite(" 1.0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    Block3 = Block#block{
+               trees = Trees3},
+    {NewDict4, _, _, ProofTree} =
+        block:check3(Block2, Block3),
+    %io:fwrite(" 1.1 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    false = is_integer(ProofTree),
+    block:root_hash_check(
+      Block2, Block, NewDict4, ProofTree),
+    ok.
+    
+
 try_process_block(
   Height, Block, Roots, %looks like roots is unused and should be removed.
   X = <<Size:64, Data/binary>>) ->
+    erlang:garbage_collect(),
+    %io:fwrite(" 0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     go = sync_kill:status(),
     {ok, MTV} = application:get_env(
                   amoveo_core, minimum_to_verify),
@@ -639,7 +656,6 @@ try_process_block(
             end,
             <<Blockx:(Size*8), Rest/binary>> = Data,
             Block2 = block_db3:uncompress(<<Blockx:(Size*8)>>),%block 2 is block's parent.
-            %Block2 is NB0
             BH = block:hash(Block),
             %io:fwrite("checkpoint heights " ++ integer_to_list(Block2#block.height) ++ " " ++ integer_to_list(Block#block.height) ++ "\n"),
             true = (Block2#block.height + 1 == Block#block.height),
@@ -649,19 +665,24 @@ try_process_block(
                     true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
                 true -> ok
             end,
+            %io:fwrite(" 1 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
             if
                 (TestMode or ((Height > F52) and (Height > MTV))) ->
-                    Trees3 = block:check0(Block),
-                    Block3 = Block#block{
-                               trees = Trees3},
-                    {NewDict4, _, _, ProofTree} =
-                                                %block:check3(Block2, Block),
-                        block:check3(Block2, Block3),
-                    false = is_integer(ProofTree),
-                    block:root_hash_check(
-                      Block2, Block, NewDict4, ProofTree);
+                    try_process_block_helper(Block, Block2);
+%                    Trees3 = block:check0(Block),
+%                    io:fwrite(" 1.0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+%                    Block3 = Block#block{
+%                               trees = Trees3},
+%                    {NewDict4, _, _, ProofTree} =
+%                        block:check3(Block2, Block3),
+%                    io:fwrite(" 1.1 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+%                    false = is_integer(ProofTree),
+%                    block:root_hash_check(
+%                      Block2, Block, NewDict4, ProofTree),
+%                    ok;
                     true -> ok
                 end,
+            %io:fwrite(" 2 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
             {ok, Header} = headers:read(BH),
             true = (Header#header.height == 
                         Block#block.height),
@@ -671,6 +692,7 @@ try_process_block(
             block_db3:write(Block, BH),
             %io:fwrite("setting the top"),
             block_db3:set_top(BH),
+            %io:fwrite(" 3 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
             %io:fwrite("done"),
             %block_db3:write(Block4),
             %io:fwrite(Block),
