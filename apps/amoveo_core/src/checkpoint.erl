@@ -595,9 +595,7 @@ rs_process_stream(Height, Block, Roots, Data0) ->
             Data2 = <<Data0/binary, Data/binary>>,
             {Height2, Block2, Roots2, Data3} = 
                 try_process_block(Height, Block, Roots, Data2),
-            spawn(fun() ->
-                          rs_process_stream(Height2, Block2, Roots2, Data3)
-                  end);
+            rs_process_stream(Height2, Block2, Roots2, Data3);
         {http, {_Ref, stream_end, _}} -> 
             io:fwrite("stream ended normally\n"),
             <<>>;
