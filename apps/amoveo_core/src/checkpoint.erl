@@ -574,6 +574,7 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
         %{http,{#Ref<0.1619049968.3220963330.162403>,{{"HTTP/1.1",404,"Not Found"},[{"date","Mon, 07 Apr 2025 18:41:41 GMT"},{"server","Cowboy"},{"content-length","0"}],<<>>}}}],[{file,"io.erl"},{line,99},{error_info,#{cause => {device,format},module => erl_stdlib_errors}}]},{checkpoint,reverse_sync2_stream,4,[{file,"/home/zack/Hacking/amoveo/apps/amoveo_core/src/checkpoint.erl"},{line,577}]}]}
 
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
+            io:fwrite("start the stream\n"),
             rs_process_stream(Height, Block2, Roots, <<>>);
         {http, {_Ref, {{_, 404, _},_, _}}} ->
             io:fwrite("404 error\n"),
@@ -589,13 +590,14 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
             ok
     end.
 rs_process_stream(Height, Block, Roots, Data0) ->
-    io:fwrite("rs process stream\n"),
+    %io:fwrite("rs process stream\n"),
     receive
         {http, {_Ref, stream, Data}} ->
-            io:fwrite("process stream, more data\n"),
+            %io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Height2, Block2, Roots2, Data3} = 
                 try_process_block(Height, Block, Roots, Data2),
+            %io:fwrite("rs process stream " ++ integer_to_list(size(Data3)) ++ " " ++ integer_to_list(size(term_to_binary({Height2, Block2, Roots2, Data3}))) ++ " \n"),
             rs_process_stream(Height2, Block2, Roots2, Data3);
         {http, {_Ref, stream_end, _}} -> 
             io:fwrite("stream ended normally\n"),
@@ -622,8 +624,7 @@ try_process_block_helper(Block, Block2) ->
     %io:fwrite(" 1.1 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     false = is_integer(ProofTree),
     block:root_hash_check(
-      Block2, Block, NewDict4, ProofTree),
-    ok.
+      Block2, Block, NewDict4, ProofTree).
    
 wait_for_block(Hash, N) when N<0 -> 
     io:fwrite("checkpoint. reverse_syncing. block failed to be included in time.");
@@ -676,11 +677,10 @@ try_process_block(
                 true -> ok
             end,
             %io:fwrite(" 1 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
-            spawn(fun() ->
+            %spawn(fun() ->
             if
                 (TestMode or ((Height > F52) and (Height > MTV))) ->
-                    try_process_block_helper(Block, Block2),
-                    ok;
+                    try_process_block_helper(Block, Block2);
 %                    Trees3 = block:check0(Block),
 %                    io:fwrite(" 1.0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
 %                    Block3 = Block#block{
@@ -703,14 +703,14 @@ try_process_block(
             %io:fwrite("absorbing the block"),
             block_db3:write(Block, BH),
             %io:fwrite("setting the top"),
-            block_db3:set_top(BH)
+            block_db3:set_top(BH),
             %io:fwrite(" 3 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
             %io:fwrite("done"),
             %block_db3:write(Block4),
             %io:fwrite(Block),
-                  end),
+            %      end),
 
-            wait_for_block(BH, 1000),
+            %wait_for_block(BH, 1000),
             %wait for the block to be included in block_db3 TODO
 
 
