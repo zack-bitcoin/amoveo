@@ -624,7 +624,17 @@ try_process_block_helper(Block, Block2) ->
     block:root_hash_check(
       Block2, Block, NewDict4, ProofTree),
     ok.
-    
+   
+wait_for_block(Hash, N) when N<0 -> 
+    io:fwrite("checkpoint. reverse_syncing. block failed to be included in time.");
+wait_for_block(Hash, N) -> 
+    Step = 20,
+    timer:sleep(Step),
+    case block_db3:read(Hash) of
+        <<>> -> wait_for_block(Hash, N-Step);
+        _ -> ok
+    end.
+            
 
 try_process_block(
   Height, Block, Roots, %looks like roots is unused and should be removed.
@@ -641,6 +651,7 @@ try_process_block(
         (S >= Size) -> 
             %we got another block
             %io:fwrite("got a block in checkpoint:try_process_block\n"),
+            BH = block:hash(Block),
             if
                 ((Height > F52) and ((Height rem 20) == 0)) or 
                 ((Height rem 200) == 0) ->
@@ -656,7 +667,6 @@ try_process_block(
             end,
             <<Blockx:(Size*8), Rest/binary>> = Data,
             Block2 = block_db3:uncompress(<<Blockx:(Size*8)>>),%block 2 is block's parent.
-            BH = block:hash(Block),
             %io:fwrite("checkpoint heights " ++ integer_to_list(Block2#block.height) ++ " " ++ integer_to_list(Block#block.height) ++ "\n"),
             true = (Block2#block.height + 1 == Block#block.height),
             if
@@ -666,11 +676,10 @@ try_process_block(
                 true -> ok
             end,
             %io:fwrite(" 1 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+            spawn(fun() ->
             if
                 (TestMode or ((Height > F52) and (Height > MTV))) ->
                     try_process_block_helper(Block, Block2),
-                    erlang:garbage_collect(),
-                    timer:sleep(100),
                     ok;
 %                    Trees3 = block:check0(Block),
 %                    io:fwrite(" 1.0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
@@ -694,11 +703,16 @@ try_process_block(
             %io:fwrite("absorbing the block"),
             block_db3:write(Block, BH),
             %io:fwrite("setting the top"),
-            block_db3:set_top(BH),
+            block_db3:set_top(BH)
             %io:fwrite(" 3 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
             %io:fwrite("done"),
             %block_db3:write(Block4),
             %io:fwrite(Block),
+                  end),
+
+            wait_for_block(BH, 1000),
+            %wait for the block to be included in block_db3 TODO
+
 
             if
                 (Height == 2) ->
