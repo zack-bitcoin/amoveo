@@ -574,7 +574,6 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
     receive
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
             io:fwrite("start the stream\n"),
-            timer:sleep(20*1000),
             rs_process_stream(Height, Block2, Roots, <<>>);
         {http, {_Ref, {{_, 404, _},_, _}}} ->
             io:fwrite("404 error\n"),

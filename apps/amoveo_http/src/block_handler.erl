@@ -30,7 +30,7 @@ handle(Req, State) ->
             ReqB = cowboy_req:reply(200, Headers, packer:pack({ok, <<"stop spamming the server">>}), req2),
             {ok, ReqB, State}
     end.
-stream_blocks(Start, End, Req, State) when Start == End ->
+stream_blocks(Start, Start, Req, State) ->
     io:fwrite("stream blocks end\n"),
     Block = list_to_binary(block_db3:read_compressed(Start, Start)),
     S = size(Block),
@@ -43,6 +43,7 @@ stream_blocks(Start, End, Req, State) ->
     Block = list_to_binary(block_db3:read_compressed(Start, Start)),
     S = size(Block),
     cowboy_req:stream_body(<<S:64, Block/binary>>, nofin, Req),
+    timer:sleep(100),
     if
         (Start < End) ->
             stream_blocks(Start+1, End, Req, State);
