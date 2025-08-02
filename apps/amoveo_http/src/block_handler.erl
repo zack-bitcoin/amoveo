@@ -31,15 +31,15 @@ handle(Req, State) ->
             {ok, ReqB, State}
     end.
 stream_blocks(Start, End, Req, State) when Start == End ->
-    %io:fwrite("stream blocks end\n"),
+    io:fwrite("stream blocks end\n"),
     Block = list_to_binary(block_db3:read_compressed(Start, Start)),
     S = size(Block),
     cowboy_req:stream_body(<<S:64, Block/binary>>, fin, Req),
     {ok, Req, State};
 stream_blocks(Start, End, Req, State) ->
-    %io:fwrite("stream blocks "),
-    %io:fwrite(integer_to_list(Start)),
-    %io:fwrite("\n"),
+    io:fwrite("stream blocks "),
+    io:fwrite(integer_to_list(Start)),
+    io:fwrite("\n"),
     Block = list_to_binary(block_db3:read_compressed(Start, Start)),
     S = size(Block),
     cowboy_req:stream_body(<<S:64, Block/binary>>, nofin, Req),

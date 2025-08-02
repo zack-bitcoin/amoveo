@@ -16,6 +16,7 @@
          full_tree_merkle/0, full_tree_merkle/1,
          sync/1,
          scan_blocks/0,
+         mem_check/0,
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
 %Eventually we will need a function that can recombine the chunks, and unencode the gzipped tar to restore from a checkpoint.
@@ -571,10 +572,9 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
        {stream, self},
        {sync, false}]),
     receive
-        %{http,{#Ref<0.1619049968.3220963330.162403>,{{"HTTP/1.1",404,"Not Found"},[{"date","Mon, 07 Apr 2025 18:41:41 GMT"},{"server","Cowboy"},{"content-length","0"}],<<>>}}}],[{file,"io.erl"},{line,99},{error_info,#{cause => {device,format},module => erl_stdlib_errors}}]},{checkpoint,reverse_sync2_stream,4,[{file,"/home/zack/Hacking/amoveo/apps/amoveo_core/src/checkpoint.erl"},{line,577}]}]}
-
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
             io:fwrite("start the stream\n"),
+            timer:sleep(20*1000),
             rs_process_stream(Height, Block2, Roots, <<>>);
         {http, {_Ref, {{_, 404, _},_, _}}} ->
             io:fwrite("404 error\n"),
@@ -590,22 +590,25 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
             ok
     end.
 rs_process_stream(Height, Block, Roots, Data0) ->
-    %io:fwrite("rs process stream\n"),
+    io:fwrite("rs process stream extra data " ++ integer_to_list(size(Data0))++ " " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    go = sync_kill:status(),
     receive
         {http, {_Ref, stream, Data}} ->
             %io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Height2, Block2, Roots2, Data3} = 
-                try_process_block(Height, Block, Roots, Data2),
+                %try_process_block(Height, Block, Roots, Data2),
+                {Height, Block, Roots, <<>>},
+            timer:sleep(10),
             %io:fwrite("rs process stream " ++ integer_to_list(size(Data3)) ++ " " ++ integer_to_list(size(term_to_binary({Height2, Block2, Roots2, Data3}))) ++ " \n"),
             rs_process_stream(Height2, Block2, Roots2, Data3);
         {http, {_Ref, stream_end, _}} -> 
             io:fwrite("stream ended normally\n"),
             <<>>;
-        {http, {_Ref, stream_start, _}} -> 
-            io:fwrite("stream start\n"),
+%        {http, {_Ref, stream_start, _}} -> 
+%            io:fwrite("stream start\n"),
             %rs_process_stream(Height, Block, Roots, <<>>);
-            rs_process_stream(Height, Block, Roots, Data0);
+%            rs_process_stream(Height, Block, Roots, Data0);
         X -> 
             io:fwrite("unhandled stream body"),
             io:fwrite(X)
@@ -615,17 +618,22 @@ rs_process_stream(Height, Block, Roots, Data0) ->
     end.
 
 try_process_block_helper(Block, Block2) ->
-    Trees3 = block:check0(Block),
+    %block 2 is the ancestor of block, we are heading towards the genesis.
     %io:fwrite(" 1.0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    Trees3 = block:check0(Block),
+    %io:fwrite(" 1.1 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     Block3 = Block#block{
                trees = Trees3},
     {NewDict4, _, _, ProofTree} =
         block:check3(Block2, Block3),
-    %io:fwrite(" 1.1 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    %io:fwrite(" 1.2 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     false = is_integer(ProofTree),
     block:root_hash_check(
-      Block2, Block, NewDict4, ProofTree).
-   
+      Block2, Block, NewDict4, ProofTree),
+    ok.
+  
+%is root_hash_check supposed to be equivalent to trees:root_hash(block:trees_maker()) == Block#block.trees_hash 
+
 wait_for_block(Hash, N) when N<0 -> 
     io:fwrite("checkpoint. reverse_syncing. block failed to be included in time.");
 wait_for_block(Hash, N) -> 
@@ -640,7 +648,7 @@ wait_for_block(Hash, N) ->
 try_process_block(
   Height, Block, Roots, %looks like roots is unused and should be removed.
   X = <<Size:64, Data/binary>>) ->
-    %io:fwrite(" 0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    io:fwrite(" 0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     go = sync_kill:status(),
     {ok, MTV} = application:get_env(
                   amoveo_core, minimum_to_verify),
@@ -680,7 +688,10 @@ try_process_block(
             %spawn(fun() ->
             if
                 (TestMode or ((Height > F52) and (Height > MTV))) ->
+                    %timer:sleep(500);
                     try_process_block_helper(Block, Block2);
+
+
 %                    Trees3 = block:check0(Block),
 %                    io:fwrite(" 1.0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
 %                    Block3 = Block#block{
@@ -1267,3 +1278,18 @@ filtered(L) ->
 recent() ->
     L = gen_server:call(?MODULE, recent),
     filtered(L).
+
+
+
+mem_check() ->
+    Pids = erlang:processes(),
+    R = lists:map(fun(P) ->
+                          {element(2, erlang:process_info(P, current_function)),
+                           erlang:process_info(P, memory),
+                           erlang:process_info(P, message_queue_len)}
+                  end, Pids),
+    R2 = lists:sort(fun({_, {_, _}, A}, {_, {_, _}, B}) ->
+                            A > B end, R),
+    [R01, R02, R03, R04, R05|_] = R2,
+    [R01, R02, R03, R04, R05].
+    
