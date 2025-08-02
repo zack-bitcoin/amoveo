@@ -561,7 +561,8 @@ ip_url_format({{A, B, C, D}, _}) ->
 reverse_sync2_stream(Height, Peer, Block2, Roots) ->
     %PM = packer:pack({Height, 0}),
     %Peer2 =  Peer++"blocks",
-    Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(Height-1) ++ "_0",
+    %Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(Height-1) ++ "_0",
+    Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(Height-1) ++ "_" ++ integer_to_list(Height-101),
     io:fwrite(Url),
     io:fwrite("\n"),
     httpc:request(
@@ -574,7 +575,7 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
     receive
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
             io:fwrite("start the stream\n"),
-            rs_process_stream(Height, Block2, Roots, <<>>);
+            rs_process_stream(Height, Block2, Roots, <<>>, Peer);
         {http, {_Ref, {{_, 404, _},_, _}}} ->
             io:fwrite("404 error\n"),
             Trees = block:check0(Block2),
@@ -588,26 +589,31 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
             io:fwrite("failed to start receiving stream\n"),
             ok
     end.
-rs_process_stream(Height, Block, Roots, Data0) ->
-    io:fwrite("rs process stream extra data " ++ integer_to_list(size(Data0))++ " " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+rs_process_stream(Height, Block, Roots, Data0, Peer) ->
+    %io:fwrite("rs process stream extra data " ++ integer_to_list(size(Data0))++ " " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     go = sync_kill:status(),
     receive
         {http, {_Ref, stream, Data}} ->
             %io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Height2, Block2, Roots2, Data3} = 
-                %try_process_block(Height, Block, Roots, Data2),
-                {Height, Block, Roots, <<>>},
+                try_process_block(Height, Block, Roots, Data2),
+               % {Height, Block, Roots, <<>>},
             timer:sleep(10),
             %io:fwrite("rs process stream " ++ integer_to_list(size(Data3)) ++ " " ++ integer_to_list(size(term_to_binary({Height2, Block2, Roots2, Data3}))) ++ " \n"),
-            rs_process_stream(Height2, Block2, Roots2, Data3);
+            rs_process_stream(Height2, Block2, Roots2, Data3, Peer);
         {http, {_Ref, stream_end, _}} -> 
-            io:fwrite("stream ended normally\n"),
-            <<>>;
+            io:fwrite("stream ended normally, starting next.\n"),
+            if
+                (Height == 0) -> ok;
+                true ->
+                    reverse_sync(Height, Peer)
+            end;
+%            <<>>;
 %        {http, {_Ref, stream_start, _}} -> 
 %            io:fwrite("stream start\n"),
-            %rs_process_stream(Height, Block, Roots, <<>>);
-%            rs_process_stream(Height, Block, Roots, Data0);
+            %rs_process_stream(Height, Block, Roots, <<>>, Peer);
+%            rs_process_stream(Height, Block, Roots, Data0, Peer);
         X -> 
             io:fwrite("unhandled stream body"),
             io:fwrite(X)
@@ -647,7 +653,7 @@ wait_for_block(Hash, N) ->
 try_process_block(
   Height, Block, Roots, %looks like roots is unused and should be removed.
   X = <<Size:64, Data/binary>>) ->
-    io:fwrite(" 0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    %io:fwrite(" 0 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     go = sync_kill:status(),
     {ok, MTV} = application:get_env(
                   amoveo_core, minimum_to_verify),

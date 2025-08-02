@@ -37,13 +37,14 @@ stream_blocks(Start, Start, Req, State) ->
     cowboy_req:stream_body(<<S:64, Block/binary>>, fin, Req),
     {ok, Req, State};
 stream_blocks(Start, End, Req, State) ->
+    true = (abs(Start - End) < 1002),
     io:fwrite("stream blocks "),
     io:fwrite(integer_to_list(Start)),
     io:fwrite("\n"),
     Block = list_to_binary(block_db3:read_compressed(Start, Start)),
     S = size(Block),
     cowboy_req:stream_body(<<S:64, Block/binary>>, nofin, Req),
-    timer:sleep(100),
+    timer:sleep(10),
     if
         (Start < End) ->
             stream_blocks(Start+1, End, Req, State);
