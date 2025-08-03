@@ -1,42 +1,9 @@
+activate the garbage collection for the verkle tree.
+
+
 figure out why the new code is failing to drop invalid txs.
 
-figure out if the mining pool is dropping txs.
 pay back ramon and the other miners lost revenue.
-
-starting node
-[{total,258.625272},
- {processes,61.779920},
- {processes_used,61.777032},
- {system,196.845352},
- {atom,1.016065},
- {atom_used,1.014536},
- {binary,34.827456},
- {code,27.083670},
- {ets,123.164904}]
-
-after syncing in reverse for a while
-[{total,419.376328},
- {processes,103.601096},
- {processes_used,103.586008},
- {system,315.775232},
- {atom,1.016065},
- {atom_used,1.014624},
- {binary,151.729264},
- {code,27.083670},
- {ets,123.174904}]
-
-turning off syncing
-[{total,283.100976},
- {processes,86.834400},
- {processes_used,86.833240},
- {system,196.266576},
- {atom,1.016065},
- {atom_used,1.014624},
- {binary,34.269976},
- {code,27.083670},
- {ets,123.162376}]
-
-
 
 
 note in trees2:multi_root_clean.

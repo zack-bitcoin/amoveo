@@ -242,10 +242,11 @@ ip_url_format({{A, B, C, D}, _}) ->
     integer_to_list(D).
 
 stream_get_blocks(Peer, N, TheirBlockHeight) ->
+    Batch = 100,
     io:fwrite("stream get blocks\n"),
     true = N < TheirBlockHeight,
     %PM = packer:pack({N, TheirBlockHeight}),
-    Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(N) ++ "_" ++ integer_to_list(TheirBlockHeight),
+    Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(N) ++ "_" ++ integer_to_list(min(N+Batch, TheirBlockHeight)),
     io:fwrite(Url),
     io:fwrite("\n"),
     httpc:request(
@@ -257,7 +258,7 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
        {sync, false}]),
     receive
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
-            blocks_process_stream(<<>>, block:top());
+            blocks_process_stream(<<>>, block:top(), Peer, TheirBlockHeight);
         {http, {_Ref, {{"HTTP/1.1",404,"Not Found"},[_,_,_],_}}} ->
             io:fwrite("stream returned 404 - Not Found"),
             spawn(fun() ->
@@ -273,14 +274,17 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
             io:fwrite("failed to start receiving stream\n"),
             ok
     end.
-blocks_process_stream(Data0, MyTopBlock) ->
+blocks_process_stream(Data0, MyTopBlock, Peer, TheirBlockHeight) ->
     receive
         {http, {_Ref, stream, Data}} ->
             %io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Data3, NewTop} = try_process_block(Data2, MyTopBlock),
-            blocks_process_stream(Data3, NewTop);
-        {http, {_Ref, stream_end, _}} -> <<>>;
+            blocks_process_stream(Data3, NewTop, Peer, TheirBlockHeight);
+        %{http, {_Ref, stream_end, _}} -> <<>>;
+        {http, {_Ref, stream_end, _}} ->
+            io:fwrite("stream end\n"),
+            stream_get_blocks(Peer, block:height()+1, TheirBlockHeight);
         X -> 
             io:fwrite("unhandled stream body"),
             io:fwrite(X)
