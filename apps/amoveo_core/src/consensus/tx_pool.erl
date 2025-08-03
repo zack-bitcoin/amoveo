@@ -1,7 +1,7 @@
 -module(tx_pool).
 -behaviour(gen_server).
 %% This module holds the txs ready for the next block, and it remembers the current consensus state, so it is ready to add a new tx at any time.
--export([data_new/0, get/0, dump/0, dump/1, absorb_tx/2]).%, absorb/2]).
+-export([data_new/0, get/0, dump/0, dump/1, absorb_tx/2, drop_txs/0]).%, absorb/2]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -16,6 +16,9 @@ handle_call({dump, TopBlock}, _From, _OldState) ->
 handle_call(dump, _From, _OldState) ->
     State = current_state(),
     {reply, 0, State};
+handle_call(drop_txs, _From, State) ->
+    State2 = State#tx_pool{txs = []},
+    {reply, 0, State2};
 handle_call({absorb_tx, NewDict, Tx}, _From, F) ->
     NewTxs = [Tx | F#tx_pool.txs],
     NewChecksums = [checksum(Tx) | F#tx_pool.checksums],
@@ -53,6 +56,8 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
 data_new() -> tx_pool:get().
 get() -> gen_server:call(?MODULE, data_new).
+drop_txs() -> 
+    gen_server:call(?MODULE, drop_txs).
 dump() -> 
     gen_server:call(?MODULE, dump).
 %    PTxs = tx_reserve:all(),
@@ -74,7 +79,7 @@ state2(Block) ->
     %Header = block:block_to_header(Block),
     %case Block of
 	%empty -> 
-	%    {ok, PrevHeader} = headers:read(Header#header.prev_hash),
+	    %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
 	%    state2(PrevHeader);
 	%_ ->
             Trees = Block#block.trees,

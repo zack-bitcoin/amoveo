@@ -290,11 +290,16 @@ write(Block, Hash) ->
     gen_server:cast(?MODULE, {write, Block, Hash}),
     recent_blocks:add(Hash, Block#block.height),
     %if this is the top of the headers, then do a set_top(Hash).
-    if
-        (Hash2 == Hash) ->
-            set_top(Hash);
-        true -> ok
-    end.
+    spawn(fun() ->
+                  if
+                      (Hash2 == Hash) ->
+                          set_top(Hash),
+                          tx_pool_feeder:absorb_dump2(Block, []),
+                          tx_reserver:restore(),
+                          potential_block:new();
+                      true -> ok
+                  end
+          end).
     
 set_top(Hash) ->
     gen_server:cast(?MODULE, {set_top, Hash}).

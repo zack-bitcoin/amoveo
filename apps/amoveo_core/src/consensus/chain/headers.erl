@@ -83,8 +83,15 @@ handle_call({add_with_block, Hash, Header}, _From, State) ->
 %                     spawn(fun() ->
 %                                   timer:sleep(10000),
 %                                   io:fwrite("headers is attempting to restore orphaned txs\n"),
-                     block_db3:set_top(Hash),
                      restore_orphaned_txs(Top, Header),
+                     %block_db3:set_top(Hash),
+%                     spawn(fun() ->
+%                                   Zeroths = element(2, tx_pool:get()),
+                                   %tx_pool:drop_txs(),
+%                                   wait_for_block(Header#header.height),
+%                                   tx_pool:dump(),
+%                                   restore_orphaned_txs(Top, Header),
+%                                   tx_pool_feeder:absorb(Zeroths)
 %                           end),
 		     found_block_timer:add(),
 		     Header;
@@ -567,7 +574,17 @@ orphaned_blocks(OldTop, NewTop) ->
     end.
 internal_read(Hash) ->
     ets:lookup(?MODULE, Hash).
-    
+
+wait_for_block(Height) ->    
+    Height = api:height(),
+    B = block:height(),
+    if
+        (B == Height) ->
+            ok;
+        (B < Height)  ->
+            timer:sleep(3),
+            wait_for_block(Height)
+    end.
     
 
 test() ->
@@ -600,3 +617,5 @@ test2() ->
     H1 = block:hash(Header),
     {ok, Header} = read(H1),
     success.
+
+
