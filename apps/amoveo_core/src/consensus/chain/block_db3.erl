@@ -6,7 +6,7 @@
 read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, test/1, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
 compress/1, uncompress/1, compress/2, uncompress/2,
 compress2/1, 
-update_pointer/2, exists/1,
+update_pointer/2, exists/1, rewrite/1,
 copy_everything_from_block_db/1]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db3_dict()). %this file stores the #d record. The ram part of this gen server.
@@ -62,6 +62,17 @@ handle_cast({set_top, Hash}, X) ->
     H2H2 = set_top_loop(Hash, H2B, H2H, File, ZD),
     X2 = X#d{height2hash = H2H2},
     {noreply, X2};
+handle_cast({rewrite, Blocks}, X) -> 
+    %todo. reduce the file pointer to before the blocks that we are rewriting.
+    [{Hash1, _}|_] = Blocks,
+    case dict:find(Hash1, X#d.hash2block) of
+        {ok, {P, _}} ->
+            X2 = internal_rewrite_loop(Blocks, X#d{file_pointer = P}),
+            {noreply, X2};
+        error ->
+            io:fwrite("block_db3 rewrite impossible error"),
+            {noreply, X}
+    end;
 handle_cast({write, Block, Hash}, X) -> 
     P = X#d.file_pointer,
     File = X#d.file,
@@ -79,19 +90,19 @@ handle_cast({zlib_reload, Binary}, X) ->
            zlib_dictionary = Binary
           },
     {noreply, X2};
-handle_cast({update_pointer, Hash, Pointer}, X) -> 
-    #d{hash2block = H2B, file = File, zlib_dictionary = ZD} = X,
-    case dict:find(Hash, H2B) of
-        error -> {noreply, X};
-        {ok, {OldLoc, Size1}} ->
-            Block = read_from_file(OldLoc, Size1, File, ZD, uncompressed),
-            Block2 = Block#block{trees = Pointer},
-            io:fwrite("change points " ++ Pointer, Block#block.trees),
-            {H2B2, Size2} = internal_write(Block2, Hash, OldLoc, File, H2B, ZD),
-            false = Size2 > Size1,
-            X2 = X#d{hash2block = H2B2},
-            {noreply, X2}
-    end;
+%handle_cast({update_pointer, Hash, Pointer}, X) -> 
+%    #d{hash2block = H2B, file = File, zlib_dictionary = ZD} = X,
+%    case dict:find(Hash, H2B) of
+%        error -> {noreply, X};
+%        {ok, {OldLoc, Size1}} ->
+%            Block = read_from_file(OldLoc, Size1, File, ZD, uncompressed),
+%            Block2 = Block#block{trees = Pointer},
+%            io:fwrite("change points " ++ Pointer, Block#block.trees),
+%            {H2B2, Size2} = internal_write(Block2, Hash, OldLoc, File, H2B, ZD),
+%            false = Size2 > Size1,
+%            X2 = X#d{hash2block = H2B2},
+%            {noreply, X2}
+%    end;
 handle_cast(_, X) -> {noreply, X}.
 handle_call(zlib, _From, X) -> 
     #d{
@@ -119,6 +130,15 @@ handle_call(get_pid, _From, X) -> {reply, self(), X};
 handle_call(top, _From, X) -> {reply, X#d.top, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
+internal_rewrite_loop([], X) -> X;
+internal_rewrite_loop([{Hash, Block}|Blocks], X) -> 
+    P = X#d.file_pointer,
+    File = X#d.file,
+    H2B = X#d.hash2block,
+    ZD = X#d.zlib_dictionary,
+    {H2B2, Size} = internal_write(Block, Hash, P, File, H2B, ZD),
+    X2 = X#d{hash2block = H2B2, file_pointer = P + Size},
+    internal_rewrite_loop(Blocks, X2).
 internal_write(Block0, Hash, P, File, H2B, ZD) ->
     %Block = compress(Block0),
     Block = compress(Block0, ZD),
@@ -300,6 +320,8 @@ write(Block, Hash) ->
                       true -> ok
                   end
           end).
+rewrite(Blocks) ->
+    gen_server:cast(?MODULE, {rewrite, Blocks}).%[{Hash1, Block1},...]
     
 set_top(Hash) ->
     gen_server:cast(?MODULE, {set_top, Hash}).

@@ -2511,13 +2511,13 @@ test(8) ->
     
 garbage_collect() ->
     L = recent_blocks:read(),
-    A = lists:map(fun(H) -> (block:get_by_hash(H))#block.trees end, L),
+    Blocks = lists:map(fun(H) -> block:get_by_hash(H) end, L),
+    A = lists:map(fun(Block) -> Block#block.trees end, Blocks),
     A2 = multi_root_clean(A),
-    lists:map(fun({BH, P}) ->
-                      block_db3:update_pointer(BH, P)
-              end, lists:zip(L, A2)),
-    %todo. update the block.trees for each of those blocks.
-    %need to add a command to block_db3 for updating
+    Blocks2 = 
+        lists:map(fun({Block, P}) -> Block#block{trees = P} end, 
+                  lists:zip(Blocks, A2)),
+    block_db3:rewrite(lists:zip(L, Blocks2)),
     success.
     
     

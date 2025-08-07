@@ -268,7 +268,7 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
 %i{http,{#Ref<0.3209288097.2305294337.37580>,{{"HTTP/1.1",404,"Not Found"},[{"date","Tue, 03 Jun 2025 09:55:56 GMT"},{"server","Cowboy"},{"content-length","0"}],<<>>}}}
         X ->
             io:fwrite("unhandled stream header\n"),
-            io:fwrite(X),
+            io:fwrite(X),%{'$gen_cast',{main,{{46,101,81,5},8080}}}
             ok
     after 1000 ->
             io:fwrite("failed to start receiving stream\n"),
@@ -280,6 +280,15 @@ blocks_process_stream(Data0, MyTopBlock, Peer, TheirBlockHeight) ->
             %io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Data3, NewTop} = try_process_block(Data2, MyTopBlock),
+            NewHeight = NewTop#block.height,
+            checkpoint:make(),
+            DefragPeriod = 300,
+            if
+                ((NewHeight rem DefragPeriod) == 0) ->
+                    success = trees2:garbage_collect();
+                true -> ok
+            end,
+                    
             blocks_process_stream(Data3, NewTop, Peer, TheirBlockHeight);
         %{http, {_Ref, stream_end, _}} -> <<>>;
         {http, {_Ref, stream_end, _}} ->
