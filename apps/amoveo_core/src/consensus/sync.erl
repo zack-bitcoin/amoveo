@@ -244,7 +244,7 @@ ip_url_format({{A, B, C, D}, _}) ->
 stream_get_blocks(Peer, N, TheirBlockHeight) ->
     Batch = 100,
     io:fwrite("stream get blocks\n"),
-    true = N < TheirBlockHeight,
+    true = N =< TheirBlockHeight,
     %PM = packer:pack({N, TheirBlockHeight}),
     Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(N) ++ "_" ++ integer_to_list(min(N+Batch, TheirBlockHeight)),
     io:fwrite(Url),
@@ -310,22 +310,22 @@ try_process_block(FullData = <<Size:64, Data/binary>>, MyTopBlock) ->
                        amoveo_core, test_mode),
     Height = MyTopBlock#block.height,
     F52 = forks:get(52),
-    if
-        ((Height > F52) and ((Height rem 20) == 0)) or 
-        ((Height rem 200) == 0) ->
-            {_, T1, T2} = erlang:timestamp(),
-            io:fwrite("absorb height " ++
-                          integer_to_list(Height) ++
-                          " time: " ++
-                          integer_to_list(T1) ++
-                          " " ++
-                          integer_to_list(T2) ++
-                          "\n");
-        true -> ok
-    end,
     S = size(Data),
     if
         (S >= Size) -> 
+            if
+                ((Height > F52) and ((Height rem 20) == 0)) or 
+                ((Height rem 200) == 0) ->
+                    {_, T1, T2} = erlang:timestamp(),
+                    io:fwrite("absorb height " ++
+                                  integer_to_list(Height) ++
+                                  " time: " ++
+                                  integer_to_list(T1) ++
+                                  " " ++
+                                  integer_to_list(T2) ++
+                                  "\n");
+                true -> ok
+            end,
             %we got another block
             %io:fwrite("got a block in try_process_block\n"),
             <<Blockx:(Size*8), Rest/binary>> = Data,

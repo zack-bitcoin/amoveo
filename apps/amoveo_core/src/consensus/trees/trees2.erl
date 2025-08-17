@@ -1493,6 +1493,8 @@ prune(Trash, Keep) when (is_integer(Trash) and (is_integer(Keep))) ->
             io:fwrite("trees2:prune. trash==keep.\n"),
             ok;
         true ->
+            io:fwrite("trees2:prune is no longer supported.\n"),
+            1=2,
     %io:fwrite("trees2 prune\n"),
     %io:fwrite("keep: "),
     %io:fwrite(integer_to_list(Keep)),
@@ -1501,7 +1503,8 @@ prune(Trash, Keep) when (is_integer(Trash) and (is_integer(Keep))) ->
     %io:fwrite(integer_to_list(Trash)),
     %io:fwrite("\n"),
             tree:quick_save(amoveo),
-    RemovedLeaves = tree:garbage(Keep, Trash, amoveo),
+    %RemovedLeaves = tree:garbage(Keep, Trash, amoveo),
+            RemovedLeaves = ok,
 %    io:fwrite("many to remove: "),
 %    io:fwrite(integer_to_list(length(RemovedLeaves))),
 %    io:fwrite("\n"),
