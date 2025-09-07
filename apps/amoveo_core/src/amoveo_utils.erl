@@ -5,10 +5,14 @@
 	 tx_history/1, tx_history/2, tx_history/3,
 	 address_history/2,address_history/3,address_history/4,
 	 push_txs/0, key_full_to_light/1, iterator/2,
-         recent_miners/1, all_keys/0
+         recent_miners/1, all_keys/0, scan_db_top/0
 	]).
 -include("records.hrl").
 
+scan_db_top() ->
+    CFG = tree:cfg(amoveo),
+    scan_verkle(element(10, block:top()), CFG).
+    
 address_history(Mode, X) ->
     TB = block:top(),
     address_history(Mode, X, 200).

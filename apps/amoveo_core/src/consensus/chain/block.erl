@@ -479,7 +479,7 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     Trees7 =
         if
             (HeightCheck == F52) ->
-                %io:fwrite("trees maker, about to merkle2verkle\n"),
+                io:fwrite("trees maker, about to merkle2verkle\n"),
                 trees2:merkle2verkle(Trees6, 1);
             true -> Trees6
         end,
