@@ -11,7 +11,7 @@
 
 scan_db_top() ->
     CFG = tree:cfg(amoveo),
-    scan_verkle(element(10, block:top()), CFG).
+    trees2:scan_verkle(element(10, block:top()), CFG).
     
 address_history(Mode, X) ->
     TB = block:top(),
