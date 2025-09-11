@@ -51,7 +51,19 @@ absorb_internal(Block) ->
 	    %io:fwrite("too low"),
             0;
 	true ->
+
 	    {_, _, _, BH} = Block#block.trees,
+            if
+                Height < MyHeight ->
+                    %a block is getting orphaned.
+                    Original = block:get_by_height(Height),
+                    NewTx = element(2, hd(Block#block.txs)),
+                    OldTx = element(2, hd(Original#block.txs)),
+                    file:write_file("orphans", integer_to_list(Height) ++ " new: " ++ base64:encode(BH) ++ " from " ++ NewTx ++ " old: " ++ base64:encode(block:hash(Original)) ++ " from " ++ OldTx ++ "\n", [append]),
+                    ok;
+                true ->
+                    ok
+            end,
 	    %io:fwrite("block absorber 1\n"), % 0.00005
 	    %io:fwrite(packer:pack(erlang:timestamp())),
 	    %io:fwrite("\n"),
