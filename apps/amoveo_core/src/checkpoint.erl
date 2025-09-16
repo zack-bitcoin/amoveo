@@ -375,7 +375,8 @@ sync(IP, Port, CPL) ->
 
 
 
-                    TreeTypes = tree_types(element(1, TDB)),
+                    %TreeTypes = tree_types(element(1, TDB)),
+                    TreeTypes = tree_types_by_height(Height),
 
     %TDB is trees from the old block.
                     %timer:sleep(500),
@@ -458,11 +459,14 @@ sync(IP, Port, CPL) ->
 full_tree_merkle() ->
     full_tree_merkle(block:top()).
 
-full_tree_merkle(Block = #block{trees = Trees}) ->
-    full_tree_merkle(Trees);
-full_tree_merkle(Trees) ->
-    TreeTypes = tree_types(element(1, Trees)),
+%full_tree_merkle(Block = #block{trees = Trees}) ->
+    %full_tree_merkle(Trees);
+full_tree_merkle(Block = #block{height = Height, trees = Trees}) ->
+    TreeTypes = tree_types_by_height(Height),
     full_tree_merkle(Trees, TreeTypes).
+%full_tree_merkle(Trees) ->
+    %TreeTypes = tree_types(element(1, Trees)),
+%    full_tree_merkle(Trees, TreeTypes).
 
 full_tree_merkle(Trees, TTs) ->
     %we don't need a verkle version, because tree:clean_ets does that.
@@ -649,12 +653,34 @@ cut_page(HeaderHash, BlockCacheSize, Page, Acc, Pages)
             end
     end.
 
+%52, 48, 44, 35, 32, 10
 
-tree_types(trees5) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts, stablecoins];
-tree_types(trees4) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets];
-tree_types(trees3) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades];
-tree_types(trees2) -> [accounts, channels, existence, oracles, governance, matched, unmatched];
-tree_types(trees) -> [accounts, channels, existence, oracles, governance].
+tree_types_by_height(Height) -> 
+    F10 = forks:get(10),%1 to 2
+    F32 = forks:get(32),%2 to 3
+    F35 = forks:get(35),%3 to 4
+%    F44 = forks:get(44),
+    F48 = forks:get(48),%4 to 5
+%    F52 = forks:get(52),%to verkle
+    if
+        Height =< F10 ->
+            [accounts, channels, existence, oracles, governance];
+        Height =< F32 ->
+            [accounts, channels, existence, oracles, governance, matched, unmatched];
+        Height =< F35 ->
+            [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades];
+        Height =< F48 ->
+            [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets];
+        true ->
+            [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts, stablecoins]
+    end.
+    
+
+tree_types_old(trees5) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets, receipts, stablecoins];
+tree_types_old(trees4) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades, markets];
+tree_types_old(trees3) -> [accounts, channels, existence, oracles, governance, matched, unmatched, sub_accounts, contracts, trades];
+tree_types_old(trees2) -> [accounts, channels, existence, oracles, governance, matched, unmatched];
+tree_types_old(trees) -> [accounts, channels, existence, oracles, governance].
 verify_blocks(B, _, Roots, 0) -> {true, B, Roots};
 verify_blocks(B, %current block we are working on, heading towards genesis.
               P, %dictionary of blocks
@@ -753,7 +779,7 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
     %io:fwrite("verify blocks "),
     %io:fwrite(NB#block.trees),
     %io:fwrite("\n"),
-            TreeTypes = tree_types(element(1, NB0#block.trees)),
+            %todo. block.trees=0 here...
             {CRM, Leaves} = 
                 if
                     ((not TestMode) and (B#block.height < 38700)) -> 
@@ -763,6 +789,8 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
                         {true, []};
                     true ->
                         {_, NewDict3, _, _} = block:check3(NB, B),
+                        %TreeTypes = tree_types(element(1, NB0#block.trees)),
+                        TreeTypes = tree_types_by_height(NB0#block.height),
                         
                         {RootsList, Leaves0} = calc_roots2(TreeTypes, Proof, dict:fetch_keys(NewDict3), NewDict3, [], []),
                                                 %Roots2 = [roots2|RootsList],
