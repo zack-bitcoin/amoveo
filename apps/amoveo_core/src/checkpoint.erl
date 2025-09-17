@@ -798,8 +798,8 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
                             Height == F52 -> ok;
                             (PrevRoots == 0) -> 
                                 io:fwrite({PrevRoots, RootsList});
-                            not(is_tuple(PrevRoots)) ->
-                                io:fwrite({PrevRoots, RootsList});
+                      %      not(is_tuple(PrevRoots)) ->
+                      %          io:fwrite({PrevRoots, RootsList});
                             true -> ok
                         end,
                         Bool = case Height of
