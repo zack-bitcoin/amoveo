@@ -547,8 +547,8 @@ reverse_sync(Height, Peer) ->
     %TDB = Block#block.trees,
     %Roots = block:make_roots(TDB),
     %{ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
-    %Roots = NBlock#block.roots,%trees2:root_hash(NBlock#block.trees)
-    Roots = Block#block.trees_hash,
+    Roots = NBlock#block.roots,%trees2:root_hash(NBlock#block.trees)
+    %Roots = Block#block.trees_hash,
     reverse_sync2(Height, Peer, Block2, Roots).
 
 
@@ -798,8 +798,8 @@ verify_blocks(B, %current block we are working on, heading towards genesis.
                             Height == F52 -> ok;
                             (PrevRoots == 0) -> 
                                 io:fwrite({PrevRoots, RootsList});
-                      %      not(is_tuple(PrevRoots)) ->
-                      %          io:fwrite({PrevRoots, RootsList});
+                            not(is_tuple(PrevRoots)) ->
+                                io:fwrite({PrevRoots, RootsList});
                             true -> ok
                         end,
                         Bool = case Height of
