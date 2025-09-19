@@ -32,6 +32,8 @@ save(X) ->
 	    gen_server:call(?MODULE, {doit, X}, 10000);
 	_ -> ok
     end.
+bin2list(X) ->
+    binary_to_list(base64:encode(X)).
 absorb_internal(error) -> error;
 absorb_internal(Block) ->
     %total time per block 0.0063
@@ -59,7 +61,7 @@ absorb_internal(Block) ->
                     Original = block:get_by_height(Height),
                     NewTx = element(2, hd(Block#block.txs)),
                     OldTx = element(2, hd(Original#block.txs)),
-                    file:write_file("orphans", integer_to_list(Height) ++ " new: " ++ base64:encode(BH) ++ " from " ++ NewTx ++ " old: " ++ base64:encode(block:hash(Original)) ++ " from " ++ OldTx ++ "\n", [append]),
+                    file:write_file("orphans", integer_to_list(Height) ++ " new: " ++ bin2list(BH) ++ " from " ++ bin2list(NewTx) ++ " old: " ++ bin2list(block:hash(Original)) ++ " from " ++ bin2list(OldTx) ++ "\n", [append]),
                     ok;
                 true ->
                     ok
