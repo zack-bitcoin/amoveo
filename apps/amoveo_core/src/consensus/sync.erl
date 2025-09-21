@@ -752,7 +752,7 @@ tch([H|T]) ->
     %io:fwrite("\n"),
     %io:fwrite(packer:pack(block:hash(H))),
     %io:fwrite("\n"),
-    case block:get_by_hash(block:hash(H)) of
+    case Tch of
 	error -> tch(T);
 	empty -> tch(T);
 	_ -> H
