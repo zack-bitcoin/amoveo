@@ -1,4 +1,24 @@
+the new version of the code is producing checkpoints that the old version of the code cannot use.
+* seems like this is because the checkpoints are made while we are syncing blocks. once the fork-tolerance is crossed, our data is corrupted, and the checkpoint we produce is corrupted.
+* we need a new gen server to be in charge of both checkpoints, and syncing blocks. so this wont happen at the same time.
+
+the old version of the code is unable to sync old blocks, and we may have lost some old blocks.
+
+verify that the system of logging orphaned blocks works.
+
+Rtx 3060 ti is about 5.5 gh per 140 watt
+
+figure out why having 2 miners in a pool results in it being less efficient. Maybe the work is refreshed too frequently.
+
+
+
+
+
+
 activate the garbage collection for the verkle tree.
+
+
+get the amoveo-explorer working again.
 
 
 figure out why the new code is failing to drop invalid txs.

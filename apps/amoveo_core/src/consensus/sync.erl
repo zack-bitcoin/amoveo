@@ -281,7 +281,11 @@ blocks_process_stream(Data0, MyTopBlock, Peer, TheirBlockHeight) ->
             Data2 = <<Data0/binary, Data/binary>>,
             {Data3, NewTop} = try_process_block(Data2, MyTopBlock),
             NewHeight = NewTop#block.height,
-            checkpoint:make(),
+            case sync_mode:check() of
+                normal ->
+                    checkpoint:make();
+                quick -> ok
+            end,
             DefragPeriod = 300,
             if
                 ((NewHeight rem DefragPeriod) == 0) ->
