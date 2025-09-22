@@ -937,6 +937,7 @@ work(Nonce, _) ->
     io:fwrite("pool found a block"),
     io:fwrite("\n"),
     Header = block:block_to_header(Block2),
+    headers:absorb([Header]),
     headers:absorb_with_block([Header]),
     block_db3:write(Block2, BH),
     %block_hashes:add(BH),
