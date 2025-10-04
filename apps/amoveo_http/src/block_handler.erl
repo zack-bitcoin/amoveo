@@ -31,7 +31,7 @@ handle(Req, State) ->
             {ok, ReqB, State}
     end.
 stream_blocks(Start, Start, Req, State) ->
-    io:fwrite("stream blocks end\n"),
+    %io:fwrite("stream blocks end\n"),
     Block = list_to_binary(block_db3:read_compressed(Start, Start)),
     S = size(Block),
     cowboy_req:stream_body(<<S:64, Block/binary>>, fin, Req),

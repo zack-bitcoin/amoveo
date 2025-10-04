@@ -1,8 +1,10 @@
 %The goal 
-% to replace sync.erl
-% don't pull blocks from multiple peers at once.
-% don't sync and build checkpoints at the same time.
-% cron job to make decisions about how to stay in sync.
+% to replace sync:start, sync:get_headers, checkpoint:sync, checkpoint:reverse_sync. Everything we do manually while syncing.
+%Also, we want to fix some race conditions:
+% * don't pull blocks from multiple peers at once.
+% * don't sync and build checkpoints at the same time.
+
+% It also has a cron job to make decisions about how to stay in sync.
 
 % a fundamental problem with syncing is that  we can receive bad data from a peer. The thread can crash, and we need to handle that kind of crash.
 % we don't want sync2 to crash, so the interaction with a peer of getting blocks from them and verifying those blocks needs to happen on it's own thread.

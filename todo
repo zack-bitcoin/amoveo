@@ -1,9 +1,8 @@
-in api:work/2 add print statements to diagnose why the new code can't make blocks.
+* update the entire network to the new code.
+* delete old unused code. the old kind of syncing, forward and backward.
+* update the verkle tree to store variable sized data.
 
 
-
-the new version of the code is producing checkpoints that the old version of the code cannot use.
-* seems like this is because the checkpoints are made while we are syncing blocks. once the fork-tolerance is crossed, our data is corrupted, and the checkpoint we produce is corrupted.
 * we need a new gen server to be in charge of both checkpoints, and syncing blocks. so this wont happen at the same time.
 
 Rtx 3060 ti is about 5.5 gh per 140 watt

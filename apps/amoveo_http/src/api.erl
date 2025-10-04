@@ -920,7 +920,7 @@ txs(IP, Port) ->
     
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
-    io:fwrite("api work\n"),
+    %io:fwrite("api work\n"),
     Block = potential_block:check(),
     Height = Block#block.height,
     N = case Nonce of
@@ -929,20 +929,16 @@ work(Nonce, _) ->
         end,
     Block2 = Block#block{nonce = N},
     BH = block:hash(Block2),
-    io:fwrite("full block is:\n"),
-    io:fwrite(base64:encode(term_to_binary(Block2))),
-    io:fwrite("\nwork block hash is "),
-    %io:fwrite(packer:pack(hash:doit(block:hash(Block)))),
-    io:fwrite(packer:pack(hash:doit(BH))),
-    io:fwrite("pool found a block"),
-    io:fwrite("\n"),
+    %io:fwrite("full block is:\n"),
+    %io:fwrite(base64:encode(term_to_binary(Block2))),
+    %io:fwrite("\nwork block hash is "),
+    %io:fwrite(packer:pack(hash:doit(BH))),
+    %io:fwrite("pool found a block"),
+    %io:fwrite("\n"),
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
     headers:absorb_with_block([Header]),
     block_db3:write(Block2, BH),
-    %block_hashes:add(BH),
-    %headers:absorb([Header]),%uses call
-    %block_organizer:add([Block2]),
     potential_block:save(),
     0.
 mining_data() ->
