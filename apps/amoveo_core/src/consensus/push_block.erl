@@ -11,6 +11,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast({add, Block}, X) -> 
     {noreply, {now(), Block}};
 handle_cast(cron, X) -> 
+    io:fwrite("push block cron\n"),
     {ok, Kind} = application:get_env(amoveo_core, kind),
     SLimit = case Kind of
 		 "production" -> 10;

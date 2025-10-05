@@ -640,6 +640,7 @@ push_new_block(Block) ->
 push_new_block_helper(_, _, [], _, _) -> ok;%no one else to give the block to.
 push_new_block_helper(N, M, _, _, _) when ((M > 1) and (((N-2)*2) > (M*1))) -> ok;%the majority of peers probably already know.
 push_new_block_helper(N, M, [P|T], Hash, Headers) ->
+    io:fwrite("push new block helper in sync.erl\n"),
     X = remote_peer({header, Hash}, P),
     {Top, Bottom} = case X of
 	    3 -> 
