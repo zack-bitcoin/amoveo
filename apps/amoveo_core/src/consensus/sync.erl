@@ -648,6 +648,10 @@ push_new_block_helper(N, M, [P|T], Hash, Headers) ->
 	    bad_peer -> {0, 0};
 	    _ -> 
 		spawn(fun() ->
+                              spawn(fun() ->
+                                            {{N1, N2, N3, N4}, _} = P,
+                                            io:fwrite("pushing block to peer " ++ integer_to_list(N1) ++ " " ++ integer_to_list(N2))
+                                    end),
 			      remote_peer({headers, Headers}, P)
 		      end),
 		{0, 1}
