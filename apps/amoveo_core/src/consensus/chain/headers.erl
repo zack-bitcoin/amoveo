@@ -199,7 +199,7 @@ absorb([Header | T], CommonHash) ->
 				    case check_difficulty(Header) of%check that the difficulty written on the block is correctly calculated
 					{true, _, EWAH} ->
 					    %io:fwrite("\n"),
-					    %io:fwrite("add ewah "),
+					    io:fwrite("add ewah "),
 					    %io:fwrite(integer_to_list(EWAH)),
 					    %io:fwrite("\n"),
 					    %io:fwrite("now "),
@@ -208,8 +208,8 @@ absorb([Header | T], CommonHash) ->
 					    gen_server:call(?MODULE, {add, Hash, Header, EWAH}),
 					    absorb(T, CommonHash);
 					_ -> 
-					    1=2,
-					    io:fwrite("incorrectly calculated difficulty\n")
+					    io:fwrite("incorrectly calculated difficulty\n"),
+					    1=2
 				    end
 			    end
 		    end
