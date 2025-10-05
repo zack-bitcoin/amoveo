@@ -652,7 +652,8 @@ push_new_block_helper(N, M, [P|T], Hash, Headers) ->
                                             {{N1, N2, N3, N4}, _} = P,
                                             io:fwrite("pushing block to peer " ++ integer_to_list(N1) ++ " " ++ integer_to_list(N2))
                                     end),
-			      remote_peer({headers, Headers}, P)
+			      remote_peer({headers, Headers}, P),
+                              io:fwrite(Headers)
 		      end),
 		{0, 1}
 	end,
