@@ -623,6 +623,7 @@ list_headers([H|T], N) ->
 push_new_block(Block) ->
     %keep giving this block to random peers until 1/2 the people you have cont
     %acted already know about it. Don't talk to the same peer multiple times.
+    io:fwrite("sync:push_new_block\n"),
     Peers0 = peers:all(),
     Peers = remove_self(Peers0),
     Hash = block:hash(Block),
