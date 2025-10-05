@@ -174,9 +174,9 @@ absorb([Header | T], CommonHash) ->
 	not(Bool) -> 
 	    1=2,
 	    ok;%we should delete the peer that sent us this header.
-        Header#header.height < (AH - FT - 1) ->
-            io:fwrite("ignore low header\n"),
-            absorb(T, CommonHash);
+%        Header#header.height < (AH - FT - 1) ->
+%            io:fwrite("ignore low header\n"),
+%            absorb(T, CommonHash);
 	true ->
 	    Hash = block:hash(Header),
 	    case read(Hash) of
