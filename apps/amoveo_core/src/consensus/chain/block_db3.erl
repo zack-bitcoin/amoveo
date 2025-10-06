@@ -274,26 +274,35 @@ uncompress2(X) ->
     Y.
 
 check() ->
+    io:fwrite("block db3 check\n"),
     gen_server:call(?MODULE, check).
 exists(Hash) ->
     not(read(Hash) == <<>>).
 read(Hash) ->
+    io:fwrite("block db3 read\n"),
     gen_server:call(?MODULE, {read, Hash}).
 read(Start, End) ->
+    io:fwrite("block db3 read2\n"),
     gen_server:call(?MODULE, {read, Start, End, uncompressed}).
 read_compressed(Start, End) ->
+    io:fwrite("block db3 read compressed\n"),
     gen_server:call(?MODULE, {read, Start, End, compressed}).
 zlib_dictionary() ->
+    io:fwrite("block db3 zlib dic\n"),
     gen_server:call(?MODULE, zlib).
 zlib_reload(Bin) ->
+    io:fwrite("block db3 zlib reload\n"),
     gen_server:cast(?MODULE, {zlib_reload, Bin}).
 update_pointer(Hash, Pointer) ->
+    io:fwrite("block db3 update pointer\n"),
     gen_server:cast(?MODULE, {update_pointer, Hash, Pointer}).
 write(Block) ->
+    io:fwrite("block db3 write\n"),
     Hash = block:hash(Block),
     write(Block, Hash),
     Hash.
 write(Block, Hash) ->
+    io:fwrite("block db3 write 2\n"),
     Bool = (is_integer(Block#block.trees)),
     Bool2 = is_record(Block#block.trees, trees),
     Bool3 = is_record(Block#block.trees, trees5),
@@ -323,15 +332,20 @@ write(Block, Hash) ->
                   end
           end).
 rewrite(Blocks) ->
+    io:fwrite("block db3 rewrite\n"),
     gen_server:cast(?MODULE, {rewrite, Blocks}).%[{Hash1, Block1},...]
     
 set_top(Hash) ->
+    io:fwrite("block db3 set top\n"),
     gen_server:cast(?MODULE, {set_top, Hash}).
 genesis() ->
+    io:fwrite("block db3 genesis\n"),
     read(1, 1).
 get_pid() ->
+    io:fwrite("block db3 get pid\n"),
     gen_server:call(?MODULE, get_pid).
 top() ->
+    io:fwrite("block db3 top\n"),
     gen_server:call(?MODULE, top).
 
 test(1) ->
