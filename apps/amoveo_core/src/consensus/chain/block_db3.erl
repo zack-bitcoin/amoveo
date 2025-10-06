@@ -315,7 +315,7 @@ write(Block, Hash) ->
                       (Hash2 == Hash) ->
                           set_top(Hash),
                           tx_pool_feeder:absorb_dump2(Block, []),
-                          tx_reserver:restore(),
+                          %tx_reserver:restore(),
                           potential_block:new();
                       true -> ok
                   end
