@@ -973,7 +973,12 @@ check0(Block) ->
     %checks that the consensus state before processing the block matches what the previous headers says it should be.
     %is parallelizable
     %io:fwrite(" 0 block:check0 system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    {ok, MTV} = application:get_env(
+                  amoveo_core, minimum_to_verify),
     Height = Block#block.height,
+    if
+        (Height < MTV) -> 0;
+        true ->
     Header = block_to_header(Block),
     BlockHash = hash(Header),
     case application:get_env(amoveo_core, assume_valid) of
@@ -1050,7 +1055,9 @@ check0(Block) ->
     {Dict, %consensus state proved by this block.
      NewDict, %consensus state after processing this block.
      ProofTree, %in verkle mode, this is the datastructure we can use to update the database. (maybe we use this to calculate the new root?)
-     BlockHash}.
+     BlockHash}
+    end.
+            
 
 
 check(Block) ->%This writes the result onto the hard drive database. This is non parallelizable.
