@@ -17,6 +17,7 @@ start(_StartType, _StartArgs) ->
     make_block_folders(),
     sync:cron(),
     push_block:cron(),
+    pull_headers_cron(),
     R = amoveo_sup:start_link(),
     io:fwrite("starting node\n"),
     spawn(fun() ->
@@ -65,3 +66,19 @@ to_hex(<<A:4, B/bitstring>>) ->
 	A < 10 -> [(A+48)|to_hex(B)];
 	true -> [(A+87)|to_hex(B)]
     end.
+
+pull_headers_cron() ->
+    spawn(fun() ->
+                  timer:sleep(10000),
+                  pull_headers_cron2(),
+                  pull_headers_cron()
+          end).
+
+pull_headers_cron2() ->
+    spawn(fun() ->
+                  {ok, Pools} = application:get_env(
+                                  amoveo_core, pools),
+                  lists:map(fun(P) ->
+                                    sync:get_headers(P)
+                            end, Pools)
+          end).
