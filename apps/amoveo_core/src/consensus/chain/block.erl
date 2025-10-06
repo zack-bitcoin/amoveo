@@ -130,6 +130,7 @@ calculate_prev_hashes([PH|Hashes], Height, N) ->
 get_by_hash(H) -> 
     Hash = hash(H),
     %case block_db:read(Hash) of
+    io:fwrite("block:get by hash\n"),
     case block_db3:read(Hash) of
         error -> empty;
         <<>> -> empty;
@@ -202,6 +203,7 @@ header_by_height_in_chain(N, Hash) when N > -1 ->
 %  170,112,91,209,249,9,142,146,59,137,192,225,144,165,110,
 %  199,5,185>>);
 get_by_height(N) ->
+    io:fwrite("block:get by height\n"),
     L = block_db3:read(N, N),
     case L of
         [] -> error;
@@ -225,6 +227,7 @@ get_by_height_in_chain(N, BH) when N > -1 ->
     %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     RH = block_db:ram_height(),
     {ok, DBV} = application:get_env(amoveo_core, db_version),
+    io:fwrite("block:get by height in chain\n"),
     if 
         %((N == 0) and (DBV > 1)) -> block_db:genesis();
         ((N == 0) and (DBV > 1)) -> hd(block_db3:read(0, 0));
