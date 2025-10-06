@@ -283,7 +283,6 @@ read(Hash) ->
     gen_server:call(?MODULE, {read, Hash}).
 read(Start, End) ->
     io:fwrite("block db3 read2\n"),
-    1=2,
     gen_server:call(?MODULE, {read, Start, End, uncompressed}).
 read_compressed(Start, End) ->
     io:fwrite("block db3 read compressed\n"),

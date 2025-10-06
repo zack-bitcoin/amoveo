@@ -6,6 +6,7 @@
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) ->
+    io:fwrite("tx_pool init\n"),
     block:initialize_chain(),
     State = current_state(),
     io:fwrite("tx_pool- blockchain ready\n"),
