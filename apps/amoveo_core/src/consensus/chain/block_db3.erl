@@ -151,11 +151,14 @@ raw_write(Block, Hash, P, File, H2B) ->
     H2B2 = dict:store(Hash, {P, Size}, H2B),
     {H2B2, Size}.
 read_from_file(Loc, Size, File, ZD, Compressed) ->
+    io:fwrite("read from file\n"),
     case file:pread(File, Loc, Size) of
         eof ->
+            io:fwrite("EOF\n"),
             timer:sleep(50),
             read_from_file(Loc, Size, File, ZD, Compressed);
         {ok, X} -> 
+            io:fwrite("reading\n"),
             case Compressed of
                 compressed -> X;
                 uncompressed ->
@@ -187,6 +190,7 @@ set_top_loop(Hash, H2B, H2H, File, ZD) ->
     end.
             
 read_hash(Hash, H2B, File, ZD, Compressed) ->
+    io:fwrite("read hash\n"),
     case dict:find(Hash, H2B) of
         error -> <<>>;
         {ok, {Location, Size}} ->
