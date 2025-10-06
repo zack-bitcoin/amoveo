@@ -22,6 +22,7 @@ copy_everything_from_block_db/1]).
             zlib_dictionary,
             file}).%where we store blocks.
 init(ok) -> 
+    io:fwrite("block_db3 init\n"),
     process_flag(trap_exit, true),
     {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
     X = db:read(?LOC),
@@ -41,6 +42,7 @@ init(ok) ->
              true -> X
          end,
     K2 = Ka#d{file = F},
+    io:fwrite("block_db3 init done\n"),
     {ok, K2}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
