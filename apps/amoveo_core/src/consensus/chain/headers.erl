@@ -73,7 +73,6 @@ handle_call({top_with_block}, _From, State) ->
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
 handle_call({add_with_block, Hash, Header}, _From, State) ->
-
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top_with_block,
     AF = Top#header.accumulative_difficulty,
@@ -590,6 +589,7 @@ wait_for_block(Height) ->
             timer:sleep(3),
             wait_for_block(Height)
     end.
+
     
 
 test() ->
