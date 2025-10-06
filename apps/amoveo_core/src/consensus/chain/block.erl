@@ -203,7 +203,7 @@ header_by_height_in_chain(N, Hash) when N > -1 ->
 %  170,112,91,209,249,9,142,146,59,137,192,225,144,165,110,
 %  199,5,185>>);
 get_by_height(N) ->
-    io:fwrite("block:get by height\n"),
+    io:fwrite("block:get by height " ++ integer_to_list(N) ++ "\n"),
     L = block_db3:read(N, N),
     case L of
         [] -> error;
