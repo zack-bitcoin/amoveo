@@ -199,7 +199,7 @@ absorb([Header | T], CommonHash) ->
 				    case check_difficulty(Header) of%check that the difficulty written on the block is correctly calculated
 					{true, _, EWAH} ->
 					    %io:fwrite("\n"),
-					    io:fwrite("add ewah "),
+					    %io:fwrite("add ewah "),
 					    %io:fwrite(integer_to_list(EWAH)),
 					    %io:fwrite("\n"),
 					    %io:fwrite("now "),
@@ -327,9 +327,9 @@ difficulty_should_be(NextHeader, A) ->%Next is built on A
     D1 = A#header.difficulty,
     RF = constants:retarget_frequency(),
     Height = A#header.height,
-    io:fwrite("in difficulty should be \n"),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite("difficult should be headers\n"),
+    %io:fwrite("in difficulty should be \n"),
+    %io:fwrite(integer_to_list(Height)),
+    %io:fwrite("difficult should be headers\n"),
         
     %X = Height rem RF,%fork
     B = Height > forks:get(4),

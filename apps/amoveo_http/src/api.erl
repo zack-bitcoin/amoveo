@@ -686,7 +686,19 @@ integer_balance() ->
 balance() -> integer_balance().
 mempool() -> lists:reverse((tx_pool:get())#tx_pool.txs).
 halt() -> off().
-off() -> amoveo_sup:stop(), erlang:halt().
+off() -> 
+    io:fwrite("shutting down 5\n"),
+    sync:stop(), 
+    timer:sleep(1000),
+    io:fwrite("shutting down 4\n"),
+    timer:sleep(1000),
+    io:fwrite("shutting down 3\n"),
+    timer:sleep(1000),
+    io:fwrite("shutting down 2\n"),
+    timer:sleep(1000),
+    io:fwrite("shutting down 1\n"),
+    timer:sleep(1000),
+    amoveo_sup:stop(), erlang:halt().
 test_mine_blocks(S) ->
     spawn(fun() -> test_mine_blocks2(S) end).
 test_mine_blocks2(S) ->
