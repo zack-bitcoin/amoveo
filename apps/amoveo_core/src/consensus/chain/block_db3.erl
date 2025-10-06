@@ -15,6 +15,8 @@ copy_everything_from_block_db/1]).
 % size(term_to_binary(block_db3:compress(block_db3:read(349990, 350000)))).
 -define(lzip_file, "../../../../lzip_dictionary"). 
 
+-define(verbose, false).
+
 -record(d, {hash2block = dict:new(),%for looking up blocks using blockhashes.
             height2hash = dict:new(),%for looking up block hashes using block heights.
             file_pointer = 0,%pointer to first empty byte in the file.
@@ -151,14 +153,14 @@ raw_write(Block, Hash, P, File, H2B) ->
     H2B2 = dict:store(Hash, {P, Size}, H2B),
     {H2B2, Size}.
 read_from_file(Loc, Size, File, ZD, Compressed) ->
-    io:fwrite("read from file\n"),
+    local_print("read from file\n"),
     case file:pread(File, Loc, Size) of
         eof ->
-            io:fwrite("EOF\n"),
+            local_print("EOF\n"),
             timer:sleep(50),
             read_from_file(Loc, Size, File, ZD, Compressed);
         {ok, X} -> 
-            io:fwrite("reading\n"),
+            local_print("reading\n"),
             case Compressed of
                 compressed -> X;
                 uncompressed ->
@@ -167,7 +169,7 @@ read_from_file(Loc, Size, File, ZD, Compressed) ->
     end.
 read_loop(Start, End, _, _, _, _, _) when (Start > End) -> [];
 read_loop(Start, End, H2H, H2B, File, ZD, Compressed) ->
-    io:fwrite("block_db3 read loop\n"),
+    local_print("block_db3 read loop\n"),
     case dict:find(Start, H2H) of
         error -> [];
         {ok, Hash} ->
@@ -190,7 +192,7 @@ set_top_loop(Hash, H2B, H2H, File, ZD) ->
     end.
             
 read_hash(Hash, H2B, File, ZD, Compressed) ->
-    io:fwrite("read hash\n"),
+    local_print("read hash\n"),
     case dict:find(Hash, H2B) of
         error -> <<>>;
         {ok, {Location, Size}} ->
@@ -279,47 +281,47 @@ uncompress2(X) ->
     Y.
 
 check() ->
-    io:fwrite("block db3 check\n"),
+    local_print("block db3 check\n"),
     gen_server:call(?MODULE, check).
 exists(Hash) ->
     not(read(Hash) == <<>>).
 read(Hash) ->
-    io:fwrite("block db3 read\n"),
+    local_print("block db3 read\n"),
     gen_server:call(?MODULE, {read, Hash}).
 read(Start, End) ->
-    io:fwrite("block db3 read2\n"),
+    local_print("block db3 read2\n"),
     %1=2,
     gen_server:call(?MODULE, {read, Start, End, uncompressed}).
 read_compressed(Start, End) ->
-    io:fwrite("block db3 read compressed\n"),
+    local_print("block db3 read compressed\n"),
     gen_server:call(?MODULE, {read, Start, End, compressed}).
 zlib_dictionary() ->
-    io:fwrite("block db3 zlib dic\n"),
+    local_print("block db3 zlib dic\n"),
     gen_server:call(?MODULE, zlib).
 zlib_reload(Bin) ->
-    io:fwrite("block db3 zlib reload\n"),
+    local_print("block db3 zlib reload\n"),
     gen_server:cast(?MODULE, {zlib_reload, Bin}).
 update_pointer(Hash, Pointer) ->
-    io:fwrite("block db3 update pointer\n"),
+    local_print("block db3 update pointer\n"),
     gen_server:cast(?MODULE, {update_pointer, Hash, Pointer}).
 write(Block) ->
-    io:fwrite("block db3 write\n"),
+    local_print("block db3 write\n"),
     Hash = block:hash(Block),
     write(Block, Hash),
     Hash.
 write(Block, Hash) ->
-    io:fwrite("block db3 write 2\n"),
+    local_print("block db3 write 2\n"),
     Bool = (is_integer(Block#block.trees)),
     Bool2 = is_record(Block#block.trees, trees),
     Bool3 = is_record(Block#block.trees, trees5),
     if
-        Bool -> %io:fwrite("cant store block 1\n"),
+        Bool -> %local_print("cant store block 1\n"),
                 ok;
-        Bool2 -> %io:fwrite("can't store block 2\n"),
+        Bool2 -> %local_print("can't store block 2\n"),
                  ok;
-        Bool3 -> %io:fwrite("can't store block 3\n"),
+        Bool3 -> %local_print("can't store block 3\n"),
                  ok;
-        true -> %io:fwrite(Block#block.trees)
+        true -> %local_print(Block#block.trees)
             ok
     end,
     H = headers:top_with_block(),
@@ -338,20 +340,20 @@ write(Block, Hash) ->
                   end
           end).
 rewrite(Blocks) ->
-    io:fwrite("block db3 rewrite\n"),
+    local_print("block db3 rewrite\n"),
     gen_server:cast(?MODULE, {rewrite, Blocks}).%[{Hash1, Block1},...]
     
 set_top(Hash) ->
-    io:fwrite("block db3 set top\n"),
+    local_print("block db3 set top\n"),
     gen_server:cast(?MODULE, {set_top, Hash}).
 genesis() ->
-    io:fwrite("block db3 genesis\n"),
+    local_print("block db3 genesis\n"),
     read(1, 1).
 get_pid() ->
-    io:fwrite("block db3 get pid\n"),
+    local_print("block db3 get pid\n"),
     gen_server:call(?MODULE, get_pid).
 top() ->
-    io:fwrite("block db3 top\n"),
+    local_print("block db3 top\n"),
     gen_server:call(?MODULE, top).
 
 test(1) ->
@@ -362,12 +364,12 @@ max_of_list([X]) -> X;
 max_of_list([A|B]) -> 
     max(A, max_of_list(B)).
 copy_everything_from_block_db(Height) ->
-    io:fwrite("copy_everything_from_block_db. height: "),
-    io:fwrite(integer_to_list(Height)),
-    io:fwrite(" megabytes used: "),
+    local_print("copy_everything_from_block_db. height: "),
+    local_print(integer_to_list(Height)),
+    local_print(" megabytes used: "),
     Pid = get_pid(),
-    io:fwrite(integer_to_list(element(2, hd(process_info(Pid, [memory]))) div 1000000)),
-    io:fwrite("\n"),
+    local_print(integer_to_list(element(2, hd(process_info(Pid, [memory]))) div 1000000)),
+    local_print("\n"),
     BH = block:height(),
     GC = BH rem 1000,
     if
@@ -407,11 +409,11 @@ make_zlib_scan_blocks(Start, End, Dict) ->
     R = Start rem 1000,
     if
         (R == 1) ->
-            io:fwrite("zlib scan block height "),
-            io:fwrite(integer_to_list(Start)),
-            io:fwrite(" "),
-            io:fwrite(integer_to_list(element(2, hd(process_info(self(), [memory]))) div 1000000)),
-            io:fwrite("\n");
+            local_print("zlib scan block height "),
+            local_print(integer_to_list(Start)),
+            local_print(" "),
+            local_print(integer_to_list(element(2, hd(process_info(self(), [memory]))) div 1000000)),
+            local_print("\n");
         true -> ok
     end,
     Block = hd(read(Start, Start)),
@@ -432,6 +434,11 @@ occurances(X, Dict) ->
 
 
                       
-
+local_print(S) ->
+    if
+        ?verbose ->
+            io:fwrite(S);
+        true -> ok
+    end.
             
        
