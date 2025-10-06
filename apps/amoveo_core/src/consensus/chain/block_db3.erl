@@ -164,6 +164,7 @@ read_from_file(Loc, Size, File, ZD, Compressed) ->
     end.
 read_loop(Start, End, _, _, _, _, _) when (Start > End) -> [];
 read_loop(Start, End, H2H, H2B, File, ZD, Compressed) ->
+    io:fwrite("block_db3 read loop\n"),
     case dict:find(Start, H2H) of
         error -> [];
         {ok, Hash} ->
@@ -283,7 +284,7 @@ read(Hash) ->
     gen_server:call(?MODULE, {read, Hash}).
 read(Start, End) ->
     io:fwrite("block db3 read2\n"),
-    1=2,
+    %1=2,
     gen_server:call(?MODULE, {read, Start, End, uncompressed}).
 read_compressed(Start, End) ->
     io:fwrite("block db3 read compressed\n"),
