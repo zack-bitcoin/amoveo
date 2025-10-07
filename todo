@@ -1,4 +1,6 @@
-* update the entire network to the new code.
+payments to miners are still getting dropped.
+
+
 * delete old unused code. the old kind of syncing, forward and backward.
 * update the verkle tree to store variable sized data.
 
