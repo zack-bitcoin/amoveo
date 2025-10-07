@@ -947,6 +947,7 @@ work(Nonce, _) ->
     %io:fwrite(packer:pack(hash:doit(BH))),
     %io:fwrite("pool found a block"),
     %io:fwrite("\n"),
+    block:check0(Block2),
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
     headers:absorb_with_block([Header]),
