@@ -254,7 +254,10 @@ mining_pool_summary(Address) ->
     io:fwrite("Mined " ++ integer_to_list(length(Heights)) ++ " blocks\n"),
     io:fwrite("payed " ++ integer_to_list(length(Payments)) ++ " rewards\n"),
     D = summarize_payments(Payments, dict:new()),
-    io:fwrite(D),
+    Keys = dict:fetch_keys(D),
+    lists:map(fun(K) ->
+                      io:fwrite("miner " ++ base64:encode(K) ++ " was paid " ++ integer_to_list(dict:fetch(K)) ++ " times \n")
+              end, Keys),
     {Heights, Payments}.
 mining_pool_summary2(0, _, _, Heights, Payments) ->
     {Heights, Payments};
