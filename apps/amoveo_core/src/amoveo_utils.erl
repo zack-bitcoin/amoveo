@@ -286,7 +286,7 @@ merge_payments([], _, P) -> P.
 summarize_payments([], D) ->
     D;
 summarize_payments([P|T], D) ->
-    D2 = case dict:find(P) of
+    D2 = case dict:find(P, D) of
              error -> dict:store(1, P, D);
              {ok, V} -> dict:store(V+1, P, D)
          end,
