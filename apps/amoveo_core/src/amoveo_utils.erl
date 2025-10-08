@@ -5,7 +5,8 @@
 	 tx_history/1, tx_history/2, tx_history/3,
 	 address_history/2,address_history/3,address_history/4,
 	 push_txs/0, key_full_to_light/1, iterator/2,
-         recent_miners/1, all_keys/0, scan_db_top/0
+         recent_miners/1, all_keys/0, scan_db_top/0,
+         mining_pool_summary/1
 	]).
 -include("records.hrl").
 
@@ -245,13 +246,13 @@ recent_miners2(N, L) ->
         true -> {A, N}
     end.
 
-miner_pool_summary(Address) ->
+mining_pool_summary(Address) ->
     %scan the recent 200 blocks. record every time this address made a payment, or found a block.
     B = block:top(),
-    miner_pool_summary2(200, Address, B, [], []).
-miner_pool_summary2(0, _, _, Heights, Payments) ->
+    mining_pool_summary2(200, Address, B, [], []).
+mining_pool_summary2(0, _, _, Heights, Payments) ->
     {Heights, Payments};
-miner_pool_summary2(N, Address, B, Heights, Payments) ->
+mining_pool_summary2(N, Address, B, Heights, Payments) ->
     #block{txs = [CB|Txs], height = H, prev_hash = PH} = B,
     #coinbase{from = From} = CB,
     Heights2 = case From of
@@ -259,7 +260,7 @@ miner_pool_summary2(N, Address, B, Heights, Payments) ->
                   _ -> Heights
               end,
     Payments2 = merge_payments(Txs, Address, Payments),
-    miner_pool_summary2(N-1, Address, block:get_by_hash(PH),
+    mining_pool_summary2(N-1, Address, block:get_by_hash(PH),
                         Heights2, Payments2).
 merge_payments([Tx|Txs], Address, Payments) ->
     T = element(1, Tx),
