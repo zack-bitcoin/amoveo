@@ -253,6 +253,8 @@ mining_pool_summary(Address) ->
         mining_pool_summary2(200, Address, B, [], []),
     io:fwrite("Mined " ++ integer_to_list(length(Heights)) ++ " blocks\n"),
     io:fwrite("payed " ++ integer_to_list(length(Payments)) ++ " rewards\n"),
+    D = summarize_payments(Payments, dict:new()),
+    io:fwrite(D),
     {Heights, Payments}.
 mining_pool_summary2(0, _, _, Heights, Payments) ->
     {Heights, Payments};
@@ -281,6 +283,15 @@ merge_payments([Stx|Txs], Address, Payments) ->
     end;
 merge_payments([], _, P) -> P.
 
+summarize_payments([], D) ->
+    D.
+summarize_payments([P|T], D) ->
+    D2 = case dict:find(P) of
+             error -> dict:store(1, P, D);
+             {ok, V} -> dict:store(V+1, P, D)
+         end,
+    summarize_payments(T, D).
+            
             
                                        
                       
