@@ -290,7 +290,7 @@ summarize_payments([P|T], D) ->
              error -> dict:store(1, P, D);
              {ok, V} -> dict:store(V+1, P, D)
          end,
-    summarize_payments(T, D).
+    summarize_payments(T, D2).
             
             
                                        
