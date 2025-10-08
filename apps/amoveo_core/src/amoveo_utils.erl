@@ -262,7 +262,8 @@ mining_pool_summary2(N, Address, B, Heights, Payments) ->
     Payments2 = merge_payments(Txs, Address, Payments),
     mining_pool_summary2(N-1, Address, block:get_by_hash(PH),
                         Heights2, Payments2).
-merge_payments([Tx|Txs], Address, Payments) ->
+merge_payments([Stx|Txs], Address, Payments) ->
+    Tx = element(2, Stx),
     T = element(1, Tx),
     io:fwrite("checking if address is same\n"),
     io:fwrite(base64:encode(element(2, Tx))),
