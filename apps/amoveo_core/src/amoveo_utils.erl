@@ -249,7 +249,11 @@ recent_miners2(N, L) ->
 mining_pool_summary(Address) ->
     %scan the recent 200 blocks. record every time this address made a payment, or found a block.
     B = block:top(),
-    mining_pool_summary2(200, Address, B, [], []).
+    {Heights, Payments} = 
+        mining_pool_summary2(200, Address, B, [], []),
+    io:fwrite("Mined " ++ integer_to_list(length(Heights)) ++ " blocks\n"),
+    io:fwrite("payed " ++ integer_to_list(length(Payments)) ++ " rewards\n"),
+    {Heights, Payments}.
 mining_pool_summary2(0, _, _, Heights, Payments) ->
     {Heights, Payments};
 mining_pool_summary2(N, Address, B, Heights, Payments) ->
