@@ -1,4 +1,5 @@
 payments to miners are still getting dropped.
+* wrote amoveo_utils:miner_pool_summary/1, needs to be tested
 
 
 * delete old unused code. the old kind of syncing, forward and backward.

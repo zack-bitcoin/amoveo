@@ -244,6 +244,36 @@ recent_miners2(N, L) ->
         Bool -> recent_miners2(N-1, L);
         true -> {A, N}
     end.
+
+miner_pool_summary(Address) ->
+    %scan the recent 200 blocks. record every time this address made a payment, or found a block.
+    B = block:top(),
+    miner_pool_summary2(200, Address, B, [], []).
+miner_pool_summary2(0, _, _, Heights, Payments) ->
+    {Heights, Payments};
+miner_pool_summary2(N, Address, B, Heights, Payments) ->
+    #block{txs = [CB|Txs], height = H, prev_hash = PH} = B,
+    #coinbase{from = From} = CB,
+    Heights2 = case From of
+                  Address -> [H|Heights];
+                  _ -> Heights
+              end,
+    Payments2 = merge_payments(Txs, Address, Payments),
+    miner_pool_summary2(N-1, Address, block:get_by_hash(PH),
+                        Heights2, Payments2).
+merge_payments([Tx|Txs], Address, Payments) ->
+    T = element(1, Tx),
+    if
+        ((T == spend) and (element(2, Tx) == Address)) ->
+            merge_payments(Txs, Address, [element(5, Tx)|Payments]);
+        true -> merge_payments(Txs, Address, Payments)
+    end;
+merge_payments([], _, P) -> P.
+
+            
+                                       
+                      
+    
             
     
 all_keys() ->
