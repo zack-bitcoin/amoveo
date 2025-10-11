@@ -156,7 +156,8 @@ spend(L) when is_list(L) ->
     Txs = multi_spend(L),
     Fee = multi_fee(Txs),
     MTx = multi_tx:make_dict(keys:pubkey(), Txs, Fee),
-    tx_maker0(MTx).
+    tx_maker0(MTx),
+    MTx.
 multi_spend([]) -> [];
 multi_spend([{Amount, Pubkey}|T]) ->
     ID = decode_pubkey(Pubkey),
