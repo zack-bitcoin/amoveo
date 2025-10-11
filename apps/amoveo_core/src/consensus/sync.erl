@@ -259,10 +259,10 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
        {sync, false}]),
     receive
         {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
-            %blocks_process_stream(<<>>, block:top(), Peer, TheirBlockHeight);
-            spawn(fun() ->
-                          new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
-                  end);
+            blocks_process_stream(<<>>, block:top(), Peer, TheirBlockHeight);
+            %spawn(fun() ->
+            %              new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
+            %      end);
         {http, {_Ref, {{"HTTP/1.1",404,"Not Found"},[_,_,_],_}}} ->
             io:fwrite("stream returned 404 - Not Found"),
             spawn(fun() ->
