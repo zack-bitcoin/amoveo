@@ -262,7 +262,7 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
             %blocks_process_stream(<<>>, block:top(), Peer, TheirBlockHeight);
             spawn(fun() ->
                           new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
-                  end),
+                  end);
         {http, {_Ref, {{"HTTP/1.1",404,"Not Found"},[_,_,_],_}}} ->
             io:fwrite("stream returned 404 - Not Found"),
             spawn(fun() ->
