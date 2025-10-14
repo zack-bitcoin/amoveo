@@ -6,7 +6,7 @@
 	 address_history/2,address_history/3,address_history/4,
 	 push_txs/0, key_full_to_light/1, iterator/2,
          recent_miners/1, all_keys/0, scan_db_top/0,
-         mining_pool_summary/1
+         mining_pool_summary/1, flush_headers/0
 	]).
 -include("records.hrl").
 
@@ -326,6 +326,16 @@ is_in_list(A, [A|_]) -> true;
 is_in_list(A, [_|T]) -> 
     is_in_list(A, T).
             
-
+flush_headers() ->
+    Many = 5000,
+    BH = block:height() - Many,
+    flush_headers_loop(BH, Many).
+flush_headers_loop(_, 0) -> ok;
+flush_headers_loop(Height, Many) ->
+    B = block:get_by_height(Height),
+    H = block:block_to_header(B),
+    headers:absorb([H]),
+    headers:absorb_with_block([H]),
+    flush_headers_loop(Height + 1, Many - 1).
            
     
