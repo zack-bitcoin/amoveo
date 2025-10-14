@@ -152,7 +152,7 @@ absorb_with_block([F|T]) ->
     absorb_with_block(T).
 absorb(X) -> 
     H = block:height(),
-    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+    {ok, FT} = application:get_env(amoveo_core, fork_tolerance)-5000,
     H2 = max(0, H - FT + 1),
     B0 = block:get_by_height(H2),
     Hash = case B0 of
