@@ -588,8 +588,9 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
             reverse_sync2(Height, Peer, Block3, Roots);
         X ->
             io:fwrite("unhandled stream header\n"),
-            io:fwrite(X),
-            X
+            reverse_sync(Peer)
+                %io:fwrite(X),
+            %X
     after 1000 ->
             io:fwrite("failed to start receiving stream\n"),
             ok
