@@ -1,3 +1,6 @@
+make sure that we support IPv6
+
+
 payments to miners are still getting dropped.
 * wrote amoveo_utils:miner_pool_summary/1, needs to be tested
 

@@ -27,7 +27,9 @@ height(2) ->
     X16 = <<X8/binary, X8/binary>>,
     X32 = <<X16/binary, X16/binary>>,
     X64 = <<X32/binary, X32/binary>>,
-    X64.
+    X64;
+height(3) ->
+    block:bottom().
 block(1, N) ->
     B = block:get_by_height(N),
     B#block.txs;
