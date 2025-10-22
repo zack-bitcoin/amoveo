@@ -952,9 +952,11 @@ work(Nonce, _) ->
     %io:fwrite("\n"),
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
-    block:check0(Block2),
+    X = block:check0(Block2),
+    Prev = block:top(),
+    {true, Block3} = block:check2(Prev, Block2#block{trees = X}),
     headers:absorb_with_block([Header]),
-    block_db3:write(Block2, BH),
+    block_db3:write(Block3, BH),
     potential_block:save(),
     0.
 mining_data() ->
