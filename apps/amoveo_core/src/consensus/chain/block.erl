@@ -147,9 +147,14 @@ bottom() ->
     %O((log(# blocks))^2)
     %binary search over our chain of headers, looking up a block each time until we find the empty slot.
     T = top(),
-    case get_by_height(1) of
-        error -> bottom(1, T#block.height);
-        _ -> 0
+    H = block:height(),
+    if
+        (H == 0) -> 0;
+        true ->
+            case get_by_height(1) of
+                error -> bottom(1, T#block.height);
+                _ -> 0
+            end
     end.
 bottom(M, N) when (N == M+1) -> N;
 bottom(M, N) when (N > M) -> 

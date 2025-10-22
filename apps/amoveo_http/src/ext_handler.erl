@@ -87,7 +87,7 @@ doit({futarchy_matched, TID}) ->
     {ok, api:tree_common(futarchy_matched, TID)};
 doit({pubkey}) -> {ok, keys:pubkey()};
 doit({height}) -> {ok, block:height()};
-doit({height, 1}) -> {ok, api:height(1)};
+doit({height, 1}) -> {ok, api:height()};
 doit({height, 2}) -> {ok, api:height(2)};
 doit({height, 3}) -> {ok, block:bottom()};
 doit({version}) -> {ok, version:doit(block:height())};

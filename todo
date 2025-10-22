@@ -1,3 +1,6 @@
+occasionally blocks are mined that have invalid verkle state roots. other nodes refuse to sync them.
+
+
 make sure that we support IPv6
 
 
