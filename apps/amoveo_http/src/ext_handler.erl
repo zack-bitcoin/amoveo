@@ -596,6 +596,7 @@ old_many_headers(Many, X) ->
 many_headers2(0, _, Out) -> Out;
 many_headers2(Many, H, Out) ->
     %{ok, H} = headers:read(Hash),
+    true = (Many < 10000),
     case H#header.height of
 	0 -> [H|Out];
 	_ ->
