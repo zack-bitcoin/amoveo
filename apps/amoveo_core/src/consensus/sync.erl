@@ -238,7 +238,7 @@ get_headers3(Peer, N) ->
             get_headers3(Peer, N+HB-1);
         true -> 
             io:fwrite("headers not very long " ++ integer_to_list(N) ++"\n"),
-            io:fwrite(Headers),
+            %io:fwrite(Headers),
             ok
     end.
 
