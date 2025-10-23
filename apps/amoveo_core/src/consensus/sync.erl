@@ -185,7 +185,7 @@ get_headers(Peer) ->
     %Start = max(0, N+1), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
-    io:fwrite("sync:get_headers2\n"),
+    %io:fwrite("sync:get_headers2\n"),
     {ok, HB} = ?HeadersBatch,
     %io:fwrite("get headers 2 inputs " ++ integer_to_list(HB) ++ " " ++ integer_to_list(N) ++ "\n"),
     {{P1, P2, P3, P4}, _} = Peer,
