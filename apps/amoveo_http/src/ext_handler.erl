@@ -561,7 +561,7 @@ many_headers(Many, X) ->
     Z = max(0, X + Many - 1),
     %H = headers:top(),
     H = block:block_to_header(block:top()),
-    case (true and (H#header.height) >= (X)) of
+    case (true and ((H#header.height) >= (X))) of
 	false -> 
             %many headers height low 381720 386213
             io:fwrite("many headers height low " ++ integer_to_list(H#header.height) ++ " " ++ integer_to_list(X) ++ "\n"),%many headers height low 381718 386213
