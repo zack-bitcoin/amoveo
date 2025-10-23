@@ -952,7 +952,7 @@ work(Nonce, _) ->
     io:fwrite("api:work  \n"),
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
-    io:fwrite("api:work  absorbed the header\n")
+    io:fwrite("api:work  absorbed the header\n"),
     Trees = block:check0(Block2),
     io:fwrite("api:work  finished check0\n")
     Prev = block:top(),
