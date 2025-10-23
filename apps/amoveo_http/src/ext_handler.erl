@@ -90,6 +90,7 @@ doit({height}) -> {ok, block:height()};
 doit({height, 1}) -> {ok, api:height()};
 doit({height, 2}) -> {ok, api:height(2)};
 doit({height, 3}) -> {ok, block:bottom()};
+doit({height, 4}) -> {ok, (headers:top_with_block())#header.accumulative_difficulty};
 doit({version}) -> {ok, version:doit(block:height())};
 doit({version, 1}) -> 
     {ok, Version} = application:get_env(amoveo_core, db_version),
