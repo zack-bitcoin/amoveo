@@ -238,6 +238,7 @@ get_headers3(Peer, N) ->
             get_headers3(Peer, N+HB-1);
         true -> 
             io:fwrite("headers not very long\n"),
+            io:fwrite(Headers),
             ok
     end.
 
