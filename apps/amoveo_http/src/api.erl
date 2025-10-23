@@ -935,7 +935,7 @@ txs(IP, Port) ->
     
 -define(mining, "data/mining_block.db").
 work(Nonce, _) ->
-    %io:fwrite("api work\n"),
+    io:fwrite("api work\n"),
     Block = potential_block:check(),
     Height = Block#block.height,
     N = case Nonce of
@@ -944,20 +944,27 @@ work(Nonce, _) ->
         end,
     Block2 = Block#block{nonce = N},
     BH = block:hash(Block2),
-    %io:fwrite("full block is:\n"),
-    %io:fwrite(base64:encode(term_to_binary(Block2))),
-    %io:fwrite("\nwork block hash is "),
+    io:fwrite("api:work  full block is:\n"),
+    io:fwrite(base64:encode(term_to_binary(Block2))),
+    %io:fwrite("api:work  \nwork block hash is "),
     %io:fwrite(packer:pack(hash:doit(BH))),
-    %io:fwrite("pool found a block"),
-    %io:fwrite("\n"),
+    io:fwrite("api:work  pool found a block"),
+    io:fwrite("api:work  \n"),
     Header = block:block_to_header(Block2),
     headers:absorb([Header]),
+    io:fwrite("api:work  absorbed the header\n")
     Trees = block:check0(Block2),
+    io:fwrite("api:work  finished check0\n")
     Prev = block:top(),
+    io:fwrite("api:work  got prev\n")
     {true, Block3} = block:check2(Prev, Block2#block{trees = Trees}),
+    io:fwrite("api:work  did check2\n")
     headers:absorb_with_block([Header]),
+    io:fwrite("api:work  did absorb header with block\n")
     block_db3:write(Block3, BH),
+    io:fwrite("api:work  stored in db\n")
     potential_block:save(),
+    io:fwrite("api:work  saved the potential block\n")
     0.
 mining_data() ->
     case mining_data(common) of
