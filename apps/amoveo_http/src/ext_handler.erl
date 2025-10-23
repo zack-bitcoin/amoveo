@@ -553,17 +553,23 @@ many_headers_cached_broken(Many, X) ->
             end
     end.
 
-many_headers(Many, X) -> %4, 8
+many_headers(Many, TheirHeight) -> %
     %return Many headers, starting at height X.
     Height = block:height(), %12
     {Start, End} = 
         if
-            (X+Many-1) > Height -> {X, Height};
-            true -> {X, X+Many-1}
+            (TheirHeight+Many-1) > Height -> {TheirHeight, Height};
+            true -> {TheirHeight, TheirHeight+Many-1}
         end,
     %io:fwrite("ext handler many headers " ++ integer_to_list(Start) ++ " " ++ integer_to_list(End) ++ "\n"),
-    Header = block:block_to_header(block:get_by_height(End)),
-    many_headers2(min(Many, End-Start+1), Header, []).
+    case block:get_header_by_height(End) of
+        error -> 
+            io:fwrite("can't share headers if we don't have the blocks\n"),
+            ok;
+        Header ->
+            %Header = block:block_to_header(block:get_by_height(End)),
+            many_headers2(min(Many, End-Start+1), Header, [])
+    end.
         
 
 %many_headers(Many, X)
