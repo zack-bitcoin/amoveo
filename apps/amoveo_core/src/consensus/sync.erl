@@ -185,6 +185,7 @@ get_headers(Peer) ->
     %Start = max(0, N+1), 
     get_headers2(Peer, Start).
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
+    io:fwrite("sync:get_headers2\n"),
     {ok, HB} = ?HeadersBatch,
     %io:fwrite("get headers 2 inputs " ++ integer_to_list(HB) ++ " " ++ integer_to_list(N) ++ "\n"),
     {{P1, P2, P3, P4}, _} = Peer,
@@ -217,7 +218,9 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 						%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
 		     CommonHash
 	    end;
-        [] -> ok;
+        [] -> 
+            io:fwrit("received no headers\n"),
+            ok;
         _ ->
             io:fwrite("headers not a list"),
             io:fwrite(Headers)
@@ -233,7 +236,9 @@ get_headers3(Peer, N) ->
     if
         length(Headers) > (HB div 2) -> 
             get_headers3(Peer, N+HB-1);
-        true -> ok
+        true -> 
+            io:fwrite("headers not very long\n"),
+            ok
     end.
 
 ip_url_format({{A, B, C, D}, _}) ->
