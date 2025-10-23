@@ -954,17 +954,17 @@ work(Nonce, _) ->
     headers:absorb([Header]),
     io:fwrite("api:work  absorbed the header\n"),
     Trees = block:check0(Block2),
-    io:fwrite("api:work  finished check0\n")
+    io:fwrite("api:work  finished check0\n"),
     Prev = block:top(),
-    io:fwrite("api:work  got prev\n")
+    io:fwrite("api:work  got prev\n"),
     {true, Block3} = block:check2(Prev, Block2#block{trees = Trees}),
-    io:fwrite("api:work  did check2\n")
+    io:fwrite("api:work  did check2\n"),
     headers:absorb_with_block([Header]),
-    io:fwrite("api:work  did absorb header with block\n")
+    io:fwrite("api:work  did absorb header with block\n"),
     block_db3:write(Block3, BH),
-    io:fwrite("api:work  stored in db\n")
+    io:fwrite("api:work  stored in db\n"),
     potential_block:save(),
-    io:fwrite("api:work  saved the potential block\n")
+    io:fwrite("api:work  saved the potential block\n"),
     0.
 mining_data() ->
     case mining_data(common) of
