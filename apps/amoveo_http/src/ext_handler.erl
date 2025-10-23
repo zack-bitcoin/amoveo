@@ -584,7 +584,7 @@ many_headers(Many, X) ->
     case (true and ((H#header.height) >= (X))) of
 	false -> 
             %many headers height low 381720 386213
-            io:fwrite("many headers height low " ++ integer_to_list(H#header.height) ++ " " ++ integer_to_list(X) ++ "\n"),%many headers height low 381718 386213
+            %io:fwrite("many headers height low " ++ integer_to_list(H#header.height) ++ " " ++ integer_to_list(X) ++ "\n"),%many headers height low 381718 386213
             [];
 	true ->
 	    {N, Many2} = 
