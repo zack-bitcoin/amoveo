@@ -552,7 +552,9 @@ many_headers_cached_broken(Many, X) ->
                     many_headers2(Many2, Nth, [])
             end
     end.
-many_headers(Many, X) ->
+many_headers(Many, X)
+many_headers_old(Many, X) ->
+%return Many headers, starting at height X?
     %io:fwrite("many headers "), 
     %io:fwrite(packer:pack([Many, X])), 
     %io:fwrite("\n"),
@@ -561,7 +563,9 @@ many_headers(Many, X) ->
     H = block:block_to_header(block:top()),
     case (H#header.height) >= (X) of
 	false -> 
-            io:fwrite("many headers height low " ++ integer_to_list(H#header.height) ++ " " ++ integer_to_list(X) ++ "\n"),
+            %many headers height low 381720 386213
+
+            io:fwrite("many headers height low " ++ integer_to_list(H#header.height) ++ " " ++ integer_to_list(X) ++ "\n"),%many headers height low 381718 386213
             [];
 	true ->
 	    {N, Many2} = 
@@ -578,7 +582,6 @@ many_headers(Many, X) ->
     end.
 many_headers2(0, _, Out) -> Out;
 many_headers2(Many, H, Out) ->
-    io:fwrite("many headers 2\n"),
     %{ok, H} = headers:read(Hash),
     case H#header.height of
 	0 -> [H|Out];
