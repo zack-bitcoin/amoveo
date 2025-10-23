@@ -219,7 +219,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 		     CommonHash
 	    end;
         [] -> 
-            io:fwrit("received no headers\n"),
+            io:fwrite("received no headers\n"),
             ok;
         _ ->
             io:fwrite("headers not a list"),

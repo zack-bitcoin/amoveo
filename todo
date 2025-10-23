@@ -1,3 +1,6 @@
+add indexing to headers. because sometimes we have headers without the blocks.
+
+
 occasionally blocks are mined that have invalid verkle state roots. other nodes refuse to sync them.
 
 
