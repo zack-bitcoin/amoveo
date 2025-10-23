@@ -552,8 +552,22 @@ many_headers_cached_broken(Many, X) ->
                     many_headers2(Many2, Nth, [])
             end
     end.
+
+many_headers(Many, X) -> %4, 8
+    %return Many headers, starting at height X.
+    Height = block:height(), %12
+    {Start, End} = 
+        if
+            (X+Many-1) > Height -> {X, Height};
+            true -> {X, X+Many-1}
+        end,
+    %io:fwrite("ext handler many headers " ++ integer_to_list(Start) ++ " " ++ integer_to_list(End) ++ "\n"),
+    Header = block:block_to_header(block:get_by_height(End)),
+    many_headers2(min(Many, End-Start+1), Header, []).
+        
+
 %many_headers(Many, X)
-many_headers(Many, X) ->
+old_many_headers(Many, X) ->
 %return Many headers, starting at height X?
     %io:fwrite("many headers "), 
     %io:fwrite(packer:pack([Many, X])), 
