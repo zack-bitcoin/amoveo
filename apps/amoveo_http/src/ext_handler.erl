@@ -562,11 +562,12 @@ many_headers(Many, TheirHeight) -> %
             true -> {TheirHeight, TheirHeight+Many-1}
         end,
     %io:fwrite("ext handler many headers " ++ integer_to_list(Start) ++ " " ++ integer_to_list(End) ++ "\n"),
-    case block:get_header_by_height(End) of
+    case block:get_by_height(End) of
         error -> 
             io:fwrite("can't share headers if we don't have the blocks\n"),
             ok;
-        Header ->
+        Block ->
+            Header = block:block_to_header(Block),
             %Header = block:block_to_header(block:get_by_height(End)),
             many_headers2(min(Many, End-Start+1), Header, [])
     end.
