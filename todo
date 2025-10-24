@@ -3,6 +3,9 @@ add indexing to headers. because sometimes we have headers without the blocks.
 something we don't handle well is when block height is above header height because newer blocks have less total difficulty than older blocks.
 
 
+the resync headers thing in the wallet isn't good.
+
+
 occasionally blocks are mined that have invalid verkle state roots. other nodes refuse to sync them.
 
 

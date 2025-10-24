@@ -22,7 +22,9 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
-    %io:fwrite("sync main \n"),
+    io:fwrite("sync main \n"),
+    io:fwrite(packer:pack(Peer)),
+    io:fwrite("\n"),
     BL = case application:get_env(amoveo_core, kind) of
 	     {ok, "production"} ->%don't blacklist peers in test mode.
 		 blacklist_peer:check(Peer);
@@ -85,7 +87,7 @@ start(P) ->
     end.
 doit2([]) -> ok;
 doit2(L0) ->
-    io:fwrite("doit2\n"),
+    %io:fwrite("doit2\n"),
     L = remove_self(L0),
     BH = block:height(),
     HH = api:height(),
@@ -95,7 +97,10 @@ doit2(L0) ->
 	    ok;
 	BH < HH ->
             io:fwrite("sync cast\n"),
-	    gen_server:cast(?MODULE, {main, hd(shuffle(L))});
+            Peer = hd(shuffle(L)),
+            io:fwrite(packer:pack(Peer)),
+            io:fwrite("\n"),
+	    gen_server:cast(?MODULE, {main, Peer});
 	true -> 
 	    io:fwrite("nothing to sync\n"),
 	    ok
@@ -724,7 +729,7 @@ sync_peer(Peer) ->
             sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
-    io:fwrite("sync_peer2\n"),
+    %io:fwrite("sync_peer2\n"),
     TTHH = TheirTopHeader#header.height,
     MTHH = (headers:top())#header.height,
     if
