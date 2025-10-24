@@ -252,38 +252,42 @@ ip_url_format({{A, B, C, D}, _}) ->
 stream_get_blocks(Peer, N, TheirBlockHeight) ->
     Batch = 100,
     io:fwrite("stream get blocks\n"),
-    true = N =< TheirBlockHeight,
+%    true = N =< TheirBlockHeight,
+    if 
+        N > TheirBlockHeight -> ok;
+        true ->
     %PM = packer:pack({N, TheirBlockHeight}),
-    Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(N) ++ "_" ++ integer_to_list(min(N+Batch, TheirBlockHeight)),
-    io:fwrite(Url),
-    io:fwrite("\n"),
-    httpc:request(
-      get,
-      {list_to_binary(Url), []},
-      [],
-      [{timeout, 2000}, 
-       {stream, self},
-       {sync, false}]),
-    receive
-        {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
-            blocks_process_stream(<<>>, block:top(), Peer, TheirBlockHeight);
+            Url = "http://" ++ ip_url_format(Peer) ++ ":8080/blocks/" ++ integer_to_list(N) ++ "_" ++ integer_to_list(min(N+Batch, TheirBlockHeight)),
+            io:fwrite(Url),
+            io:fwrite("\n"),
+            httpc:request(
+              get,
+              {list_to_binary(Url), []},
+              [],
+              [{timeout, 2000}, 
+               {stream, self},
+               {sync, false}]),
+            receive
+                {http, {_Ref, stream_start, [{"date", _}, {_, "chunked"}, {"server", "Cowboy"}]}} ->
+                    blocks_process_stream(<<>>, block:top(), Peer, TheirBlockHeight);
             %spawn(fun() ->
             %              new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
             %      end);
-        {http, {_Ref, {{"HTTP/1.1",404,"Not Found"},[_,_,_],_}}} ->
-            io:fwrite("stream returned 404 - Not Found"),
-            spawn(fun() ->
-                          new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
-                  end),
-            ok;
+                {http, {_Ref, {{"HTTP/1.1",404,"Not Found"},[_,_,_],_}}} ->
+                    io:fwrite("stream returned 404 - Not Found"),
+                    spawn(fun() ->
+                                  new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
+                          end),
+                    ok;
 %i{http,{#Ref<0.3209288097.2305294337.37580>,{{"HTTP/1.1",404,"Not Found"},[{"date","Tue, 03 Jun 2025 09:55:56 GMT"},{"server","Cowboy"},{"content-length","0"}],<<>>}}}
-        X ->
-            io:fwrite("unhandled stream header\n"),
-            io:fwrite(X),%{'$gen_cast',{main,{{46,101,81,5},8080}}}
-            ok
-    after 1000 ->
-            io:fwrite("failed to start receiving stream\n"),
-            ok
+                X ->
+                    io:fwrite("unhandled stream header\n"),
+                    io:fwrite(X),%{'$gen_cast',{main,{{46,101,81,5},8080}}}
+                    ok
+            after 1000 ->
+                    io:fwrite("failed to start receiving stream\n"),
+                    ok
+            end
     end.
 blocks_process_stream(Data0, MyTopBlock, Peer, TheirBlockHeight) ->
     receive
@@ -816,8 +820,12 @@ cron() ->
 		  timer:sleep(4000),
 		  cron2()
 	  end).
-cron2() ->   
-    %io:fwrite("sync cron 2\n"),
+cron2() ->
+    timer:sleep(5000),
+    spawn(fun() -> cron3() end),
+    cron2().
+cron3() ->   
+    io:fwrite("sync cron 2\n"),
     SS = sync:status(),
     SC = sync_mode:check(),
     AHeight = api:height(),
@@ -846,9 +854,7 @@ cron2() ->
 			  end
 		  end);
 	true -> ok
-    end,
-    timer:sleep(5000),
-    cron2().
+    end.
 checksum_minus([], _) -> [];
 checksum_minus(A, []) -> A;
 checksum_minus([A|AT], B) ->
