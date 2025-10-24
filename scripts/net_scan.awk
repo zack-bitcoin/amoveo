@@ -22,8 +22,8 @@ function command(H, Peer,     x, ln, line, s, Ins) {
     while(getline line < "temp") {
         ln += 1
         if(ln == 8){
-            match(line, /[0-9][0-9][0-9][0-9]+/)
-            s = substr(line, RSTART, RLENGTH)
+            match(line, /,[0-9][0-9][0-9][0-9]+\]/)
+            s = substr(line, RSTART+1, RLENGTH-2)
             close("temp")
             system("rm temp")
             return(s)
@@ -61,6 +61,7 @@ BEGIN {
         print("header height: " int_command("'[\"height\", 1]'", Peer[i]))
         print("block height: " int_command("'[\"height\"]'", Peer[i]))
         print("block bottom: " int_command("'[\"height\", 3]'", Peer[i]))
+        print("total work done: " (int(int_command("'[\"height\", 4]'", Peer[i])/100000000000000)))
         print("")
         #print(command("'[\"height\", 1]'", Peer[i]))
     }

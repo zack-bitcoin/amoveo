@@ -219,7 +219,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 		     CommonHash
 	    end;
         [] -> 
-            io:fwrite("received no headers\n"),
+            %io:fwrite("received no headers\n"),
             ok;
         _ ->
             io:fwrite("headers not a list"),
@@ -690,7 +690,7 @@ trade_txs(Peer) ->
 %    end.
    
 sync_peer(Peer) ->
-    %io:fwrite("sync peer \n"),
+    io:fwrite("sync peer \n"),
     %io:fwrite("\n"),
     %io:fwrite("trade peers \n"),
     spawn(fun() -> trade_peers(Peer) end),
@@ -718,7 +718,7 @@ sync_peer(Peer) ->
             sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
-    %io:fwrite("sync_peer2\n"),
+    io:fwrite("sync_peer2\n"),
     TTHH = TheirTopHeader#header.height,
     MTHH = (headers:top())#header.height,
     if
