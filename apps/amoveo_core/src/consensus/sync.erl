@@ -94,6 +94,7 @@ doit2(L0) ->
 	    io:fwrite("no one to sync with\n"),
 	    ok;
 	BH < HH ->
+            io:fwrite("sync cast\n"),
 	    gen_server:cast(?MODULE, {main, hd(shuffle(L))});
 	true -> 
 	    io:fwrite("nothing to sync\n"),
