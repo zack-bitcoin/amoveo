@@ -22,7 +22,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(start, _) -> {noreply, go};
 %handle_cast(stop, _) -> {noreply, stop};
 handle_cast({main, Peer}, _) -> 
-    io:fwrite("sync main \n"),
+    %io:fwrite("sync main \n"),
     BL = case application:get_env(amoveo_core, kind) of
 	     {ok, "production"} ->%don't blacklist peers in test mode.
 		 blacklist_peer:check(Peer);
@@ -42,9 +42,9 @@ handle_cast({main, Peer}, _) ->
 	    %io:fwrite("\n"),
 	    ok;
 	true ->
-	    io:fwrite("syncing with this peer now "),
-	    io:fwrite(packer:pack(Peer)),
-	    io:fwrite("\n"),
+	    %io:fwrite("syncing with this peer now "),
+	    %io:fwrite(packer:pack(Peer)),
+	    %io:fwrite("\n"),
 	    sync_peer(Peer),
 	    case application:get_env(amoveo_core, kind) of
 		{ok, "production"} ->
@@ -826,7 +826,7 @@ cron2() ->
     spawn(fun() -> cron3() end),
     cron2().
 cron3() ->   
-    io:fwrite("sync cron 2\n"),
+    %io:fwrite("sync cron 2\n"),
     SS = sync:status(),
     SC = sync_mode:check(),
     AHeight = api:height(),
