@@ -85,6 +85,7 @@ start(P) ->
     end.
 doit2([]) -> ok;
 doit2(L0) ->
+    io:fwrite("doit2\n"),
     L = remove_self(L0),
     BH = block:height(),
     HH = api:height(),
