@@ -78,16 +78,21 @@ handle_call({top_with_block}, _From, State) ->
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
 handle_call({add_with_block, Hash, Header}, _From, State) ->
+    print("add with block 1\n"),
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top_with_block,
     AF = Top#header.accumulative_difficulty,
     case AD >= AF of
         true -> 
+            print("add with block true\n"),
             restore_orphaned_txs(Top, Header, State),
             found_block_timer:add(),
             State2 = reindex(block:hash(Header), State),
+            print("add with block done\n"),
             {reply, ok, State2#s{top_with_block = Header}};
-        false -> {reply, ok, State}
+        false -> 
+            print("add with block false\n"),
+            {reply, ok, State}
     end;
 handle_call({add, Hash, Header, EWAH}, _From, State) ->
     case dict:find(Hash, State#s.h2h) of
@@ -640,6 +645,7 @@ raw_write2(Header, EWAH, Hash, P, File, H2B) ->
     file:pwrite(File, P*?header_size, B2),
     dict:store(Hash, P, H2B).
 reindex(Hash, State) ->
+    io:fwrite("reindex\n"),
     F = State#s.headers_file,
     case dict:find(Hash, State#s.h2h) of
         error -> 
@@ -656,6 +662,7 @@ reindex(Hash, State) ->
                     case dict:find(Height, State#s.h2h) of
                         {ok, P} -> State;%finished
                         _ ->
+                            io:fwrite("indexing height " ++ integer_to_list(Height) ++ "\n"),
                             H2H2 = dict:store(Height, P, State#s.h2h),
                             reindex(Header#header.prev_hash, State#s{h2h = H2H2})
                     end
