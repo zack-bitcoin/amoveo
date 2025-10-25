@@ -609,10 +609,13 @@ orphaned_blocks(OldTop, NewTop, State) ->
 internal_read(Hash, State) ->%hash can be a block height.
     F = State#s.headers_file,
     case dict:find(Hash, State#s.h2h) of
-        error -> error;
+        error -> 
+            io:fwrite("internal read error. pointer not in h2h\n"),
+            error;
         {ok, P} ->
             case file:pread(F, P*?header_size, ?header_size) of
                 eof ->
+                    io:fwrite("internal read error. points to outside of the file.\n"),
                     error;
                 {ok, <<X:(143*8), EWAH:(12*8)>>} -> 
                     {deserialize(<<X:(143*8)>>), EWAH}
