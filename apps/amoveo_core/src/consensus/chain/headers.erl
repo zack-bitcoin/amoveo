@@ -614,7 +614,7 @@ internal_read(Hash, State) ->%hash can be a block height.
                 is_integer(Hash) ->
                     io:fwrite("height was not indexed in h2h " ++ integer_to_list(Hash) ++ "\n");
                 true ->
-                    io:fwrite("internal read error. pointer not in h2h " ++ base64:encode(Hash) ++ "\n")
+                    io:fwrite("internal read error. hash not in h2h " ++"\n")
             end,
             error;
         {ok, P} ->
