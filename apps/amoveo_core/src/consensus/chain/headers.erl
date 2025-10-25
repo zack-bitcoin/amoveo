@@ -78,20 +78,20 @@ handle_call({top_with_block}, _From, State) ->
 handle_call({top}, _From, State) ->
     {reply, State#s.top, State};
 handle_call({add_with_block, Hash, Header}, _From, State) ->
-    print("add with block 1\n"),
+    io:fwrite("add with block 1\n"),
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top_with_block,
     AF = Top#header.accumulative_difficulty,
     case AD >= AF of
         true -> 
-            print("add with block true\n"),
+            io:fwrite("add with block true\n"),
             restore_orphaned_txs(Top, Header, State),
             found_block_timer:add(),
             State2 = reindex(block:hash(Header), State),
-            print("add with block done\n"),
+            io:fwrite("add with block done\n"),
             {reply, ok, State2#s{top_with_block = Header}};
         false -> 
-            print("add with block false\n"),
+            io:fwrite("add with block false\n"),
             {reply, ok, State}
     end;
 handle_call({add, Hash, Header, EWAH}, _From, State) ->
