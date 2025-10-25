@@ -81,7 +81,7 @@ handle_call({add_with_block, Hash, Header}, _From, State) ->
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top_with_block,
     AF = Top#header.accumulative_difficulty,
-    case AD >= AF of
+    case AD > AF of
         true -> 
             restore_orphaned_txs(Top, Header, State),
             found_block_timer:add(),
@@ -90,16 +90,20 @@ handle_call({add_with_block, Hash, Header}, _From, State) ->
         false -> {reply, ok, State}
     end;
 handle_call({add, Hash, Header, EWAH}, _From, State) ->
-    AD = Header#header.accumulative_difficulty,
-    Top = State#s.top,
-    AF = Top#header.accumulative_difficulty,
+    case dict:find(Hash, State#s.h2h) of
+        {ok, _} -> {reply, ok, State};%dont record the same info twice.
+        error ->
+            AD = Header#header.accumulative_difficulty,
+            Top = State#s.top,
+            AF = Top#header.accumulative_difficulty,
     %don't reindex. we only do that for add_with_block.
-    State2 = raw_write(Header, EWAH, Hash, State),
-    NewTop = case AD >= AF of
-                 true -> Header;
-                 false -> Top
-        end,
-    {reply, ok, State2#s{top = NewTop}};
+            State2 = raw_write(Header, EWAH, Hash, State),
+            NewTop = case AD >= AF of
+                         true -> Header;
+                         false -> Top
+                     end,
+            {reply, ok, State2#s{top = NewTop}}
+    end;
 %    Headers = case version() of
 %                  1 -> dict:store(Hash, {Header, EWAH}, State#s.headers);
 %                  2 ->
