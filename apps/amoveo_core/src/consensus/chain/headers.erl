@@ -16,7 +16,8 @@
 -define(LOC, constants:headers_file3()).%headers as bytes
 %-define(LOC2, constants:headers_file4()).%ETS: height -> pointer to header, hash -> pointer to header. 
 -define(LOC3, constants:headers_file5()).%remembers the top header in absolute terms, as well as the top header that has a block we know about.
--define(header_size, 155).
+-define(header_size, 175).%143 + 12 + 20
+%2 813 314 802 860 630 736 896
 
 -record(s, {top = #header{},
 	    top_with_block = #header{},
@@ -629,8 +630,8 @@ internal_read(Hash, State) ->%hash can be a block height.
                 eof ->
                     io:fwrite("internal read error. points to outside of the file.\n"),
                     error;
-                {ok, <<X:(143*8), EWAH:(12*8)>>} -> 
-                    {deserialize(<<X:(143*8)>>), EWAH}
+                {ok, <<X:(143*8), EWAH:(12*8), AccumulatedDiff:(20*8)>>} -> 
+                    {(deserialize(<<X:(143*8)>>))#header{accumulative_difficulty = AccumulatedDiff}, EWAH}
             end
     end.
 raw_write(Header, EWAH, Hash, State) ->
@@ -642,7 +643,7 @@ raw_write2(Header, EWAH, Hash, P, File, H2B) ->
     %ewah currently 100 trillion. 
     B1 = serialize(Header),
     true = size(B1) == 143,
-    B2 = <<B1/binary, EWAH:(12*8)>>,
+    B2 = <<B1/binary, EWAH:(12*8), (Header#header.accumulative_difficulty):(20*8)>>,
     file:pwrite(File, P*?header_size, B2),
     dict:store(Hash, P, H2B).
 reindex(Hash, State) ->
@@ -657,8 +658,8 @@ reindex(Hash, State) ->
                 eof ->
                     io:fwrite("headers reindex impossible error\n"),
                     State;
-                {ok, <<X:(143*8), _:(12*8)>>} -> 
-                    Header = deserialize(<<X:(143*8)>>),
+                {ok, <<X:(143*8), _:(12*8), AD:(20*8)>>} -> 
+                    Header = (deserialize(<<X:(143*8)>>))#header{accumulative_difficulty = AD},
                     Height = Header#header.height,
                     case dict:find(Height, State#s.h2h) of
                         {ok, P} -> State;%finished
