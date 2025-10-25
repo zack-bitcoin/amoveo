@@ -664,7 +664,11 @@ reindex(Hash, State) ->
                     case dict:find(Height, State#s.h2h) of
                         {ok, P} -> State;%finished
                         _ ->
-                            io:fwrite("indexing height " ++ integer_to_list(Height) ++ "\n"),
+                            if
+                                ((Height rem 1000) == 0) ->
+                                    io:fwrite("indexing height " ++ integer_to_list(Height) ++ "\n");
+                                true -> ok
+                            end,
                             H2H2 = dict:store(Height, P, State#s.h2h),
                             reindex(Header#header.prev_hash, State#s{h2h = H2H2})
                     end

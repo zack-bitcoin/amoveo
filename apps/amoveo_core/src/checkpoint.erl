@@ -411,7 +411,9 @@ sync(IP, Port, CPL) ->
             gen_server:cast(block_db, {write, Block, BlockHash}),
     gen_server:cast(block_db, {write, NBlock, CP1}),
     block_db:set_ram_height(Height),
-    headers:absorb_with_block([Header]),
+            spawn(fun() ->
+                          headers:absorb_with_block([Header])
+                  end),
     tx_pool_feeder:dump(NBlock),
     potential_block:dump(),
             timer:sleep(1000),
