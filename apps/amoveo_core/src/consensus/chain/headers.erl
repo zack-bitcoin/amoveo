@@ -564,10 +564,10 @@ version() ->
     end.
 
 restore_orphaned_txs(OldTop, NewTop, State) ->
-    spawn(fun() ->
-                  restore_orphaned_txs_loop(
-                    orphaned_blocks(OldTop, NewTop, State))
-          end).
+%    spawn(fun() ->
+    restore_orphaned_txs_loop(
+      orphaned_blocks(OldTop, NewTop, State)).
+%          end).
 restore_orphaned_txs_loop([]) -> ok;
 restore_orphaned_txs_loop([BH|BlockHashes]) ->
     Block = block:get_by_hash(BH),
