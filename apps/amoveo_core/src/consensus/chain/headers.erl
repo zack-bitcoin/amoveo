@@ -647,7 +647,6 @@ raw_write2(Header, EWAH, Hash, P, File, H2B) ->
     file:pwrite(File, P*?header_size, B2),
     dict:store(Hash, P, H2B).
 reindex(Hash, State) ->
-    io:fwrite("reindex\n"),
     F = State#s.headers_file,
     case dict:find(Hash, State#s.h2h) of
         error -> 
