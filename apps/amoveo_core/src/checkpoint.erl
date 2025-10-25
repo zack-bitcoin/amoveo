@@ -313,7 +313,13 @@ sync(IP, Port, CPL) ->
     TDB = Block#block.trees,
     TDBN = NBlock#block.trees,
     true = check_header_link(TopHeader, Header),
-    Header = block:block_to_header(NBlock),
+    Header2 = block:block_to_header(NBlock),
+            if
+                (not(Header == Header2)) ->
+                    io:fwrite({Header, Header2}),
+                    ok;
+                true -> ok
+            end,
     {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
     {NDict, NNewDict, NProofTree, CP1} = block:check0(NBlock),
     NBlock2 = NBlock#block{trees = {NDict, NNewDict, NProofTree, CP1}},
