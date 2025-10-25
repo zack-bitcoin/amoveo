@@ -6,10 +6,8 @@
 -include("../records.hrl").
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 init(ok) ->
-    io:fwrite("tx_pool init\n"),
     block:initialize_chain(),
     State = current_state(),
-    io:fwrite("tx_pool- blockchain ready\n"),
     {ok, State}.
 handle_call({dump, TopBlock}, _From, _OldState) ->
     State = state2(TopBlock),
@@ -83,9 +81,9 @@ state2(Block) ->
 	    %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
 	%    state2(PrevHeader);
 	%_ ->
-            Trees = Block#block.trees,
-	    #tx_pool{block_trees = Trees, 
-                     height = Block#block.height}.
+    Trees = Block#block.trees,
+    #tx_pool{block_trees = Trees, 
+             height = Block#block.height}.
     %end.
 checksum(Tx) ->
     <<X:32, _/binary>> = hash:doit(Tx),

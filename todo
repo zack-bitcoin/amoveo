@@ -1,4 +1,5 @@
 add indexing to headers. because sometimes we have headers without the blocks.
+in progress.
 
 something we don't handle well is when block height is above header height because newer blocks have less total difficulty than older blocks.
 

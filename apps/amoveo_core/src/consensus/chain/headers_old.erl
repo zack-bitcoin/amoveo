@@ -1,78 +1,73 @@
-% store the headers as bytes in LOC
-% use an ETS to store a mapping from the height of a header in the main chain, to the location in LOC where it is stored. This ETS is stored in LOC2.
-% the ETS also stores a mapping from {height, first-4-bytes-of-block-hash} to the header. for looking up orphans.
-
--module(headers).
+-module(headers_old).
 -behaviour(gen_server).
 -export([absorb/1, absorb_with_block/1, read/1, read_ewah/1, top/0, dump/0, top_with_block/0,
-         read_by_height/1,
          make_header/9, serialize/1, deserialize/1,
          difficulty_should_be/2, 
-	 ewah_range/2, %recent_header/1, 
-         mining_hash/1,
+	 ewah_range/2, recent_header/1, mining_hash/1,
 	 test/0]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../../records.hrl").
--define(LOC, constants:headers_file3()).%headers as bytes
-%-define(LOC2, constants:headers_file4()).%ETS: height -> pointer to header, hash -> pointer to header. 
--define(LOC3, constants:headers_file5()).%remembers the top header in absolute terms, as well as the top header that has a block we know about.
--define(header_size, 155).
-
--record(s, {top = #header{},
-	    top_with_block = #header{},
-            h2h = dict:new(),
-            headers_file,
-            empty_pointer}).%points at first empty slot.
+-define(LOC, constants:headers_file()).
+-define(LOC2, constants:headers_file2()).
+%-define(version, 2).%version 1 uses a dict, version 2 uses ets
+%headers_version
+-record(s, {headers = dict:new(),
+            top = #header{},
+	    top_with_block = #header{}
+	   }).
 init([]) ->
     %io:fwrite("start headers"),
     process_flag(trap_exit, true),
-    X = db:read(?LOC3),
-    {ok, F} = file:open(?LOC, [write, read, raw, binary]),
-    K = if
-	    X == "" -> empty_data(F);
-	    true -> X#s{headers_file = F}
+    X = db:read(?LOC),
+    K1 = if
+	    X == "" -> 
+                empty_data();
+	    true -> X
 	end,
-    io:fwrite("headers has started\n"),
+    K = case version() of
+            1 -> K1;
+            2 -> K1#s{headers = []}
+        end,
+    case ets:info(?MODULE) of
+        undefined ->
+            case ets:file2tab(?LOC2) of
+                {ok, ?MODULE} -> ok;
+                {error, _} ->
+                    ets:new(?MODULE, [set, named_table, compressed])
+            end;
+        _ -> ok
+    end,
     {ok, K}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 handle_call({read_ewah, Hash}, _From, State) ->
-    case internal_read(Hash, State) of
-        error -> {reply, error, State};
-        {Header, EWAH} -> {reply, {ok, {Header, EWAH}}, State}
-    end;
+    Header = case version() of
+                 1 -> dict:find(Hash, State#s.headers);
+                 2 -> case internal_read(Hash) of
+                          [] -> error;
+                          [{K, V}] -> {ok, V}
+                      end
+             end,
+    {reply, Header, State};
 handle_call({read, Hash}, _From, State) ->
-    case internal_read(Hash, State) of
-        error -> {reply, error, State};
-        {Header, _} -> {reply, {ok, Header}, State}
-    end;
-%    Header = case version() of
-%                 1 -> dict:find(Hash, State#s.headers);
-%                 2 -> case internal_read(Hash) of
-%                          [] -> error;
-%                          [{K, V}] -> {ok, V}
-%                      end
-%             end,
-%    {reply, Header, State};
-%handle_call({read, Hash}, _From, State) ->
-%    A = case version() of
-%            1 ->
-%                case dict:find(Hash, State#s.headers) of
-%                    error -> error;
-%                    {ok, {Header, _}} -> {ok, Header};
-%                    {ok, Header} -> {ok, Header}
-%                end;
-%            2 -> case internal_read(Hash) of
-%                     [] -> error;
-%                     [{Hash, {Header, _}}] -> {ok, Header};
-%                     [{Hash, Header}] -> {ok, Header}
-%                 end
-%        end,
-%    {reply, A, State};
+    A = case version() of
+            1 ->
+                case dict:find(Hash, State#s.headers) of
+                    error -> error;
+                    {ok, {Header, _}} -> {ok, Header};
+                    {ok, Header} -> {ok, Header}
+                end;
+            2 -> case internal_read(Hash) of
+                     [] -> error;
+                     [{Hash, {Header, _}}] -> {ok, Header};
+                     [{Hash, Header}] -> {ok, Header}
+                 end
+        end,
+    {reply, A, State};
 handle_call({check}, _From, State) ->
     {reply, State, State};
-handle_call({dump}, _From, State) ->
-    {reply, ok, empty_data(State#s.headers_file)};
+handle_call({dump}, _From, _State) ->
+    {reply, ok, empty_data()};
 handle_call({top_with_block}, _From, State) ->
     {reply, State#s.top_with_block, State};
 handle_call({top}, _From, State) ->
@@ -81,32 +76,43 @@ handle_call({add_with_block, Hash, Header}, _From, State) ->
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top_with_block,
     AF = Top#header.accumulative_difficulty,
-    case AD >= AF of
-        true -> 
-            restore_orphaned_txs(Top, Header, State),
-            found_block_timer:add(),
-            State2 = reindex(block:hash(Header), State),
-            {reply, ok, State2#s{top_with_block = Header}};
-        false -> {reply, ok, State}
-    end;
+    NewTop = case AD >= AF of
+                 true -> 
+                     %if some blocks got orphaned, try to restore the txs from them.
+%                     spawn(fun() ->
+%                                   timer:sleep(10000),
+%                                   io:fwrite("headers is attempting to restore orphaned txs\n"),
+                     restore_orphaned_txs(Top, Header),
+                     %block_db3:set_top(Hash),
+%                     spawn(fun() ->
+%                                   Zeroths = element(2, tx_pool:get()),
+                                   %tx_pool:drop_txs(),
+%                                   wait_for_block(Header#header.height),
+%                                   tx_pool:dump(),
+%                                   restore_orphaned_txs(Top, Header),
+%                                   tx_pool_feeder:absorb(Zeroths)
+%                           end),
+		     found_block_timer:add(),
+		     Header;
+                 false -> Top
+        end,
+    %Headers = dict:store(Hash, Header, State#s.headers),
+    {reply, ok, State#s{top_with_block = NewTop}};
 handle_call({add, Hash, Header, EWAH}, _From, State) ->
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top,
     AF = Top#header.accumulative_difficulty,
-    %don't reindex. we only do that for add_with_block.
-    State2 = raw_write(Header, EWAH, Hash, State),
     NewTop = case AD >= AF of
                  true -> Header;
                  false -> Top
         end,
-    {reply, ok, State2#s{top = NewTop}};
-%    Headers = case version() of
-%                  1 -> dict:store(Hash, {Header, EWAH}, State#s.headers);
-%                  2 ->
-%                      ets:insert(?MODULE, {Hash, {Header, EWAH}}),
-%                      []
-%              end,
-%    {reply, ok, State#s{headers = Headers, top = NewTop}};
+    Headers = case version() of
+                  1 -> dict:store(Hash, {Header, EWAH}, State#s.headers);
+                  2 ->
+                      ets:insert(?MODULE, {Hash, {Header, EWAH}}),
+                      []
+              end,
+    {reply, ok, State#s{headers = Headers, top = NewTop}};
 handle_call(_, _, S) ->
     {reply, S, S}.
 handle_cast(_, State) ->
@@ -114,29 +120,25 @@ handle_cast(_, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, X) ->
-    io:fwrite("headers died 0!\n"),
-    io:fwrite(X#s.headers_file),
-    %ets:tab2file(?MODULE, ?LOC2, [{sync, true}]),
-    file:close(X#s.headers_file),
-    db:save(?LOC3, X#s{headers_file = 0}),
+    ets:tab2file(?MODULE, ?LOC2, [{sync, true}]),
+    db:save(?LOC, X),
     io:fwrite("headers died!\n"),
     ok.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 check() -> gen_server:call(?MODULE, {check}).
-%recent_header(N) ->
-%    Top = top(),
-%    recent_header2(N, Top).
-%recent_header2(N, Header) ->
-%    if
-%        Header#header.height =< N -> Header;
-%        true -> 
-%            PrevHash = Header#header.prev_hash,
-            %{PrevHash, {PrevHeader, _}} = hd(internal_read(PrevHash)),
-%            {PrevHeader, _} = internal_read(PrevHash),
-%            recent_header2(N, PrevHeader)
-%    end.
+recent_header(N) ->
+    Top = top(),
+    recent_header2(N, Top).
+recent_header2(N, Header) ->
+    if
+        Header#header.height =< N -> Header;
+        true -> 
+            PrevHash = Header#header.prev_hash,
+            {PrevHash, {PrevHeader, _}} = hd(internal_read(PrevHash)),
+            recent_header2(N, PrevHeader)
+    end.
             
 
 absorb_with_block([]) -> 0;
@@ -241,12 +243,9 @@ check_difficulty(A) ->
         end,
     {B == A#header.difficulty, B, EWAH}.
 read(Hash) -> gen_server:call(?MODULE, {read, Hash}).
-read_by_height(Height) -> gen_server:call(?MODULE, {read, Height}).
 read_ewah(Hash) -> gen_server:call(?MODULE, {read_ewah, Hash}).
 top() -> gen_server:call(?MODULE, {top}).
-top_with_block() -> 
-    %io:fwrite("headers top with block\n"),
-    gen_server:call(?MODULE, {top_with_block}).
+top_with_block() -> gen_server:call(?MODULE, {top_with_block}).
 dump() -> gen_server:call(?MODULE, {dump}).
 make_header(PH, 0, Time, Version, TreesHash,
             TxsProofHash, Nonce, Difficulty, Period) ->
@@ -339,8 +338,7 @@ difficulty_should_be(NextHeader, A) ->%Next is built on A
 	    B -> Height rem (RF div 2);
 	    true -> Height rem RF
 	end,
-    {ok, {A2, PrevEWAH}} = read_ewah(hash:doit(serialize(A))),
-    %io:fwrite({A, A2}),
+    {ok, {A, PrevEWAH}} = read_ewah(hash:doit(serialize(A))),
     EWAH = calc_ewah(NextHeader, A, PrevEWAH),
     B2 = Height > forks:get(7),
     if
@@ -425,33 +423,15 @@ median(L) ->
     F = fun(A, B) -> A > B end,
     Sorted = lists:sort(F, L),
     lists:nth(S div 2, Sorted).
-empty_data(F) ->
-    false = (F == empty),
+empty_data() ->
     GB = block:genesis_maker(),
     Header0 = block:block_to_header(GB),
-    Header = Header0#header{accumulative_difficulty = 1},
-    HH = block:hash(Header),
+    HH = block:hash(Header0),
     block_hashes:add(HH),
-    EWAH0 = 1000000,%maybe this should be 1.
-    State0 = #s{top = Header, 
-                top_with_block = Header,
-                h2h = dict:new(),
-                empty_pointer = 0,
-                headers_file = F},
-    State1 = raw_write(Header, EWAH0, HH, State0),
-    State2 = reindex(HH, State1),
-    State2.
-
-%    H2B2a = raw_write(Header0, EWAH0,
-%                      HH, 1, F, dict:new()),
-%    H2B2 = dict:store(1, 0, H2B2a),%first header stored starting at the zeroth byte.
-%    #s{top = Header0, 
-%       top_with_block = Header0,
-%       h2h = H2B2,
-%       empty_pointer = 2,
-%       headers_file = F}.
+    #s{top = Header0, 
+       top_with_block = Header0,
        %headers = dict:store(HH,{Header0, Header0#header.period},dict:new())}.
-%headers = dict:store(HH,{Header0, 1000000},dict:new())}.
+       headers = dict:store(HH,{Header0, 1000000},dict:new())}.
 header_size() ->
     HB = constants:hash_size()*8,
     HtB = constants:height_bits(),
@@ -556,11 +536,9 @@ version() ->
         {ok, M} -> M
     end.
 
-restore_orphaned_txs(OldTop, NewTop, State) ->
-    spawn(fun() ->
-                  restore_orphaned_txs_loop(
-                    orphaned_blocks(OldTop, NewTop, State))
-          end).
+restore_orphaned_txs(OldTop, NewTop) ->
+    restore_orphaned_txs_loop(
+      orphaned_blocks(OldTop, NewTop)).
 restore_orphaned_txs_loop([]) -> ok;
 restore_orphaned_txs_loop([BH|BlockHashes]) ->
     Block = block:get_by_hash(BH),
@@ -576,89 +554,42 @@ first(0, _) -> [];
 first(_, []) -> [];
 first(N, [H|T]) when (N > 0) -> 
     [H|first(N-1, T)].
-orphaned_blocks(OldTop, NewTop, State) ->
+orphaned_blocks(OldTop, NewTop) ->
     OH = OldTop#header.height,
     NH = NewTop#header.height,
     OHash = block:hash(OldTop),
     NHash = block:hash(NewTop),
     if
         OH < NH ->
-            %[{_NKey, {NP, _}}] = internal_read(NewTop#header.prev_hash),
-            {NP, _} = internal_read(NewTop#header.prev_hash, State),
+            [{_NKey, {NP, _}}] = internal_read(NewTop#header.prev_hash),
             case is_record(NP, header) of
                 true -> ok;
                 false -> io:fwrite(NP)
             end,
-            orphaned_blocks(OldTop, NP, State);
+            orphaned_blocks(OldTop, NP);
         (OH == NH) and (OHash == NHash)->
             %they are the same block, so nothing to do.
             [];
         (OH >= NH) ->
             %OP = internal_read(OldTop#header.prev_hash),
-            %[{_OKey, {OP, _}}] = internal_read(OldTop#header.prev_hash),
-            {OP, _} = internal_read(OldTop#header.prev_hash, State),
+            [{_OKey, {OP, _}}] = internal_read(OldTop#header.prev_hash),
             true = is_record(OP, header),
             [OHash|
-             orphaned_blocks(OP, NewTop, State)]
+             orphaned_blocks(OP, NewTop)]
     end.
-internal_read(Hash, State) ->%hash can be a block height.
-    F = State#s.headers_file,
-    case dict:find(Hash, State#s.h2h) of
-        error -> error;
-        {ok, P} ->
-            case file:pread(F, P*?header_size, ?header_size) of
-                eof ->
-                    error;
-                {ok, <<X:(143*8), EWAH:(12*8)>>} -> 
-                    {deserialize(<<X:(143*8)>>), EWAH}
-            end
-    end.
-raw_write(Header, EWAH, Hash, State) ->
-    #s{empty_pointer = EP, headers_file = F, h2h = H2H} = State,
-    H2H2 = raw_write2(Header, EWAH, Hash, EP, F, H2H),
-    State#s{empty_pointer = EP+1, h2h = H2H2}.
-    
-raw_write2(Header, EWAH, Hash, P, File, H2B) ->
-    %ewah currently 100 trillion. 
-    B1 = serialize(Header),
-    true = size(B1) == 143,
-    B2 = <<B1/binary, EWAH:(12*8)>>,
-    file:pwrite(File, P*?header_size, B2),
-    dict:store(Hash, P, H2B).
-reindex(Hash, State) ->
-    F = State#s.headers_file,
-    case dict:find(Hash, State#s.h2h) of
-        error -> 
-            io:fwrite("cannot reindex to a header that we don't know about\n"),
-            State;%cannot reindex to a header we don't know about.
-        {ok, P} ->
-            case file:pread(F, P*?header_size, ?header_size) of
-                eof ->
-                    io:fwrite("headers reindex impossible error\n"),
-                    error;
-                {ok, <<X:(143*8), _:(12*8)>>} -> 
-                    Header = deserialize(<<X:(143*8)>>),
-                    Height = Header#header.height,
-                    case dict:find(Height, State#s.h2h) of
-                        {ok, P} -> State;%finished
-                        _ ->
-                            H2H2 = dict:store(Height, P, State#s.h2h),
-                            reindex(Header#header.prev_hash, State#s{h2h = H2H2})
-                    end
-            end
-    end.
+internal_read(Hash) ->
+    ets:lookup(?MODULE, Hash).
 
-
-%wait_for_block(Height) ->    
-%    Height = api:height(),
-%    B = block:height(),
-%    if
-%        (B == Height) ->
-%            ok;
-%        (B < Height)  ->
-%            timer:sleep(3),
-%            wait_for_block(Height)
-%    end.
+wait_for_block(Height) ->    
+    Height = api:height(),
+    B = block:height(),
+    if
+        (B == Height) ->
+            ok;
+        (B < Height)  ->
+            timer:sleep(3),
+            wait_for_block(Height)
+    end.
 
     
 

@@ -191,7 +191,9 @@ absorb_internal(Block) ->
     end.
 do_save(BlockPlus, BH) ->
     %found_block_timer:add(),%put it into headers instead.
+    io:fwrite("block absorber: do save 0\n"),
     block_db3:write(BlockPlus, BH),
+    io:fwrite("block absorber: do save 1\n"),
     block_db:write(BlockPlus, BH).
 %CompressedBlockPlus = zlib:compress(term_to_binary(BlockPlus)),
 %    Hash = block:hash(BlockPlus),

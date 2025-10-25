@@ -480,18 +480,20 @@ proof_packer(X) -> X.
 %                    [B|many_blocks(Many-1, N+1)]
 %            end
 %    end.
-get_header_by_height(N, H) ->
-    HH = H#header.height,
-    if
-        (HH == N) -> H;
-        (HH < N) -> H;
-        true ->
-            case headers:read(H#header.prev_hash) of
-                {ok, Child} ->
-                    get_header_by_height(N, Child);
-                error -> io:fwrite({N, H})
-            end
-    end.
+get_header_by_height(N, _) ->
+    headers:read_by_height(N).
+%get_header_by_height_old(N, H) ->
+%    HH = H#header.height,
+%    if
+%        (HH == N) -> H;
+%        (HH < N) -> H;
+%        true ->
+%            case headers:read(H#header.prev_hash) of
+%                {ok, Child} ->
+%                    get_header_by_height(N, Child);
+%                error -> io:fwrite({N, H})
+%            end
+%    end.
         
                          
 %    case H#header.height of
@@ -572,9 +574,17 @@ broken_many_headers(Many, TheirHeight) -> %
             %Header = block:block_to_header(block:get_by_height(End)),
             many_headers2(min(Many, End-Start+1), Header, [])
     end.
-        
-
-many_headers(Many, X) ->
+       
+many_headers(0, _) -> [];
+many_headers(Many, X) -> 
+%return Many headers, starting at height X
+    Height = block:height(),
+    {ok, Next} = headers:read_by_height(X),
+    if
+        (X == Height) -> [Next];
+        true -> [Next|many_headers(Many-1, X+1)]
+    end.
+many_headers_old(Many, X) ->
 %return Many headers, starting at height X?
     %io:fwrite("many headers "), 
     %io:fwrite(packer:pack([Many, X])), 

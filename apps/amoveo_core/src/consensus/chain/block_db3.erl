@@ -324,12 +324,12 @@ write(Block, Hash) ->
         true -> %local_print(Block#block.trees)
             ok
     end,
-    H = headers:top_with_block(),
-    Hash2 = block:hash(H),
     gen_server:cast(?MODULE, {write, Block, Hash}),
     recent_blocks:add(Hash, Block#block.height),
     %if this is the top of the headers, then do a set_top(Hash).
     spawn(fun() ->
+                  H = headers:top_with_block(),
+                  Hash2 = block:hash(H),
                   if
                       (Hash2 == Hash) ->
                           set_top(Hash),

@@ -1680,8 +1680,8 @@ initialize_chain() ->
             block_absorber:do_save(GB, GH);
         true -> ok
     end,
-    gen_server:call(headers, {add, GH, Header0, 1}),
-    gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
+%    gen_server:call(headers, {add, GH, Header0, 1}),
+%    gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 
 gov_fees([], _, _) -> 0;
