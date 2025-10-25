@@ -75,9 +75,11 @@ pull_headers_cron() ->
 
 pull_headers_cron2() ->
     spawn(fun() ->
-                  {ok, Pools} = application:get_env(
-                                  amoveo_core, pools),
-                  lists:map(fun(P) ->
-                                    sync:get_headers(P)
-                            end, Pools)
+                  case application:get_env(amoveo_core, pools) of
+                      {ok, Pools} ->
+                          lists:map(fun(P) ->
+                                            sync:get_headers(P)
+                                    end, Pools);
+                      _ -> ok
+                  end
           end).

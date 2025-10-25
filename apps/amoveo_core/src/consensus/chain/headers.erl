@@ -81,7 +81,7 @@ handle_call({add_with_block, Hash, Header}, _From, State) ->
     AD = Header#header.accumulative_difficulty,
     Top = State#s.top_with_block,
     AF = Top#header.accumulative_difficulty,
-    case AD > AF of
+    case AD >= AF of
         true -> 
             restore_orphaned_txs(Top, Header, State),
             found_block_timer:add(),
@@ -162,6 +162,8 @@ absorb(X) ->
             _ -> block:hash(B0)
         end,
     absorb(X, Hash).
+%absorb(error, CommonHash) -> 
+%    CommonHash;
 absorb([], CommonHash) -> 
     CommonHash;
 absorb([First|T], R) when is_binary(First) ->

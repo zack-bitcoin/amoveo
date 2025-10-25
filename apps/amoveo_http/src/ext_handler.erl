@@ -579,10 +579,13 @@ many_headers(0, _) -> [];
 many_headers(Many, X) -> 
 %return Many headers, starting at height X
     Height = block:height(),
-    {ok, Next} = headers:read_by_height(X),
-    if
-        (X == Height) -> [Next];
-        true -> [Next|many_headers(Many-1, X+1)]
+    case headers:read_by_height(X) of
+        error -> [];
+        {ok, Next} ->
+            if
+                (X == Height) -> [Next];
+                true -> [Next|many_headers(Many-1, X+1)]
+            end
     end.
 many_headers_old(Many, X) ->
 %return Many headers, starting at height X?
