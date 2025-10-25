@@ -610,7 +610,12 @@ internal_read(Hash, State) ->%hash can be a block height.
     F = State#s.headers_file,
     case dict:find(Hash, State#s.h2h) of
         error -> 
-            io:fwrite("internal read error. pointer not in h2h\n"),
+            if
+                is_integer(Hash) ->
+                    io:fwrite("height was not indexed in h2h " ++ integer_to_list(Hash) ++ "\n");
+                true ->
+                    io:fwrite("internal read error. pointer not in h2h\n")
+            end,
             error;
         {ok, P} ->
             case file:pread(F, P*?header_size, ?header_size) of
