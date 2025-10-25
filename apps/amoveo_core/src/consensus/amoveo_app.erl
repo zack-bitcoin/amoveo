@@ -32,8 +32,7 @@ start(_StartType, _StartArgs) ->
 
 
 stop(_State) ->
-    io:fwrite("stopping node\n"),
-    api:off().
+    io:fwrite("stopping node\n").
 
 make_basic_folders() ->
     X = ["", "blocks", "channels", "data", "keys", "oracle_questions", "checkpoints", "cleaner"],
