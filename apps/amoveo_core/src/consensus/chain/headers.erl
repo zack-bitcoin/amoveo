@@ -643,7 +643,7 @@ reindex(Hash, State) ->
             case file:pread(F, P*?header_size, ?header_size) of
                 eof ->
                     io:fwrite("headers reindex impossible error\n"),
-                    error;
+                    State;
                 {ok, <<X:(143*8), _:(12*8)>>} -> 
                     Header = deserialize(<<X:(143*8)>>),
                     Height = Header#header.height,
