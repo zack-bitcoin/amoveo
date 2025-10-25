@@ -119,7 +119,6 @@ handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, X) ->
     io:fwrite("headers died 0!\n"),
-    io:fwrite(X#s.headers_file),
     %ets:tab2file(?MODULE, ?LOC2, [{sync, true}]),
     file:close(X#s.headers_file),
     db:save(?LOC3, X#s{headers_file = 0}),
