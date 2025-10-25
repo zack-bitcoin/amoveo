@@ -1,13 +1,9 @@
 add indexing to headers. because sometimes we have headers without the blocks.
-in progress.
 
 something we don't handle well is when block height is above header height because newer blocks have less total difficulty than older blocks.
 
 
 the resync headers thing in the wallet isn't good.
-
-
-occasionally blocks are mined that have invalid verkle state roots. other nodes refuse to sync them.
 
 
 make sure that we support IPv6
@@ -21,7 +17,7 @@ payments to miners are still getting dropped.
 * update the verkle tree to store variable sized data.
 
 
-* we need a new gen server to be in charge of both checkpoints, and syncing blocks. so this wont happen at the same time.
+* we need a new gen server to be in charge of both checkpoints, and syncing blocks. so this wont happen at the same time. also headers. right now we download all the headers three times.
 
 Rtx 3060 ti is about 5.5 gh per 140 watt
 
