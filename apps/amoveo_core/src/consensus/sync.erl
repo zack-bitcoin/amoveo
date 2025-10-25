@@ -206,7 +206,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
             io:fwrite("get headers error 2\n"),
             error;
 	[_|_] ->
-            io:fwrite("absorbing " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height)),
+            io:fwrite("absorbing 2 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height)),
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),
             %io:fwrite("headers length"),
@@ -237,6 +237,7 @@ get_headers3(Peer, N) ->
     {ok, HB} = ?HeadersBatch,
     %true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
+    io:fwrite("absorbing 3 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height)),
     AH2 = api:height(),
     true = (N > AH2 - HB - 1),
     headers:absorb(Headers),
