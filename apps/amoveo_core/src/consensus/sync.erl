@@ -194,9 +194,9 @@ get_headers(Peer) ->
 get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_tolerance is bigger than HeadersBatch.
     %io:fwrite("sync:get_headers2\n"),
     {ok, HB} = ?HeadersBatch,
-    %io:fwrite("get headers 2 inputs " ++ integer_to_list(HB) ++ " " ++ integer_to_list(N) ++ "\n"),
+    io:fwrite("get headers 2 inputs " ++ integer_to_list(HB) ++ " " ++ integer_to_list(N) ++ "\n"),
     {{P1, P2, P3, P4}, _} = Peer,
-    %io:fwrite("peer is " ++ integer_to_list(P1) ++ "." ++ integer_to_list(P2) ++ "." ++ integer_to_list(P3) ++ "." ++ integer_to_list(P4) ++ " \n"),
+    io:fwrite("peer is " ++ integer_to_list(P1) ++ "." ++ integer_to_list(P2) ++ "." ++ integer_to_list(P3) ++ "." ++ integer_to_list(P4) ++ " \n"),
     Headers = remote_peer({headers, HB, N}, Peer),
     case Headers of
 	error -> 
