@@ -75,11 +75,15 @@ pull_headers_cron() ->
 
 pull_headers_cron2() ->
     spawn(fun() ->
-                  case application:get_env(amoveo_core, pools) of
-                      {ok, Pools} ->
-                          lists:map(fun(P) ->
-                                            sync:get_headers(P)
-                                    end, Pools);
-                      _ -> ok
-                  end
+                  M = erlang:memory(total),
+                  if
+                      (M < 500000000) ->
+                          case application:get_env(amoveo_core, pools) of
+                              {ok, Pools} ->
+                                  lists:map(fun(P) ->
+                                                    sync:get_headers(P)
+                                            end, Pools);
+                              _ -> ok
+                          end;
+                      true -> ok
           end).
