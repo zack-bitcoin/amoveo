@@ -86,4 +86,5 @@ pull_headers_cron2() ->
                               _ -> ok
                           end;
                       true -> ok
+                  end
           end).
