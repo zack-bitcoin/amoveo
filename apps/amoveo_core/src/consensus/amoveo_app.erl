@@ -75,16 +75,15 @@ pull_headers_cron() ->
 
 pull_headers_cron2() ->
     spawn(fun() ->
-                  M = erlang:memory(total),
-                  if
-                      (M < 500000000) ->
-                          case application:get_env(amoveo_core, pools) of
-                              {ok, Pools} ->
-                                  lists:map(fun(P) ->
-                                                    sync:get_headers(P)
-                                            end, Pools);
-                              _ -> ok
+                  case application:get_env(amoveo_core, pools) of
+                      {ok, Pools} ->
+                          Pool = hd(sync:shuffle(Pools)),
+                          {_, L} = erlang:process_info(headers:process_id(), message_queue_len),
+                          if
+                              (L == 0) ->
+                                  sync:get_headers(Pool);
+                              true -> ok
                           end;
-                      true -> ok
+                      _ -> ok
                   end
           end).
