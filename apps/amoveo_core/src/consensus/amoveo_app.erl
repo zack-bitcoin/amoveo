@@ -80,7 +80,7 @@ pull_headers_cron2() ->
                           Pool = hd(sync:shuffle(Pools)),
                           {_, L} = erlang:process_info(headers:process_id(), message_queue_len),
                           if
-                              (L == 0) ->
+                              (L < 1) ->
                                   sync:get_headers(Pool);
                               true -> ok
                           end;
