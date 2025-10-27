@@ -206,6 +206,7 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
             io:fwrite("get headers error 2\n"),
             error;
 	[_|_] ->
+            io:fwrite("peer was " ++ integer_to_list(P1) ++ "." ++ integer_to_list(P2) ++ "." ++ integer_to_list(P3) ++ "." ++ integer_to_list(P4) ++ " \n"),
             %io:fwrite("absorbing 2 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height) ++ "\n"),
 	    CommonHash = headers:absorb(Headers),
 	    L = length(Headers),

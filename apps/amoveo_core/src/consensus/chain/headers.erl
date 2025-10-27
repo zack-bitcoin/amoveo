@@ -9,7 +9,7 @@
          make_header/9, serialize/1, deserialize/1,
          difficulty_should_be/2, 
 	 ewah_range/2, %recent_header/1, 
-         mining_hash/1,
+         mining_hash/1, process_id/0,
 	 test/0]).
 -export([start_link/0,init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
 -include("../../records.hrl").
@@ -113,6 +113,8 @@ handle_call({add, Hash, Header, EWAH}, _From, State) ->
 %                      []
 %              end,
 %    {reply, ok, State#s{headers = Headers, top = NewTop}};
+handle_call(process_id, _, S) ->
+    {reply, self(), S};
 handle_call(_, _, S) ->
     {reply, S, S}.
 handle_cast(_, State) ->
@@ -128,6 +130,9 @@ terminate(_Reason, X) ->
     ok.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
+process_id() ->
+    gen_server:call(?MODULE, process_id).
 
 check() -> gen_server:call(?MODULE, {check}).
 %recent_header(N) ->
