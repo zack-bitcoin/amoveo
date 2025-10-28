@@ -3,11 +3,10 @@
 -module(block_db3).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, test/1, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
+read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
 compress/1, uncompress/1, compress/2, uncompress/2,
-compress2/1, 
-update_pointer/2, exists/1, rewrite/1,
-copy_everything_from_block_db/1]).
+compress2/1, absorb/1,
+update_pointer/2, exists/1, rewrite/1]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db3_dict()). %this file stores the #d record. The ram part of this gen server.
 -define(blocks_loc, constants:blocks_file4()). %this is where we store  blocks.
@@ -108,6 +107,7 @@ handle_cast({zlib_reload, Binary}, X) ->
 %            {noreply, X2}
 %    end;
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(zlib, _From, X) -> 
     #d{
        zlib_dictionary = ZD
@@ -257,9 +257,6 @@ uncompress(Compressed, ZD) ->
             binary_to_term(list_to_binary(Y))
     end.
 compress2(X) ->
-    %term_to_binary(X).
-    %block_db:compress(X).
-    %zlib:compress(term_to_binary(X)).
 
     S = zlib:open(),
     {ok, CL} = application:get_env(amoveo_core, compression_level),
@@ -269,9 +266,6 @@ compress2(X) ->
     zlib:close(S),
     list_to_binary([B1, B2]).
 uncompress2(X) ->
-    %binary_to_term(X).
-    %block_db:uncompress(X).
-    %Y = binary_to_term(list_to_binary(zlib:inflate(S, X))),
     S = zlib:open(),
     zlib:inflateInit(S),
     A = zlib:inflate(S, X),
@@ -356,51 +350,10 @@ top() ->
     local_print("block db3 top\n"),
     gen_server:call(?MODULE, top).
 
-test(1) ->
-    copy_everything_from_block_db(0),
-    set_top(block:hash(block:get_by_height(350000))).
 
 max_of_list([X]) -> X;
 max_of_list([A|B]) -> 
     max(A, max_of_list(B)).
-copy_everything_from_block_db(Height) ->
-    local_print("copy_everything_from_block_db. height: "),
-    local_print(integer_to_list(Height)),
-    local_print(" megabytes used: "),
-    Pid = get_pid(),
-    local_print(integer_to_list(element(2, hd(process_info(Pid, [memory]))) div 1000000)),
-    local_print("\n"),
-    BH = block:height(),
-    GC = BH rem 1000,
-    if
-        GC == 0 ->
-            %timer:sleep(1000);
-            ok;
-        true -> ok
-    end,
-    if
-        Height > BH -> ok;
-        true ->
-            X = block_db:read_by_height(Height),
-            case X of
-                #block{} -> 
-                    Hash = block:hash(X),
-                    block_db3:write(X, Hash),
-                    copy_everything_from_block_db(Height + 1);
-                _ ->
-                    Dict = block_db:uncompress(X),
-                    Keys = dict:fetch_keys(Dict),
-                    Heights = 
-                        lists:map(
-                          fun(Hash) ->
-                                  Block = dict:fetch(Hash, Dict),
-                                  block_db3:write(Block, Hash),
-                                  Block#block.height
-                          end, Keys),
-                    NewHeight = max_of_list(Heights)+1,
-                    copy_everything_from_block_db(NewHeight)
-            end
-    end.
 make_zlib_dictionary() ->    
     CommonThings = make_zlib_scan_blocks(0, 350000, dict:new()),
     CommonThings.
@@ -431,7 +384,24 @@ occurances(X, Dict) ->
         error -> dict:store(X, 1, Dict);
         {ok, N} -> dict:store(X, N+1, Dict)
     end.
-
+absorb([]) -> ok;
+absorb([A|B]) ->
+    absorb(A),
+    absorb(B);
+absorb(Block2) ->
+    BH = block:hash(Block2),
+    %io:fwrite("full block is:\n"),
+    %io:fwrite(base64:encode(term_to_binary(Block2))),
+    Header = block:block_to_header(Block2),
+    headers:absorb([Header]),
+    Trees = block:check0(Block2),
+    Prev = block:top(),
+    {true, Block3} = block:check2(Prev, Block2#block{trees = Trees}),
+    headers:absorb_with_block([Header]),
+    block_db3:write(Block3, BH),
+    potential_block:save(),
+    ok.
+    
 
                       
 local_print(S) ->

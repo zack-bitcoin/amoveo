@@ -9,6 +9,7 @@ init(ok) ->
     block:initialize_chain(),
     State = current_state(),
     {ok, State}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call({dump, TopBlock}, _From, _OldState) ->
     State = state2(TopBlock),
     {reply, 0, State};

@@ -68,7 +68,7 @@ to_hex(<<A:4, B/bitstring>>) ->
 
 pull_headers_cron() ->
     spawn(fun() ->
-                  timer:sleep(10000),
+                  timer:sleep(5000),
                   pull_headers_cron2(),
                   pull_headers_cron()
           end).

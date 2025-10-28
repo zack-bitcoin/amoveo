@@ -1,9 +1,5 @@
-add indexing to headers. because sometimes we have headers without the blocks.
 
 something we don't handle well is when block height is above header height because newer blocks have less total difficulty than older blocks.
-
-
-the resync headers thing in the wallet isn't good.
 
 
 make sure that we support IPv6
@@ -13,7 +9,6 @@ payments to miners are still getting dropped.
 * wrote amoveo_utils:miner_pool_summary/1, needs to be tested
 
 
-* delete old unused code. the old kind of syncing, forward and backward.
 * update the verkle tree to store variable sized data.
 
 

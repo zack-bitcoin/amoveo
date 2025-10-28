@@ -87,7 +87,6 @@ blocks_file2() -> root() ++ "blocks.db".
 blocks_file3() -> root() ++ "blocks3.db".
 blocks_file4() -> root() ++ "blocks4.db".
 blocks_file() -> custom_root() ++ "blocks/".
-soft_fork() -> custom_root() ++ "soft_fork.db".
 
 scripts_root() -> "lib/amoveo_core-0.1.0/priv/".
 scalar_oracle_bet() -> scripts_root() ++ "scalar_oracle_bet.fs".

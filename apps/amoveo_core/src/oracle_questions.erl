@@ -22,6 +22,7 @@ handle_info(_, X) -> {noreply, X}.
 handle_cast(dump, _) -> 
     {noreply, dict:new()};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(all, _From, X) -> 
     {reply, dict:fetch_keys(X), X};
 handle_call({get, Key}, _From, X) -> 

@@ -66,6 +66,7 @@ handle_cast(dump, _) ->
 %    io:fwrite("dumping the tx reserve\n"),
     {noreply, #db{}};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(all, _From, X) -> 
     {reply, X#db.l, X};
 handle_call({all, 1}, _From, X) -> 

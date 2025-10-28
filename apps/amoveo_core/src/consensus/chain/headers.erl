@@ -113,8 +113,7 @@ handle_call({add, Hash, Header, EWAH}, _From, State) ->
 %                      []
 %              end,
 %    {reply, ok, State#s{headers = Headers, top = NewTop}};
-handle_call(process_id, _, S) ->
-    {reply, self(), S};
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(_, _, S) ->
     {reply, S, S}.
 handle_cast(_, State) ->

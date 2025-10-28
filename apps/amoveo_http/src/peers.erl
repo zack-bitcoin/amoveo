@@ -52,6 +52,7 @@ handle_cast({update, {_,_}=Peer, NewProperties}, State) ->
     NewPeers = dict:store(Peer, NewProperties, State#state.peers),
     {noreply, State#state{peers = NewPeers}}.
 
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(all, _From, State) ->
     {reply, dict:fetch_keys(State#state.peers), State};
 handle_call({read, {_,_}=Peer}, _From, State) ->

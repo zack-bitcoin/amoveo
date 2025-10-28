@@ -7,9 +7,8 @@
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 %-define(trees, [accounts, channels, existence, oracles, orders, governance, matched, unmatched]).
 -define(keys, [sync_kill, sync_mode, keys, recent_blocks, block_hashes, 
-%               block_db, 
                block_db3,
-               headers, block_absorber, block_organizer, tx_pool, 
+               headers, tx_pool, 
 	       peers, blacklist_peer, tx_pool_feeder, 
 	       mine, %channel_manager, channel_feeder,
 	       request_frequency, sync, secrets,
@@ -19,9 +18,8 @@ start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 	       found_block_timer, vanity, peers_heights,
                white_list, nc_sigs, 
                mining_pool_refresher, 
-               %checkpoint, soft_fork, 
-               soft_fork, 
-               verkle_trees_sup, header_cache, tx_reserve
+               %checkpoint, 
+               verkle_trees_sup, tx_reserve
               ]).
 child_killer([]) -> [];
 child_killer([H|T]) -> 

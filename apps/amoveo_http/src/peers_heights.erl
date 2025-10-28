@@ -13,6 +13,7 @@ handle_cast(refresh, X) ->
     N = erlang:now(),
     {noreply, X#d{time = N, peers_heights = peers_heights()}};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(doit, _From, X) -> 
     N = erlang:now(),
     T = timer:now_diff(N, X#d.time) div 1000000,%in seconds
@@ -21,6 +22,7 @@ handle_call(doit, _From, X) ->
              true -> X
          end,
     {reply, X2#d.peers_heights, X2};
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 refresh() -> gen_server:cast(?MODULE, refresh).

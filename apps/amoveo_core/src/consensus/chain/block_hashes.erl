@@ -23,6 +23,7 @@ terminate(_, X) ->
     io:format("block_hashes died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(second_chance, _, X) -> 
     %for every hash stored in the set, check if we are storing a block. If we are not storing a block, then remove it from the set.
     X2 = second_chance_internal(X),
@@ -80,7 +81,6 @@ sci2([H|LI], LO, S) ->
                 _ -> sci2(LI, [H|LO], S)
             end;
         _ ->
-            %case block_db:exists(H) of
             case block_db3:exists(H) of
                 false -> sci2(LI, LO, i_remove(H, S));
                 true -> sci2(LI, [H|LO], S)

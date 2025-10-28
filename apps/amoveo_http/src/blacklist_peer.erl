@@ -18,6 +18,7 @@ handle_cast({add, Peer, Now}, X) ->
     X2 = dict:store(Peer, Now, X),
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call({check, Peer}, _From, X) -> 
     A = case dict:find(Peer, X) of
 	    error -> 

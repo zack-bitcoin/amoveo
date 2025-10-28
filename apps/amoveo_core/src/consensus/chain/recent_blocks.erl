@@ -37,6 +37,7 @@ handle_call({add, Hash, Height}, _, X) ->
             %when we are syncing in reverse
             {reply, ok, X}
     end;
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(read, _From, X) -> 
     #r{blocks = Blocks, height = Height} = X,
     {reply, lists:map(fun({_, H}) -> H end, Blocks), X};

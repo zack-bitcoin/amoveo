@@ -1,5 +1,5 @@
 -module(block).
--export([block_to_header/1, %get_by_height_in_chain/2,
+-export([block_to_header/1, 
          get_by_height/1, hash/1, get_by_hash/1, 
          initialize_chain/0, make/4,
          mine/1, mine/2, mine2/2, check/1, check0/1, check2/2, check3/2, root_hash_check/4,
@@ -12,7 +12,6 @@
          no_counterfeit/4,
          miner_fees/1, gov_fees/3,
          header_by_height/1, 
-         calculate_prev_hashes/1,
          prev_hash/2,
          make_roots/1, sum_amounts_helper/5,
          test/0]).
@@ -104,44 +103,14 @@ hash(B) when element(1, B) == header ->
 hash(B) when is_record(B, block) ->
     hash(block_to_header(B)).
 
-calculate_prev_hashes(Parent) ->
-    H = Parent#header.height,
-    PH = hash(Parent),
-    calculate_prev_hashes([PH], H, 2).
-
-calculate_prev_hashes([PH|Hashes], Height, N) ->
-    NHeight = Height - N,
-    {ok, DBV} = application:get_env(amoveo_core, db_version),
-    RH = if
-             DBV > 1 -> block_db:ram_height();
-             true -> 1
-         end,
-    case NHeight < RH of
-%    case NHeight < 1 of
-        true ->
-            list_to_tuple([prev_hashes|lists:reverse([PH|Hashes])]);
-        false ->
-            %B0 = get_by_height_in_chain(NHeight+1, PH),
-            %B = B0#block.prev_hash,
-            %calculate_prev_hashes([B|[PH|Hashes]], NHeight, N*2)
-            B = get_by_height_in_chain(NHeight, PH),
-            calculate_prev_hashes([hash(B)|[PH|Hashes]], NHeight, N*2)
-    end.
 get_by_hash(H) -> 
     Hash = hash(H),
-    %case block_db:read(Hash) of
-    %io:fwrite("block:get by hash\n"),
     case block_db3:read(Hash) of
         error -> empty;
         <<>> -> empty;
         X -> X
     end.
             
-%    BlockFile = amoveo_utils:binary_to_file_path(blocks, Hash),
-%    case db:read(BlockFile) of
-%        [] -> empty;
-%        Block -> binary_to_term(zlib:uncompress(Block))
-%    end.
 bottom() ->
     %the lowest block (besides 0) that we have synced.
     %O((log(# blocks))^2)
@@ -216,52 +185,6 @@ get_by_height(N) ->
         [X] -> X
     end.
              
-get_by_height_old(N) ->
-    {ok, DBV} = application:get_env(amoveo_core, db_version),
-    if
-        %((N == 0) and (DBV > 1)) -> block_db:genesis();
-        ((N == 0) and (DBV > 1)) -> hd(block_db3:read(0, 0));
-        true ->
-            get_by_height_in_chain(N, headers:top_with_block())
-    end.
-    %get_by_height_in_chain(N, headers:top_with_block()).
-get_by_height_in_chain(N, BH) when N > -1 ->
-    %no longer being used.
-    %if we are using the new database, and the block is more than fork_tolerance in history, then we should use the new way of looking up blocks by height.
-    HN = block:height(),
-    %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-    RH = block_db:ram_height(),
-    {ok, DBV} = application:get_env(amoveo_core, db_version),
-    io:fwrite("block:get by height in chain\n"),
-    if 
-        %((N == 0) and (DBV > 1)) -> block_db:genesis();
-        ((N == 0) and (DBV > 1)) -> hd(block_db3:read(0, 0));
-        ((DBV > 1) and (N < RH)) -> 
-            hd(block_db3:read(N, N));
-%            block_db:by_height_from_compressed(
-%              block_db:read_by_height(N), N);
-        true ->
-            Block = get_by_hash(hash(BH)),
-    %io:fwrite(packer:pack(Block)),
-            case Block of
-            %case empty of
-                empty ->
-                    PrevHash = BH#header.prev_hash,
-                    {ok, PrevHeader} = headers:read(PrevHash),
-                    get_by_height_in_chain(N, PrevHeader);
-                _  ->
-                    M = Block#block.height,
-                    D = M - N,
-                    if
-                        D < 0 -> empty;
-                        D == 0 -> Block;
-                        true ->
-                            PrevHash = prev_hash(lg(D), Block),%TODO, instead we should walk backwards through the headers datastructure in linear time.
-                            {ok, PrevHeader} = headers:read(PrevHash),
-                            get_by_height_in_chain(N, PrevHeader)
-                    end
-            end
-    end.
 prev_hash(0, BP) -> BP#block.prev_hash;
 prev_hash(N, BP) -> element(N+1, BP#block.prev_hashes).
 time_now() ->
@@ -805,10 +728,8 @@ mine(Block, Rounds, 1) ->
             Header = block_to_header(PBlock),
             headers:absorb([Header]),
             headers:absorb_with_block([Header]),
-                        %block_absorber:save(PBlock),
             Hash = hash(Header),
             block_db3:write(PBlock, Hash),
-            %block_organizer:add([PBlock])
             ok
                 
                         %sync:start()
@@ -822,10 +743,8 @@ mine(Block, Rounds, Cores) ->
                         Header = block_to_header(PBlock),
                         headers:absorb([Header]),
 			headers:absorb_with_block([Header]),
-                        %block_absorber:save(PBlock),
                         Hash = hash(Header),
                         block_db3:write(PBlock, Hash),
-                        %block_organizer:add([PBlock])
                         %sync:start()
                         ok
                 end
@@ -1669,7 +1588,6 @@ initialize_chain() ->
     %B = true,
     {GB, Bool} = if
                      B -> G = genesis_maker(),
-                          %block_absorber:do_save(G, GH),
                           {G, true};
                      true -> {get_by_height(0), false}
                  end,
@@ -1677,7 +1595,7 @@ initialize_chain() ->
     GH = block:hash(Header0),
     if
         Bool -> 
-            block_absorber:do_save(GB, GH);
+            block_db3:write(GB, GH);
         true -> ok
     end,
 %    gen_server:call(headers, {add, GH, Header0, 1}),
@@ -2255,10 +2173,11 @@ test(1) ->
     H1 = hash(Header1),
     H1 = hash(WBlock10),
     {ok, _} = headers:read(H1),
-    block_organizer:add([WBlock10]),
+    block_db3:absorb(WBlock10),
     timer:sleep(400),
     WBlock11 = get_by_hash(H1),
-    WBlock12 = get_by_height_in_chain(1, Header1),
+%    WBlock12 = get_by_height_in_chain(1, Header1),
+    WBlock12 = ok,
     io:fwrite(packer:pack(WBlock12)),
     io:fwrite("\n"),
     io:fwrite(packer:pack(WBlock11)),

@@ -45,26 +45,11 @@ block(2, H) ->
 blocks(Start, End) ->
     %returns a list of blocks in a JSON data structure.
     block_db3:read(Start, End).
-%    L = block_db:read(End - Start, Start),
-%    if
-%        is_binary(L) -> 
-%            D = block_db:uncompress(L),
-%            K = dict:fetch_keys(D),
-%            sync:low_to_high(sync:dict_to_blocks(K, D));
-%        is_list(L) -> L
-%    end.
-
 blocks(4, Start, End) ->
     block_db3:read(Start, End).
-%block_db:read_internal(Start, End).
-
 tx_scan(L) ->
     %scan the N recent blocks to see if the txids from list L have been published.
-%    RH = block_db:ram_height(),
     BH = block:height(),
-%    N = BH - RH,
-    %true = (BH - N) > RH,
-%    Blocks = lists:reverse(block_db:read(N, RH)),
     Blocks = lists:reverse(block_db3:read(max(0, BH-20), BH)),
     {0, BH, tx_scan2(L, Blocks)}.
 tx_scan2(L, []) -> mark_height(0, L);
@@ -943,28 +928,7 @@ work(Nonce, _) ->
             <<X:184>> -> X
         end,
     Block2 = Block#block{nonce = N},
-    BH = block:hash(Block2),
-    io:fwrite("api:work  full block is:\n"),
-    io:fwrite(base64:encode(term_to_binary(Block2))),
-    %io:fwrite("api:work  \nwork block hash is "),
-    %io:fwrite(packer:pack(hash:doit(BH))),
-    io:fwrite("api:work  pool found a block"),
-    io:fwrite("api:work  \n"),
-    Header = block:block_to_header(Block2),
-    headers:absorb([Header]),
-    io:fwrite("api:work  absorbed the header\n"),
-    Trees = block:check0(Block2),
-    io:fwrite("api:work  finished check0\n"),
-    Prev = block:top(),
-    io:fwrite("api:work  got prev\n"),
-    {true, Block3} = block:check2(Prev, Block2#block{trees = Trees}),
-    io:fwrite("api:work  did check2\n"),
-    headers:absorb_with_block([Header]),
-    io:fwrite("api:work  did absorb header with block\n"),
-    block_db3:write(Block3, BH),
-    io:fwrite("api:work  stored in db\n"),
-    potential_block:save(),
-    io:fwrite("api:work  saved the potential block\n"),
+    block_db3:absorb(Block2),
     0.
 mining_data() ->
     case mining_data(common) of

@@ -30,6 +30,7 @@ handle_cast(cron, X) ->
 	 end,
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 add(Block) ->

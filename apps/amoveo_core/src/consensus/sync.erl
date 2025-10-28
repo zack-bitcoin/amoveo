@@ -63,6 +63,7 @@ handle_cast({main, Peer}, _) ->
     {noreply, []};
 handle_cast(_, X) -> {noreply, X}.
 %handle_call(status, _From, X) -> {reply, X, X};
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(_, _From, X) -> {reply, X, X}.
 status() -> sync_kill:status().
 stop() -> sync_kill:stop().
@@ -238,7 +239,7 @@ get_headers3(Peer, N) ->
     {ok, HB} = ?HeadersBatch,
     %true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
-    %io:fwrite("absorbing 3 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height) ++ "\n"),
+    io:fwrite("absorbing 3 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height) ++ "\n"),
     AH2 = api:height(),
     true = (N > AH2 - HB - 1),
     headers:absorb(Headers),
@@ -283,9 +284,9 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
             %      end);
                 {http, {_Ref, {{"HTTP/1.1",404,"Not Found"},[_,_,_],_}}} ->
                     io:fwrite("stream returned 404 - Not Found"),
-                    spawn(fun() ->
-                                  new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
-                          end),
+%                    spawn(fun() ->
+%                                  new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
+%                          end),
                     ok;
 %i{http,{#Ref<0.3209288097.2305294337.37580>,{{"HTTP/1.1",404,"Not Found"},[{"date","Tue, 03 Jun 2025 09:55:56 GMT"},{"server","Cowboy"},{"content-length","0"}],<<>>}}}
                 X ->
@@ -396,140 +397,6 @@ try_process_block(Small, Top) ->
     {Small, Top}.
         
 
-new_get_blocks(Peer, N, TheirBlockHeight, _) when (N > TheirBlockHeight) ->
-    io:fwrite("done syncing");
-new_get_blocks(Peer, N, TheirBlockHeight, 0) ->
-    io:fwrite("gave up syncing");
-new_get_blocks(Peer, N, TheirBlockHeight, Tries) ->
-    io:fwrite("sync new get blocks\n"),
-    go = sync_kill:status(),
-    Height = block:height(),
-    AHeight = api:height(),
-    {ok, DA} = ?download_ahead,
-    if
-	Height == AHeight -> 
-            io:fwrite("done syncing\n"),
-            ok;%done syncing
-        (N > (1 + Height + DA)) ->
-            io:fwrite("wait to get more blocks\n"),
-            timer:sleep(100),
-            new_get_blocks(Peer, N, TheirBlockHeight, Tries - 1);
-        true ->
-            spawn(fun() ->
-                          new_get_blocks2(TheirBlockHeight, N, Peer, 5)
-                  end)
-                %new_get_blocks(Peer, N, TheirBlockHeight, ?tries)
-    end.
-    
-new_get_blocks2(_TheirBlockHeight, _N, _Peer, 0) ->
-    ok;
-new_get_blocks2(TheirBlockHeight, N, Peer, Tries) ->
-    %io:fwrite("new get blocks 2 request blocks "),
-    %io:fwrite(integer_to_list(N)),
-    %io:fwrite("\n"),
-    BH0 = block:height(),
-    true = N < TheirBlockHeight + 1,
-    go = sync_kill:status(),
-    %N2 = min(BH0, N),
-    Blocks = talker:talk({blocks, 50, N}, Peer),
-    BH2 = block:height(),
-    go = sync_kill:status(),
-    case Blocks of
-	{error, _} -> 
-	    io:fwrite("get blocks 2 failed connect error\n"),
-	    %io:fwrite(packer:pack([N, Peer, Tries])),
-	    io:fwrite("\n"),
-	    timer:sleep(2000),
-	    new_get_blocks2(TheirBlockHeight, N, Peer, Tries - 1);
-	bad_peer -> 
-	    io:fwrite("get blocks 2 failed connect bad peer\n"),
-	    %io:fwrite(packer:pack([N, Peer, Tries])),
-	    io:fwrite("\n"),
-	    timer:sleep(600),
-	    new_get_blocks2(TheirBlockHeight,  N, Peer, Tries - 1);
-	{ok, Bs} -> 
-            io:fwrite("got compressed blocks, asked for height: "),
-            io:fwrite(integer_to_list(N)),
-            io:fwrite("\n"),
-            L = if
-                    is_list(Bs) -> Bs;
-                    true ->
-                        Dict = block_db:uncompress(Bs),
-                        L0 = low_to_high(dict_to_blocks(dict:fetch_keys(Dict), Dict)),
-                        L0
-                end,
-            %io:fwrite("uncompressed the blocks\n"),
-            S = length(L),
-            io:fwrite("many blocks: "),
-            io:fwrite(integer_to_list(S)),
-            io:fwrite("\n"),
-            io:fwrite("first height: "),
-            io:fwrite(integer_to_list(element(2, hd(L)))),
-            io:fwrite("\n"),
-            io:fwrite("last height: "),
-            io:fwrite(integer_to_list(element(2, hd(lists:reverse(L))))),
-            io:fwrite("\n"),
-            if
-                S == 0 -> ok;
-                true ->
-                    GH = ((hd(lists:reverse(L)))#block.height),
-                    AH = api:height(),
-                    if
-                        AH > GH ->
-                            wait_do(fun() ->
-                                            {ok, DA} = ?download_ahead,
-                                            (N + S) < (block:height() + DA)
-                                    end,
-                                    fun() ->
-                                            %new_get_blocks2(TheirBlockHeight, N + S, Peer, 5)
-                                            new_get_blocks2(TheirBlockHeight, GH+1, Peer, 5)
-                                    end,
-                                    200);
-                        true -> ok
-                    end
-            end,
-            %io:fwrite("sync n s: "),
-            %io:fwrite(packer:pack([N, S])),
-            %io:fwrite("\n"),
-            %{ok, Cores} = application:get_env(amoveo_core, block_threads),
-            %Cores = 20,
-            %S2 = S div Cores,
-            %io:fwrite("sync:new_get_blocks2. add "),
-            %io:fwrite(integer_to_list(length(L))),
-            %io:fwrite(" blocks\n"),
-            %io:fwrite("requested from "),
-            %io:fwrite(integer_to_list(N2)),
-            %io:fwrite("\n"),
-            %io:fwrite(integer_to_list((hd(L))#block.height)),
-            %io:fwrite("\n"),
-            %io:fwrite(integer_to_list((hd(tl(L)))#block.height)),
-            io:fwrite("adding blocks to block organizer\n"),
-            skip_ahead_to_the_checkpoint(L)
-    end.
-skip_ahead_to_the_checkpoint([]) -> ok;
-skip_ahead_to_the_checkpoint(L) ->
-    Start = (hd(L))#block.height - 1,
-    %io:fwrite("skip ahaead checkpoint " ++ integer_to_list(Start) ++ "\n"),
-    BH = block:height(),
-    if
-        (Start > (BH+1)) -> 
-            io:fwrite("too far\n"),
-            ok;
-        true ->
-            Top = block:get_by_height(Start),
-            case Top of
-                error -> skip_ahead_to_the_checkpoint(tl(L));
-                _ -> 
-                    sequential_loop([Top|L]),
-                    sync:start()
-            end
-    end.
-            
-sequential_loop([X]) -> ok;
-sequential_loop([Prev|[Block|Rest]]) -> 
-    Block2 = process_block_sequential(Block, Prev),
-    sequential_loop([Block2|Rest]).
-    
 process_block_sequential(Block, Prev) ->
     go = sync_kill:status(),
     BH = block:hash(Block),
@@ -749,7 +616,6 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
 	    io:fwrite("get blocks from them.\n"),
 	    CommonHeight = min(TopCommonHeader#header.height, block:height()),
             RS = reverse_syncing(),
-            %BH = block_db:ram_height(),
             BH = block:height(),
             if
                 (RS and (BH < 1)) -> 

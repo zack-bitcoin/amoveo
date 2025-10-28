@@ -9,6 +9,7 @@ init(ok) ->
     %process_flag(trap_exit, true),
     {ok, []}.
 %TODO using a self() inside of this isn't good, because it is already a gen server listening for messages. and the two kinds of messages are interfering.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call({absorb, SignedTx, Timeout}, _From, State) when (is_integer(Timeout) and (Timeout > -1)) ->
     R = absorb_timeout(SignedTx, Timeout),
     {reply, R, State};

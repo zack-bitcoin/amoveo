@@ -46,6 +46,7 @@ handle_call({IP, N}, _From, X) ->
 	    end,
 	    {reply, R, X2}
     end;
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(_, _From, X) -> 
     {reply, X, X}.
 doit(IP) ->

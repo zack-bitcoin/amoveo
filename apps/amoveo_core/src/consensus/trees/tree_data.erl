@@ -10,6 +10,7 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call({remove_before, Blocks, Work}, _, _) -> 
     B2 = remove_before_internal(Blocks, Work),
     {reply, B2, []};

@@ -27,6 +27,7 @@ terminate(_, X) ->
     io:format("potential block died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
+handle_call(process_id, _, S) -> {reply, self(), S};
 handle_call(dump, _, _) -> 
     {reply, ok, #pb{block = "", time = now()}};
 %handle_call({save, Txs, _Height}, _, X) -> 

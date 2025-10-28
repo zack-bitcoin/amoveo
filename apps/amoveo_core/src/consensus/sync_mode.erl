@@ -72,16 +72,4 @@ check_switch_to_normal(N, BlockTime, Counter) ->
 	    check_switch_to_normal(N, T1, Counter + 1)
     end.
 
-   % T1 = block_absorber:check(),%This is really bad. the timer restarts every time someone even attempts to give us a block. even if it is not a new block.
-%T = timer:now_diff(now(), T1),
-%    S = T / 1000000,%seconds
-%    if
-%	S > 180 -> 
-%	    sync:stop(),
-%	    sync_mode:normal();
-%	true -> 
-%	    sync:start(),
-%	    timer:sleep(15000),
-%	    check_switch_to_normal()
-%    end.
 	    

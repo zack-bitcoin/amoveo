@@ -3,7 +3,7 @@
 
 -export([init/3, handle/2, terminate/3, doit/1,
 	send_txs/4, init/2, many_headers/2,
-        get_header_by_height/2, many_headers2/3]).
+        get_header_by_height/2]).
 %example of talking to this handler:
 %httpc:request(post, {"http://127.0.0.1:3010/", [], "application/octet-stream", "echo"}, [], []).
 %curl -i -d '["test"]' http://localhost:3011
@@ -104,7 +104,6 @@ doit({version, 3}) ->
     {ok, N, G};
 doit({give_block, Block}) -> %block can also be a list of blocks.
     %io:fwrite("ext_handler receiving blocks\n"),
-    %Response = block_absorber:save(Block),
     case sync_mode:check() of
         quick -> {ok, 0};
         normal ->
@@ -112,23 +111,17 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
                     is_list(Block) -> Block;
                     true -> [Block]
                 end,
-            Response = block_organizer:add(A),
-            R2 = if
-                     is_atom(Response) -> 0;
-                     true -> Response
-                 end,
-            {ok, R2}
+            block_db3:absorb(A),
+            ok
     end;
 doit({block, N}) when (is_integer(N) and (N > -1))->
     {ok, block:get_by_height(N)};
 doit({block, 2, H}) ->
     {ok, block:get_by_hash(H)};
 doit({blocks, Many, N}) -> 
-    %X = block_db:read(Many, N),
     X = block_db3:read(N, Many+N),
     {ok, X};
 doit({blocks, -1, Many, Highest}) ->
-    %X = block_db:read_reverse(Many, Highest),
     X = block_db3:read(Highest - Many, Highest),
     {ok, X};
 doit({header, N}) when is_integer(N) -> 
@@ -458,6 +451,21 @@ doit({checkpoint, Hash, N}) ->
         {error, enoent} -> {error, "out of bounds"};
         {error, _} -> {error, "unhandled error"}
     end;
+doit({status, 1}) -> 
+    {ok, erlang:memory(total)};
+doit({status, 2}) -> 
+    DBs = [block_hashes, block_db3, headers, tx_pool, peers, blacklist_peer, tx_pool_feeder, request_frequency, oracle_questions, potential_block, push_block, peers_heights],
+    R = lists:map(
+      fun(X) -> 
+              io:fwrite("checking gen server " ++ atom_to_list(X) ++ "\n"),
+              S = gen_server:call(X, process_id),
+              [{message_queue_len, MQL},
+               {total_heap_size, THS},
+               {stack_size, SS}] = erlang:process_info(S, [message_queue_len, total_heap_size, stack_size]),
+              {X, MQL, THS, SS}
+      end, DBs),
+                      
+    {ok, [erlang:memory(total)|R]};
 doit(X) ->
     io:fwrite("I can't handle this \n"),
     io:fwrite(packer:pack(X)), %unlock2
@@ -508,73 +516,6 @@ get_header_by_height(N, _) ->
 %            end
 %    end.
 	    
-many_headers_cached_broken(Many, X) ->
-    %io:fwrite("many headers "), 
-    %io:fwrite(packer:pack([Many, X])), 
-    %io:fwrite("\n"),
-    Z = max(0, X + Many - 1),%number of highest header that we want.
-    %H = headers:top(),
-    APIHeight = api:height(),
-    case APIHeight >= (X) of
-	false -> [];
-	true ->
-	    {N, Many2} = 
-		if 
-		    Z < APIHeight ->
-                        %we have all the headers we need to create this batch.
-			{Z, Many};
-		    true ->
-                        %we don't have enough headers.
-			{APIHeight, Many - (Z - APIHeight)}
-		end,
-						%N = min(H#header.height, X + Many - 1),
-            N = min(Z, APIHeight),%end of range that we want.
-            Many2 = Many - max(0, (Z - APIHeight)),
-	    %Nth = get_header_by_height(N, H),
-	    %Result = many_headers2(Many2, Nth, []),
-            N2 = (N - (N rem 5000)),
-            case Many2 of
-                5000 ->
-                    case header_cache:read(N2) of
-                        error ->
-                            %io:fwrite("slow\n"),
-                            io:fwrite(integer_to_list(N2)),
-                            %H = block:block_to_header(block:top()),
-                            H = headers:top(),
-                            Nth = get_header_by_height(N2, H),
-                            Result = many_headers2(Many2, Nth, []),
-                            header_cache:store(N2, Result),
-                            Result;
-                        {ok, Result2} ->
-                            %io:fwrite("fast\n"),
-                            Result2
-                    end;
-                _ ->
-                    H = block:block_to_header(block:top()),
-                    Nth = get_header_by_height(N, H),
-                    many_headers2(Many2, Nth, [])
-            end
-    end.
-
-broken_many_headers(Many, TheirHeight) -> %
-    %return Many headers, starting at height X.
-    Height = block:height(), %12
-    {Start, End} = 
-        if
-            (TheirHeight+Many-1) > Height -> {TheirHeight, Height};
-            true -> {TheirHeight, TheirHeight+Many-1}
-        end,
-    %io:fwrite("ext handler many headers " ++ integer_to_list(Start) ++ " " ++ integer_to_list(End) ++ "\n"),
-    case block:get_by_height(End) of
-        error -> 
-            %io:fwrite("can't share headers if we don't have the blocks\n"),
-            ok;
-        Block ->
-            Header = block:block_to_header(Block),
-            %Header = block:block_to_header(block:get_by_height(End)),
-            many_headers2(min(Many, End-Start+1), Header, [])
-    end.
-       
 many_headers(0, _) -> [];
 many_headers(Many, X) -> 
 %return Many headers, starting at height X
@@ -587,59 +528,6 @@ many_headers(Many, X) ->
                 true -> [Next|many_headers(Many-1, X+1)]
             end
     end.
-many_headers_old(Many, X) ->
-%return Many headers, starting at height X?
-    %io:fwrite("many headers "), 
-    %io:fwrite(packer:pack([Many, X])), 
-    %io:fwrite("\n"),
-    Z = max(0, X + Many - 1),
-    %H = headers:top(),
-    H = block:block_to_header(block:top()),
-    case (true and ((H#header.height) >= (X))) of
-	false -> 
-            %many headers height low 381720 386213
-            %io:fwrite("many headers height low " ++ integer_to_list(H#header.height) ++ " " ++ integer_to_list(X) ++ "\n"),%many headers height low 381718 386213
-            [];
-	true ->
-	    {N, Many2} = 
-		if 
-		    Z < H#header.height ->
-			{Z, Many};
-		    true ->
-			{H#header.height, Many - (Z - H#header.height)}
-		end,
-	    %N = min(H#header.height, X + Many - 1),
-	    Nth = get_header_by_height(N, H),
-	    %Many2 = max(0, N - X),
-	    many_headers2(Many2, Nth, [])
-    end.
-many_headers2(0, _, Out) -> Out;
-many_headers2(Many, H, Out) ->
-    %{ok, H} = headers:read(Hash),
-    true = (Many < 10000),
-    case H#header.height of
-	0 -> [H|Out];
-	_ ->
-	    {ok, H2} = headers:read(H#header.prev_hash),
-	    many_headers2(Many-1, H2, [H|Out])
-    end.
-
-%many_headers(M, N) ->
-%    B = many_blocks(M, N),
-%    blocks2headers(B).
-%blocks2headers([]) -> [];
-%blocks2headers([B|T]) ->
-%    [block:block_to_header(B)|
-%    blocks2headers(T)].
-%many_headers(M, _) when M < 1 -> [];
-%many_headers(Many, N) ->    
-%    H = api:height(),
-%    if
-%        N > H -> [];
-%        true ->
-%            [block:block_to_header(block:get_by_height(N))|
-%             many_headers(Many-1, N+1)]
-%    end.
 minus([T|X], T) -> X;
 minus([A|T], X) -> [A|minus(T, X)].
 send_txs(_, _, [], X) -> X;

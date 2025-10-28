@@ -197,7 +197,6 @@ get_chunks2(Hash, Peer, N, Result) ->
 
 
 sync_hardcoded() -> 
-    block_db:set_ram_height(0),
     %IP = {159,223,85,216},%the pool
     IP = {46,101,81,5},%explorer
     %IP = {159,65,126,146},%germany
@@ -208,7 +207,6 @@ sync_hardcoded() ->
           end).
 sync() ->
     spawn(fun() ->
-                  block_db:set_ram_height(0),
                   Ps = peers:all(),
                   Ps2 = sync:shuffle(Ps),
                   P = hd(Ps2),
@@ -410,7 +408,6 @@ sync(IP, Port, CPL) ->
             {true, NBlock3} = block:check2(Block, NBlock2),
             gen_server:cast(block_db, {write, Block, BlockHash}),
     gen_server:cast(block_db, {write, NBlock, CP1}),
-    block_db:set_ram_height(Height),
             %headers:absorb_with_block([Header]),
             gen_server:call(headers, {add_with_block, block:hash(Header), Header}, infinity),
     tx_pool_feeder:dump(NBlock),
@@ -590,9 +587,10 @@ reverse_sync2_stream(Height, Peer, Block2, Roots) ->
             rs_process_stream(Height, Block2, Roots, <<>>, Peer);
         {http, {_Ref, {{_, 404, _},_, _}}} ->
             io:fwrite("404 error\n"),
-            Trees = block:check0(Block2),
-            Block3 = Block2#block{trees = Trees},
-            reverse_sync2(Height, Peer, Block3, Roots);
+            %Trees = block:check0(Block2),
+            %Block3 = Block2#block{trees = Trees},
+            %reverse_sync2(Height, Peer, Block3, Roots);
+            reverse_sync(Peer);
         X ->
             io:fwrite("unhandled stream header\n"),
             reverse_sync(Peer)
@@ -735,14 +733,6 @@ try_process_block(
             block_db3:set_top(BH),
             %io:fwrite(" 3 try process block system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
             %io:fwrite("done"),
-            %block_db3:write(Block4),
-            %io:fwrite(Block),
-            %      end),
-
-            %wait_for_block(BH, 1000),
-            %wait for the block to be included in block_db3 TODO
-
-
             if
                 (Height == 2) ->
                     Hash2 = block:hash(Block2),
@@ -761,112 +751,6 @@ try_process_block(
 try_process_block(Height, Block, Roots, SmallBinary) ->
     {Height, Block, Roots, SmallBinary}.
             
-             
-    
-    
-    
-
-reverse_sync2(Height, Peer, Block2, Roots) ->
-    io:fwrite("reverse_sync2\n"),
-    H2 = max(0, Height-50),
-    %{ok, ComPage0} = talker:talk({blocks, 50, H2}, Peer),
-    io:fwrite("getting page\n"),
-    io:fwrite(integer_to_list(Height)),
-    {ok, ComPage0} = talker:talk({blocks, -1, 50, Height-1}, Peer),
-    io:fwrite("got page\n"),
-    Page0 = if
-               is_binary(ComPage0) -> 
-                   block_db:uncompress(ComPage0);
-               is_list(ComPage0) ->
-                   %block hash is slow, this version is bad. make sure it doesn't happen too frequently.
-                    lists:foldl(
-                      fun(X, Acc) -> 
-                              dict:store(block:hash(X), X, Acc) end, 
-                      dict:new(), ComPage0);
-                true -> 
-                    io:fwrite("reverse sync 2 failed to decode page\n"),
-                    io:fwrite({ComPage0})
-            end,
-    io:fwrite("decompressed the page\n"),
-    Page = dict:filter(%remove data that is already in block_db.
-             fun(_, Value) ->
-                     Value#block.height < 
-                         %(Height - 1)  %testing this...
-                         %Height
-                         Height + 1
-             end, Page0),
-    io:fwrite("filtered the page\n"),
-    PageLength = length(dict:fetch_keys(Page)),
-    if
-        PageLength == 0 ->
-            io:fwrite("empty page\n"),
-            io:fwrite(integer_to_list(Height)),
-            io:fwrite(" "),
-            io:fwrite(integer_to_list(Block2#block.height)),
-            io:fwrite("\n"),
-            %io:fwrite(Page0),
-            %1 = 2;
-            ok;
-        true -> ok
-    end,
-    CompressedPage = block_db:compress(Page),
-    load_pages(CompressedPage, Block2, Roots, Peer).
-load_pages(CompressedPage, BottomBlock, PrevRoots, Peer) ->
-    io:fwrite("load pages\n"),
-    go = sync_kill:status(),
-    Page = block_db:uncompress(CompressedPage),
-    PageLength = length(dict:fetch_keys(Page)),
-    io:fwrite("page length: "),
-    io:fwrite(integer_to_list(PageLength)),
-    io:fwrite("\n"),
-    io:fwrite("load pages verify blocks\n"),
-    {true, NewBottom, NextRoots} = verify_blocks(BottomBlock, Page, PrevRoots, PageLength),
-    {ok, BlockCacheSize} = application:get_env(
-                  amoveo_core, block_cache),
-    PageBytes = size(term_to_binary(Page)),
-    io:fwrite("load pages cut page\n"),
-    Pages = cut_page(BottomBlock#block.prev_hash, BlockCacheSize, Page, dict:new(), []),
-
-    io:fwrite("load pages block_db load page\n"),
-    lists:map(fun(Page) ->
-                      block_db:load_page(Page)
-              end, lists:reverse(Pages)),
-    StartHeight = NewBottom#block.height,
-    if 
-        StartHeight < 2 -> 
-            io:fwrite("synced all blocks back to the genesis.\n"),
-            ok;
-        true -> 
-            go = sync_kill:status(),
-            {ok, NextCompressed} = talker:talk({blocks, -1, 50, StartHeight-1}, Peer), %get next compressed page.
-            spawn(fun() ->
-                       load_pages(NextCompressed, NewBottom, NextRoots, Peer)
-                  end)
-    end.
-cut_page(HeaderHash, BlockCacheSize, Page, Acc, Pages) 
-->
-    %cut Page into Pages that are each smaller than BlockCacheSize. 
-    AS = size(term_to_binary(Acc)),
-    if
-        (AS > BlockCacheSize) ->
-            %add the page we just made to the list of pages.
-            cut_page(HeaderHash, BlockCacheSize, Page,
-                     dict:new(), [Acc|Pages]);
-        true ->
-            case dict:find(HeaderHash, Page) of
-                error -> 
-                    %return the pages
-                    [Acc|Pages];
-                {ok, Block} ->
-                    %add a block to the page we are making
-                    Acc2 = dict:store(
-                             HeaderHash, Block, Acc),
-                    cut_page(Block#block.prev_hash, 
-                             BlockCacheSize, Page, 
-                             Acc2, Pages)
-            end
-    end.
-
 tree_types_by_height(Height) -> 
     F10 = forks:get(10),%1 to 2
     F32 = forks:get(32),%2 to 3
