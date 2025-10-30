@@ -706,7 +706,7 @@ cron2() ->
     spawn(fun() -> cron3() end),
     cron2().
 cron3() ->   
-    %io:fwrite("sync cron 2\n"),
+    io:fwrite("sync cron 3\n"),
     SS = sync:status(),
     SC = sync_mode:check(),
     AHeight = api:height(),
@@ -718,6 +718,7 @@ cron3() ->
 	    spawn(fun() ->
 			  if 
 			      B -> 
+                                  io:fwrite("sync cron 3 activated\n"),
                                   sync:start();
 			      true -> 
 				  P2 = shuffle(remove_self(peers:all())),
