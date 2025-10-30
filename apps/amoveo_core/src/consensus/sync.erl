@@ -242,7 +242,7 @@ get_headers3(Peer, N) ->
     %io:fwrite("absorbing 3 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height) ++ "\n"),
     AH2 = api:height(),
     %true = (N > AH2 - HB - 1),
-    true = ((hd(Headers))#header.height > AH2 - 2),
+    true = (length(Headers) > 0) and((hd(Headers))#header.height > AH2 - 2),
     headers:absorb(Headers),
     if
         length(Headers) > (HB div 2) -> 
