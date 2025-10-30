@@ -5,7 +5,7 @@
 	 give_blocks/3, push_new_block/1, remote_peer/2,
 	 get_headers/1, trade_txs/1, force_push_blocks/1,
          get_headers/0, remove_self/1,
-	 trade_peers/1, cron/0, shuffle/1,
+	 trade_peers/1, cron/0, cron2/0, shuffle/1,
          low_to_high/1, dict_to_blocks/2]).
 -include("../records.hrl").
 -define(HeadersBatch, application:get_env(amoveo_core, headers_batch)).
