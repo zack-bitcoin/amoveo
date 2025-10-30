@@ -53,8 +53,7 @@ BEGIN {
     #{peers, [{{159,223,85,216},8080},{{159,65,126,146},8080},{{64,227,21,70},8080},{{46,101,81,5},8080},{{43,133,42,108},8080}]},\
     #for(i=1; i<=5; i++){
     for(i in Pool){
-        print("pool id: " Ids[i] " url: " Pool[i])
-        print("status: " command("'[\"mining_data\"]'", Pool[i]))
+        print("pool id: " Ids[i] " url: " Pool[i] " difficulty: " command("'[\"mining_data\"]'", Pool[i]))
     }
     for(i in Peer){
         print("id: " Ids[i] " url: " Peer[i])
@@ -62,6 +61,7 @@ BEGIN {
         print("block height: " int_command("'[\"height\"]'", Peer[i]))
         print("block bottom: " int_command("'[\"height\", 3]'", Peer[i]))
         print("total work done: " (int(int_command("'[\"height\", 4]'", Peer[i])/100000000000000)))
+        #print("memory used: " (int(int_command("'[\"status\", 1]'", Peer[i])/1000000 " mb")))
         print("")
         #print(command("'[\"height\", 1]'", Peer[i]))
     }

@@ -21,29 +21,11 @@ figure out why having 2 miners in a pool results in it being less efficient. May
 
 
 
-
-
-activate the garbage collection for the verkle tree.
-
-
 get the amoveo-explorer working again.
-
-
-figure out why the new code is failing to drop invalid txs.
-
-pay back ramon and the other miners lost revenue.
-
-
-note in trees2:multi_root_clean.
-we need to write the updated pointers onto each block.
+* the explorer should use the new streaming api
 
 
 trees2:test(5) is failing. seems impossible, since we are actively using this tool.
-
-
-trying to get the new node to be able to sync blocks from the old code.
-Currently, it stores a block in block_db3, but then when we try to read it, it is like it does not exist.
-
 
 
 
@@ -53,33 +35,12 @@ in peers.erl, if a peer is in the default list, then never remove them from the 
 
 
 
-we need to stream blocks.
-X * remove block.prev_hashes
-X * set up block_db3 to receive the blocks whenever block_db does.
-X * every place that reads from block_db, have them use block_db3 instead.
-* remove block_db from list of gen_servers
-* remove block_db from codebase.
-X * make an api to stream blocks and read from block_db3.
-* sync should use the new streaming api
-* sync reverse should use the new streaming api
-* the explorer should use the new streaming api
-
-
-
-
-
-would be nice if absorbing blocks in reverse could use all my cores instead of just one at a time.
 
 
 the update to store blocks in better compression.
 * first do a hard update to turn off market_cap, channels_veo, ... etc from being in the header, so we don't need to include it in the block.
 * serialization library for blocks.
 * awk code for zlib dictionary to do compression of serialized block.
-* write block_db2.erl
-* update the http server to stream blocks.
-* update checkpoint:load_pages to use the new streaming api.
-* make sure nothing is using block_db.erl
-* remove block_db.erl
 
 
 

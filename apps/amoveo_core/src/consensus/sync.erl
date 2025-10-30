@@ -209,24 +209,24 @@ get_headers2(Peer, N) ->%get_headers2 only gets called more than once if fork_to
 	[_|_] ->
             %io:fwrite("peer was " ++ integer_to_list(P1) ++ "." ++ integer_to_list(P2) ++ "." ++ integer_to_list(P3) ++ "." ++ integer_to_list(P4) ++ " \n"),
             %io:fwrite("absorbing 2 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height) ++ "\n"),
-	    CommonHash = headers:absorb(Headers),
-	    L = length(Headers),
+            CommonHash = headers:absorb(Headers),
+            L = length(Headers),
             %io:fwrite("headers length"),
             %io:fwrite(integer_to_list(L)),
             %io:fwrite("\n"),
             %io:fwrite("headers requested height start "),
             %io:fwrite(integer_to_list(N)),
             %io:fwrite("\n"),
-	    case CommonHash of
-		<<>> -> 
-		    if 
-			(L+5) > HB -> get_headers2(Peer, N+HB-1);
-			true -> error%fork is bigger than fork_tolerance
-		    end;
-		_ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
+            case CommonHash of
+                <<>> -> 
+                    if 
+                        (L+5) > HB -> get_headers2(Peer, N+HB-1);
+                        true -> error%fork is bigger than fork_tolerance
+                    end;
+                _ -> spawn(fun() -> get_headers3(Peer, N+HB-1) end),
 						%Once we know the CommonHash, then we are ready to start downloading blocks. We can download the rest of the headers concurrently while blocks are downloading.
-		     CommonHash
-	    end;
+                     CommonHash
+            end;
         [] -> 
             %io:fwrite("received no headers\n"),
             ok;
@@ -239,9 +239,10 @@ get_headers3(Peer, N) ->
     {ok, HB} = ?HeadersBatch,
     %true = (N > AH - HB - 1),
     Headers = remote_peer({headers, HB, N}, Peer),
-    io:fwrite("absorbing 3 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height) ++ "\n"),
+    %io:fwrite("absorbing 3 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height) ++ "\n"),
     AH2 = api:height(),
-    true = (N > AH2 - HB - 1),
+    %true = (N > AH2 - HB - 1),
+    true = ((hd(Headers))#header.height > AH2 - 2),
     headers:absorb(Headers),
     if
         length(Headers) > (HB div 2) -> 
