@@ -242,14 +242,20 @@ get_headers3(Peer, N) ->
     %io:fwrite("absorbing 3 " ++ integer_to_list(length(Headers)) ++ " headers, starting at height " ++ integer_to_list((hd(Headers))#header.height) ++ "\n"),
     AH2 = api:height(),
     %true = (N > AH2 - HB - 1),
-    true = (length(Headers) > 0) and((hd(Headers))#header.height > AH2 - 2),
-    headers:absorb(Headers),
+    HL = length(Headers),
     if
-        length(Headers) > (HB div 2) -> 
-            get_headers3(Peer, N+HB-1);
-        true -> 
+        (HL == 0) -> ok;
+        ((hd(Headers))#header.height > (AH2 - 2)) ->
+            headers:absorb(Headers),
+            if
+                length(Headers) > (HB div 2) -> 
+                    get_headers3(Peer, N+HB-1);
+                true -> 
             %io:fwrite("headers not very long " ++ integer_to_list(N) ++"\n"),
             %io:fwrite(Headers),
+                    ok
+            end;
+        true ->
             ok
     end.
 
