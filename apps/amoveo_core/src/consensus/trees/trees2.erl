@@ -2050,12 +2050,8 @@ scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], CFG) ->
 scan_verkle2([Pointer|PT], [1|TT], [Hash|HT], CFG) -> 
     %another stem.
     Hash2 = scan_verkle(Pointer, CFG),
-    if
-        not(Hash == Hash2) -> 
-            io:fwrite("bad stem hash\n"),
-            1=2;
-        true -> ok
-    end,
+    S = stem_verkle:get(Pointer, CFG),
+    ok = stem_verkle:check_root_integrity(S),
     success = scan_verkle2(PT, TT, HT, CFG);
 scan_verkle2(_, _, _, _) -> 
     io:fwrite("scan verkle 2 impossible error\n"),
