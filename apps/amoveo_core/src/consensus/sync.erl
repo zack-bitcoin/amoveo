@@ -706,7 +706,7 @@ cron2() ->
     spawn(fun() -> cron3() end),
     cron2().
 cron3() ->   
-    io:fwrite("sync cron 3\n"),
+    %io:fwrite("sync cron 3\n"),
     SS = sync:status(),
     SC = sync_mode:check(),
     AHeight = api:height(),
