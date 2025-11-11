@@ -408,6 +408,11 @@ process_block_sequential(Block, Prev) ->
     go = sync_kill:status(),
     BH = block:hash(Block),
     %io:fwrite(Prev),
+    if
+        (Prev#block.height + 1 == Block#block.height) -> ok;
+        true -> io:fwrite("not sequential " ++ integer_to_list(Prev#block.height) ++ " " integer_to_list(Block#block.height))
+    end,
+        
     true = (Prev#block.height + 1 == Block#block.height),
     #block{
        height = Height2
