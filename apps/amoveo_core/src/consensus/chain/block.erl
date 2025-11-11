@@ -908,6 +908,11 @@ check0(Block) ->
         true ->
     Header = block_to_header(Block),
     BlockHash = hash(Header),
+            
+    TreePointer = (Block)#block.trees,
+    CFG = tree:cfg(amoveo),
+    RootStem = stem_verkle:get(TreePointer, CFG),
+    ok = stem_verkle:check_root_integrity(RootStem),
     case application:get_env(amoveo_core, assume_valid) of
         {ok, {Height, BlockHash}} ->
             %this is the block we are assuming is valid.
