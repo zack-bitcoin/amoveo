@@ -366,8 +366,8 @@ try_process_block(FullData = <<Size:64, Data/binary>>, MyTopBlock) ->
             %io:fwrite("got a block in try_process_block\n"),
             <<Blockx:(Size*8), Rest/binary>> = Data,
             Block = block_db3:uncompress(<<Blockx:(Size*8)>>),
-            %Block2 = process_block_sequential(Block, MyTopBlock), 
-            Block2 = process_block_sequential(Block, block:get_by_height(Block#block.height - 1)), 
+            Block2 = process_block_sequential(Block, MyTopBlock), 
+            %Block2 = process_block_sequential(Block, block:get_by_height(Block#block.height - 1)), 
 
 %            BH = block:hash(Block),
 %            true = (MyTopBlock#block.height + 1 == Block#block.height),
