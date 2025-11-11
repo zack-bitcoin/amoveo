@@ -97,10 +97,10 @@ doit2(L0) ->
 	    io:fwrite("no one to sync with\n"),
 	    ok;
 	BH < HH ->
-            io:fwrite("sync cast\n"),
+            %io:fwrite("sync cast\n"),
             Peer = hd(shuffle(L)),
-            io:fwrite(packer:pack(Peer)),
-            io:fwrite("\n"),
+            %io:fwrite(packer:pack(Peer)),
+            %io:fwrite("\n"),
 	    gen_server:cast(?MODULE, {main, Peer});
 	true -> 
 	    io:fwrite("nothing to sync\n"),
