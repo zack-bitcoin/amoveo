@@ -286,83 +286,83 @@ sync(IP, Port, CPL) ->
             %{_, CP1} = hd(lists:reverse(HCPL)),
             {_, CP1} = hd(HCPL),
 
-    Header = case headers:read(CP1) of
-                 error ->
-                     io:fwrite("we need to sync more headers first\n"),
-                     1=2;
-                 {ok, H} -> H
-             end,
+            Header = case headers:read(CP1) of
+                         error ->
+                             io:fwrite("we need to sync more headers first\n"),
+                             1=2;
+                         {ok, H} -> H
+                     end,
         
-    Height = Header#header.height,
-    PrintString =
-    "Checkpoint height is " ++
-        integer_to_list(Height) ++
-        "\n" ++
-        "hash is " ++
-        base58:binary_to_base58(CP1) ++
-        ", now loading checkpoint\n",
-    io:fwrite(PrintString),
-    TopHeader = headers:top(),
+            Height = Header#header.height,
+            PrintString =
+                "Checkpoint height is " ++
+                integer_to_list(Height) ++
+                "\n" ++
+                "hash is " ++
+                base58:binary_to_base58(CP1) ++
+                ", now loading checkpoint\n",
+            io:fwrite(PrintString),
+            TopHeader = headers:top(),
             io:fwrite("checkpoint sync get block 1\n"),
-    {ok, Block} = talker:talk({block, Height-1}, Peer),
+            {ok, Block} = talker:talk({block, Height-1}, Peer),
             io:fwrite("checkpoint sync get block 2\n"),
-    {ok, NBlock} = talker:talk({block, Height}, Peer),
+            {ok, NBlock} = talker:talk({block, Height}, Peer),
             io:fwrite("checkpoint sync get block 3\n"),
-    TDB = Block#block.trees,
-    TDBN = NBlock#block.trees,
-    true = check_header_link(TopHeader, Header),
-    Header2 = block:block_to_header(NBlock),
+            TDB = Block#block.trees,
+            TDBN = NBlock#block.trees,
+            true = check_header_link(TopHeader, Header),
+            Header2 = block:block_to_header(NBlock),
             if
                 (not(Header == Header2)) ->
                     io:fwrite({Header, Header2}),
                     ok;
                 true -> ok
             end,
-    {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
-    {NDict, NNewDict, NProofTree, CP1} = block:check0(NBlock),
-    NBlock2 = NBlock#block{trees = {NDict, NNewDict, NProofTree, CP1}},
-    Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
-    Roots = NBlock#block.roots,
+            {BDict, BNDict, BProofTree, BlockHash} = block:check0(Block),
+            {NDict, NNewDict, NProofTree, CP1} = block:check0(NBlock),
+            NBlock2 = NBlock#block{trees = {NDict, NNewDict, NProofTree, CP1}},
+            Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
+            Roots = NBlock#block.roots,
             io:fwrite("Found a candidate checkpoint. downloading... \n"),
-    TarballData = get_chunks(CP1, Peer, 0),
+            TarballData = get_chunks(CP1, Peer, 0),
             io:fwrite("Found a candidate checkpoint, got chunks. \n"),
-    Tarball = CR ++ "backup.tar.gz",
-    file:write_file(Tarball, TarballData),
-    Temp = CR ++ "backup_temp",
+            Tarball = CR ++ "backup.tar.gz",
+            file:write_file(Tarball, TarballData),
+            Temp = CR ++ "backup_temp",
             io:fwrite("unzipping the checkpoint\n"),
-    S = "tar -xf " ++ Tarball ++ " -C " ++ Temp,
-    os:cmd("mkdir " ++ Temp),
-    os:cmd(S),
-      if
-          is_integer(TDB) ->
-              os:cmd("mv " ++ Temp ++ "/db/backup_temp/*.db " ++ CR ++ "data/."),
-              os:cmd("rm -rf "++ Temp), %%
-              os:cmd("rm "++ Tarball), %%
+            S = "tar -xf " ++ Tarball ++ " -C " ++ Temp,
+            os:cmd("mkdir " ++ Temp),
+            os:cmd(S),
+            if
+                is_integer(TDB) ->
+                    os:cmd("mv " ++ Temp ++ "/db/backup_temp/*.db " ++ CR ++ "data/."),
+                    os:cmd("rm -rf "++ Temp), %%
+                    os:cmd("rm "++ Tarball), %%
                     
-              io:fwrite("verkle checkpoint\n"),
-              ID = amoveo,
-              Pointer = TDBN,
-              CFG = tree:cfg(ID),
-              timer:sleep(1000),
-              tree:reload_ets(ID),
-              timer:sleep(1000),
-              Stem0 = stem_verkle:get(Pointer, CFG),
-              io:fwrite("checkpoint lookup root integrity " ++ integer_to_list(Pointer) ++ "\n"),
-              case stem_verkle:check_root_integrity(Stem0) of
-                  ok -> ok;
-                  _ -> 
-                      io:fwrite("invalid root stem\n"),
-                      io:fwrite(Stem0)
-              end,
-              Types = element(3, Stem0),
-              NRoots = tree:root_hash(ID, Pointer),
-              NRoots2 = NBlock2#block.trees_hash,
-              if
-                  (NRoots2 == NRoots) -> ok;
-                  true -> io:fwrite("nroots did not match!\n"),
-                          io:fwrite({NRoots, NRoots2})
-              end;
-        true ->
+                    io:fwrite("verkle checkpoint\n"),
+                    ID = amoveo,
+                    Pointer = TDBN,
+                    CFG = tree:cfg(ID),
+                    timer:sleep(1000),
+                    tree:reload_ets(ID),
+                    timer:sleep(1000),
+                    Stem0 = stem_verkle:get(Pointer, CFG),
+                    io:fwrite("checkpoint lookup root integrity " ++ integer_to_list(Pointer) ++ "\n"),
+                    case stem_verkle:check_root_integrity(Stem0) of
+                        ok -> ok;
+                        _ -> 
+                            io:fwrite("invalid root stem\n"),
+                            io:fwrite(Stem0)
+                    end,
+                    Types = element(3, Stem0),
+                    NRoots = tree:root_hash(ID, Pointer),
+                    NRoots2 = NBlock2#block.trees_hash,
+                    if
+                        (NRoots2 == NRoots) -> ok;
+                        true -> io:fwrite("nroots did not match!\n"),
+                                io:fwrite({NRoots, NRoots2, NBlock2#block.height})
+                    end;
+                true ->
                     io:fwrite("loading a merkle checkpoint.\n"),
                     %io:fwrite(Tarball),
                     %io:fwrite("\n,
