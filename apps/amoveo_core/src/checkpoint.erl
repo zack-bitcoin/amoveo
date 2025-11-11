@@ -356,7 +356,12 @@ sync(IP, Port, CPL) ->
               end,
               Types = element(3, Stem0),
               NRoots = tree:root_hash(ID, Pointer),
-              NRoots = NBlock2#block.trees_hash;
+              NRoots2 = NBlock2#block.trees_hash,
+              if
+                  (NRoots2 == NRoots) -> ok;
+                  true -> io:fwrite("nroots did not match!\n"),
+                          io:fwrite({NRoots, NRoots2})
+              end;
         true ->
                     io:fwrite("loading a merkle checkpoint.\n"),
                     %io:fwrite(Tarball),
