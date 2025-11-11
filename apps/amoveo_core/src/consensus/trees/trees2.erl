@@ -2013,6 +2013,7 @@ scan_verkle() ->
     scan_verkle(Pointer, CFG).
 scan_verkle(Pointer, CFG) ->
     S = stem_verkle:get(Pointer, CFG),
+    ok = stem_verkle:check_root_integrity(S),
     P = tuple_to_list(stem_verkle:pointers(S)),
     T = tuple_to_list(stem_verkle:types(S)),
     H = tuple_to_list(stem_verkle:hashes(S)),
