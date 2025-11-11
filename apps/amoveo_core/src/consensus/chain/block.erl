@@ -909,10 +909,6 @@ check0(Block) ->
     Header = block_to_header(Block),
     BlockHash = hash(Header),
             
-    TreePointer = (Block)#block.trees,
-    CFG = tree:cfg(amoveo),
-    RootStem = stem_verkle:get(TreePointer, CFG),
-    ok = stem_verkle:check_root_integrity(RootStem),
     case application:get_env(amoveo_core, assume_valid) of
         {ok, {Height, BlockHash}} ->
             %this is the block we are assuming is valid.
@@ -1158,7 +1154,11 @@ check2(OldBlock, Block) ->
     %NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, TreesHash),
     %false = (Height == 39),
     NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, ProofTree, TreesHash),
-    
+   
+    CFG = tree:cfg(amoveo),
+    RootStem = stem_verkle:get(NewTrees3, CFG),
+    ok = stem_verkle:check_root_integrity(RootStem),
+ 
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
     %io:fwrite("block check 5.4\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
