@@ -347,6 +347,7 @@ sync(IP, Port, CPL) ->
               tree:reload_ets(ID),
               timer:sleep(1000),
               Stem0 = stem_verkle:get(Pointer, CFG),
+              io:fwrite("checkpoint lookup root integrity " ++ integer_to_list(Pointer) ++ "\n"),
               case stem_verkle:check_root_integrity(Stem0) of
                   ok -> ok;
                   _ -> 
