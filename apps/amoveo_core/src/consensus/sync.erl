@@ -411,8 +411,12 @@ try_process_block(Small, Top) ->
 process_block_sequential(Block, Prev) ->
     go = sync_kill:status(),
     BH = block:hash(Block),
+    AlreadyGot = block:get_by_hash(BH),
     %io:fwrite(Prev),
     if
+        (not(AlreadyGot == empty)) ->
+            io:fwrite("already got this block\n"),
+            ok;
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
         (Prev == error) -> io:fwrite("process block sequential, bad prev block\n"),
                            process_block_sequential(Block, block:get_by_height(Block#block.height - 1));
