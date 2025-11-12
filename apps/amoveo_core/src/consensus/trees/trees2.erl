@@ -139,7 +139,6 @@ update_proof(L, ProofTree) ->
 
 %recurse over the tree, and do cs2v on each leaf we find, to convert to the format we will write in the verkle tree.
 store_verified(Loc, ProofTree) ->
-    io:fwrite("trees2 store_verified\n"),
     CFG = tree:cfg(amoveo),
     %io:fwrite(size(element(2, element(2, hd(hd(tl(ProofTree))))))), %32 bytes
 
@@ -150,7 +149,6 @@ store_verified(Loc, ProofTree) ->
     Loc2 = store_verkle:verified(
              Loc, ProofTree, CFG),
     Stem = stem_verkle:get(Loc2, CFG),
-    io:fwrite("trees2 store_verified, check integrity\n"),
     case stem_verkle:check_root_integrity(Stem) of%fails here.
         success -> ok;
         error ->
@@ -158,7 +156,6 @@ store_verified(Loc, ProofTree) ->
                        {good_version, Stem0}}),
             1=2
     end,
-    io:fwrite("trees2 store_verified, check integrity succeeded\n"),
     Loc2.
 
 remove_repeat([L1 = {leaf, A, X, <<Type, P1:56>>}, 
