@@ -414,46 +414,48 @@ process_block_sequential(Block, Prev) ->
     %io:fwrite(Prev),
     if
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
-        (Prev == error) -> io:fwrite("process block sequential, bad prev block\n"),
-                           process_block_sequential(Block, block:get_by_height(Block#block.height - 1));
-        ((Prev#block.height + 1) == Block#block.height) -> ok;
-        true -> io:fwrite("not sequential " ++ integer_to_list(Prev#block.height) ++ " " ++ integer_to_list(Block#block.height))
-    end,
-        
-    true = ((Prev#block.height + 1) == Block#block.height),
-    #block{
-       height = Height2
-      } = Block,
-    F52 = forks:get(52),
-    {ok, MTV} = application:get_env(
-                  amoveo_core, minimum_to_verify),
-    {ok, TestMode} = application:get_env(
-                       amoveo_core, test_mode),
-    MyHeight = block:height(),
-    if
-        (Height2 == F52) -> 
-           %hardcode verkle update block hash, so we don't have to check blocks from before this point.
-            true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
-        true -> ok
-    end,
-    Block2 = if
-                 (TestMode or ((Height2 > F52) and (Height2 > MTV))) ->
+        (Prev == error) -> io:fwrite("process block sequential, bad prev block\n");
+%        process_block_sequential(Block, block:get_by_height(Block#block.height - 1));
+        ((Prev#block.height + 1) == Block#block.height) -> 
+
+
+            true = ((Prev#block.height + 1) == Block#block.height),
+            #block{
+               height = Height2
+              } = Block,
+            F52 = forks:get(52),
+            {ok, MTV} = application:get_env(
+                          amoveo_core, minimum_to_verify),
+            {ok, TestMode} = application:get_env(
+                               amoveo_core, test_mode),
+            MyHeight = block:height(),
+            if
+                (Height2 == F52) -> 
+                                                %hardcode verkle update block hash, so we don't have to check blocks from before this point.
+                    true = BH == <<185,59,27,106,59,121,158,59,113,186,179,200,161,70,238, 229,35,162,169,31,168,11,112,101,135,49,179,32,111,90,87,192>>;
+                true -> ok
+            end,
+            Block2 = if
+                         (TestMode or ((Height2 > F52) and (Height2 > MTV))) ->
                    %after verkle update
                      %io:fwrite("verifying block " ++ integer_to_list(Height2) ++ "\n"),
-                     X = block:check0(Block),
-                     {true, Block3} = block:check2(Prev, Block#block{trees = X}),
-                     Block3;
-                 true ->
-                     io:fwrite("block left unverified\n"),
-                     Block
-             end,
+                             X = block:check0(Block),
+                             {true, Block3} = block:check2(Prev, Block#block{trees = X}),
+                             Block3;
+                         true ->
+                             io:fwrite("block left unverified\n"),
+                             Block
+                     end,
             %check every block matches it's header, even from before the verkle update height
-    {ok, Header} = headers:read(BH),
-    true = (Header#header.height == 
-                Block#block.height),
-    headers:absorb_with_block([Header]),
-    block_db3:write(Block2, BH),
-    Block2.
+            {ok, Header} = headers:read(BH),
+            true = (Header#header.height == 
+                        Block#block.height),
+            headers:absorb_with_block([Header]),
+            block_db3:write(Block2, BH),
+            Block2;
+        true -> io:fwrite("not sequential " ++ integer_to_list(Prev#block.height) ++ " " ++ integer_to_list(Block#block.height))
+    end.
+        
 wait_do(FB, F, T) ->
     spawn(fun() ->
                   go = sync_kill:status(),
