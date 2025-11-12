@@ -168,6 +168,7 @@ get_chunks_old(Hash, Peer, N) ->
             io:fwrite("got chunk\n"),
             io:fwrite(integer_to_list(N)),
             io:fwrite("\n"),
+            io:fwrite("memory usage: " ++ integer_to_list(erlang:memory(total))),
             R = get_chunks(Hash, Peer, N+1),
             <<D/binary, R/binary>>;
         {error, "out of bounds"} ->
@@ -326,6 +327,7 @@ sync(IP, Port, CPL0) ->
             Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
             Roots = NBlock#block.roots,
             io:fwrite("Found a candidate checkpoint. downloading... \n"),
+            io:fwrite("memory usage: " ++ integer_to_list(erlang:memory(total))),
             TarballData = get_chunks(CP1, Peer, 0),
             io:fwrite("Found a candidate checkpoint, got chunks. \n"),
             Tarball = CR ++ "backup.tar.gz",
