@@ -416,7 +416,10 @@ process_block_sequential(Block, Prev, N) ->
     BH = block:hash(Block),
     AlreadyGot = block:get_by_hash(BH),
     %io:fwrite(Prev),
+    MyBottom = block:bottom(),
     if
+        (Block#block.height < MyBottom + 1) -> 
+            Block;
         (not(AlreadyGot == empty)) ->
             io:fwrite("already got this block\n"),
             Block;
