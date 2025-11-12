@@ -235,7 +235,8 @@ sync({IP, Port}) ->
     sync(IP, Port).
 
 sync(IP, Port, CPL0) ->
-    CPL = lists:reverse(CPL0),
+    %CPL = lists:reverse(CPL0),
+    CPL = CPL0,
     %set the config variable `reverse_syncing` to true.
     %let all the headers sync first before you run this.
     Peer = {IP, Port},
