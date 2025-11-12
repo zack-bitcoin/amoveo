@@ -368,9 +368,9 @@ try_process_block(FullData = <<Size:64, Data/binary>>, MyTopBlock) ->
             Block = block_db3:uncompress(<<Blockx:(Size*8)>>),
             Block2 = if
                          ((Block#block.height + 1) == (MyTopBlock#block.height)) ->
-                             process_block_sequential(Block, MyTopBlock);
+                             process_block_sequential(Block, MyTopBlock, 5);
                          true ->
-                             process_block_sequential(Block, block:get_by_height(Block#block.height - 1))
+                             process_block_sequential(Block, block:get_by_height(Block#block.height - 1), 5)
                      end,
 
 %            BH = block:hash(Block),
@@ -408,7 +408,10 @@ try_process_block(Small, Top) ->
     {Small, Top}.
         
 
-process_block_sequential(Block, Prev) ->
+process_block_sequential(_Block, _Prev, 0) ->
+    io:fwrite("sync:process_block_sequential failed to read block from database\n"),
+    ok;
+process_block_sequential(Block, Prev, N) ->
     go = sync_kill:status(),
     BH = block:hash(Block),
     AlreadyGot = block:get_by_hash(BH),
@@ -419,7 +422,7 @@ process_block_sequential(Block, Prev) ->
             Block;
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
         (Prev == error) -> io:fwrite("process block sequential, bad prev block\n"),
-                           process_block_sequential(Block, block:get_by_height(Block#block.height - 1));
+                           process_block_sequential(Block, block:get_by_height(Block#block.height - 1), N-1);
         ((Prev#block.height + 1) == Block#block.height) -> 
             true = ((Prev#block.height + 1) == Block#block.height),
             #block{
