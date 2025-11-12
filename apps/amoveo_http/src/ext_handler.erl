@@ -449,7 +449,7 @@ doit({checkpoint, Hash, N}) ->
            CR ++ "checkpoints/"++Encoded++
                "/" ++ checkpoint:chunk_name(N)) of
         {ok, D} -> 
-            io:fwrite("ext handler serving checkpoint 1\n"),
+            io:fwrite("ext handler serving checkpoint 1"++ integer_to_list(size(D)) ++ "\n"),
             {ok, D};
         {error, enoent} -> 
             io:fwrite("ext handler serving checkpoint 2\n"),
