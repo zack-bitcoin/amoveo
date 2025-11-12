@@ -143,11 +143,15 @@ store_verified(Loc, ProofTree) ->
     CFG = tree:cfg(amoveo),
     %io:fwrite(size(element(2, element(2, hd(hd(tl(ProofTree))))))), %32 bytes
 
+    Stem0 = stem_verkle:get(Loc, CFG),%sanity
+    stem_verkle:check_root_integrity(Stem0),%sanity
+
+
     Loc2 = store_verkle:verified(
              Loc, ProofTree, CFG),
     Stem = stem_verkle:get(Loc2, CFG),
     io:fwrite("trees2 store_verified, check integrity\n"),
-    stem_verkle:check_root_integrity(Stem),
+    stem_verkle:check_root_integrity(Stem),%fails here.
     io:fwrite("trees2 store_verified, check integrity succeeded\n"),
     Loc2.
 
