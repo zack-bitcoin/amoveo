@@ -368,9 +368,9 @@ try_process_block(FullData = <<Size:64, Data/binary>>, MyTopBlock) ->
             Block = block_db3:uncompress(<<Blockx:(Size*8)>>),
             Block2 = if
                          ((Block#block.height + 1) == (MyTopBlock#block.height)) ->
-                             process_block_sequential(Block, MyTopBlock, 5);
+                             process_block_sequential(Block, MyTopBlock, 20);
                          true ->
-                             process_block_sequential(Block, block:get_by_height(Block#block.height - 1), 5)
+                             process_block_sequential(Block, block:get_by_height(Block#block.height - 1), 20)
                      end,
 
 %            BH = block:hash(Block),
