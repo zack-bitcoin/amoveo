@@ -1127,7 +1127,7 @@ chunkify2(R, F, N) when (is_binary(R) and (size(R) < 1100000))->
     ok;
 chunkify2(R, _, _) -> 
     io:fwrite("chunkify failed \n"),
-    io:fwrite({R}),
+    io:fwrite({is_binary(R), size(R), is_bitstring(R)}),
     ok.
 chunk_name(N) ->
     "/" ++ integer_to_list(N) ++ 
