@@ -142,8 +142,11 @@ store_verified(Loc, ProofTree) ->
     CFG = tree:cfg(amoveo),
     %io:fwrite(size(element(2, element(2, hd(hd(tl(ProofTree))))))), %32 bytes
 
-    store_verkle:verified(
-      Loc, ProofTree, CFG).
+    Loc2 = store_verkle:verified(
+             Loc, ProofTree, CFG),
+    Stem = stem_verkle:get(Loc2, CFG),
+    stem_verkle:check_root_integrity(Stem),
+    Loc2.
 
 remove_repeat([L1 = {leaf, A, X, <<Type, P1:56>>}, 
                L2 = {leaf, A, X, <<_, P2:56>>}|T]) ->
