@@ -1,7 +1,7 @@
 -module(trees2).
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/4, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/3, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/2, one_root_maker/2, recover_from_clean_version/0,
-         copy_bits/4, scan_verkle/2, scan_verkle/0, prune/2,
+         copy_bits/4, scan_verkle/2, scan_verkle/1, scan_verkle/0, prune/2,
          recover/1, to_keys/1, store_leaves/2, get_proof/3,
          cs2v/1, restore_leaves_proof/3, remove_leaves_proof/2,
          multi_root_clean/0, garbage_collect/0,
@@ -2006,6 +2006,11 @@ one_root_clean2(
 
 scan_verkle_many(Pointers, CFG) ->
     lists:map(fun(P) -> scan_verkle(P, CFG) end, Pointers).
+
+scan_verkle(Height) ->
+    Pointer = (block:get_by_height(Height))#block.trees,
+    CFG = tree:cfg(amoveo),
+    scan_verkle(Pointer, CFG).
 
 scan_verkle() ->
     Pointer = (block:top())#block.trees,
