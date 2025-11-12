@@ -41,28 +41,22 @@ talk_helper(_, _, 0, _) ->
 talk_helper(Msg, Peer, N, TimeOut) ->
     PM = packer:pack(Msg),
     Msg = packer:unpack(PM),
-    io:fwrite("sending message "),
-    io:fwrite(PM),
-    io:fwrite("\n"),
     %check_print("sending message "),
     %check_print(PM),
     %check_print("\n"),
     %timer:sleep(500),
     case httpc:request(post, {Peer, [], "application/octet-stream", iolist_to_binary(PM)}, [{timeout, TimeOut}], []) of
         {ok, {{_, 500, _}, _Headers, []}} ->
-            io:fwrite("server crashed\n"),
 	    check_print("server crashed. Will ignore peer. "),
 	    check_print(element(1, Msg)),
 	    check_print(" \n"),
 	    bad_peer;
             %talk_helper(Msg, Peer, 0, TimeOut);
         {ok, {Status, _Headers, []}} ->
-            io:fwrite("talk helper weird response. trying to reconnect.\n"),
             check_print("talk_helper weird response. Attempting to reconnect. \n"),
 	    check_print(packer:pack(Status)),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {ok, {_, _, R}} ->
-            io:fwrite("talk helper normal\n"),
 	    %check_print("talker peer is "),
 	    %check_print(Peer),
 	    %check_print("\n"),
@@ -79,22 +73,18 @@ talk_helper(Msg, Peer, N, TimeOut) ->
 		    packer:unpack(R)
 	    end;
         {error, socket_closed_remotely} ->
-            io:fwrite("talk helper socket closed error. try to reconnect\n"),
             %check_print("talk_helper socket closed remotely. attempting to reconnect \n"),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, timeout} ->
-            io:fwrite("talk helper timeout. trying to reconnect.\n"),
             check_print("talk_helper timeout. attempting to reconnect \n"),
 	    check_print(element(1, Msg)),
 	    check_print("\n"),
             talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, failed_connect} ->
-            io:fwrite("talk helper failed to connect\n"),
             check_print("talk_helper failed_connect 0. will ignore this peer.  \n"),
 	    bad_peer;
             %talk_helper(Msg, Peer, N - 1, TimeOut);
         {error, {failed_connect, _}} ->
-            io:fwrite("talk helper failed to connect 1\n"),
             %check_print("talk_helper failed_connect 1. will ignore this peer. \n"),
 	    %check_print(PM),
 	    bad_peer;
