@@ -623,6 +623,7 @@ sync_peer(Peer) ->
         true -> ok
     end,
     TopCommonHeader = top_common_header(TheirHeaders),
+    io:fwrite("calculated top common header " ++ integer_to_list(TopCommonHeader#header.height) ++ "\n"),
     
     %io:fwrite("start if statement\n"),
     if
