@@ -351,7 +351,7 @@ sync(IP, Port, CPL0) ->
                     Stem0 = stem_verkle:get(Pointer, CFG),
                     io:fwrite("checkpoint lookup root integrity " ++ integer_to_list(Pointer) ++ "\n"),
                     case stem_verkle:check_root_integrity(Stem0) of
-                        ok -> ok;
+                        success -> ok;
                         _ -> 
                             io:fwrite("invalid root stem\n"),
                             io:fwrite(Stem0)

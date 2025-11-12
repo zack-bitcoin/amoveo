@@ -144,14 +144,14 @@ store_verified(Loc, ProofTree) ->
     %io:fwrite(size(element(2, element(2, hd(hd(tl(ProofTree))))))), %32 bytes
 
     Stem0 = stem_verkle:get(Loc, CFG),%sanity
-    stem_verkle:check_root_integrity(Stem0),%sanity
+    success = stem_verkle:check_root_integrity(Stem0),%sanity
 
 
     Loc2 = store_verkle:verified(
              Loc, ProofTree, CFG),
     Stem = stem_verkle:get(Loc2, CFG),
     io:fwrite("trees2 store_verified, check integrity\n"),
-    %stem_verkle:check_root_integrity(Stem),%fails here.
+    %success = stem_verkle:check_root_integrity(Stem),%fails here.
     io:fwrite("trees2 store_verified, check integrity succeeded\n"),
     Loc2.
 
@@ -2032,7 +2032,7 @@ scan_verkle() ->
     scan_verkle(Pointer, CFG).
 scan_verkle(Pointer, CFG) ->
     S = stem_verkle:get(Pointer, CFG),
-    ok = stem_verkle:check_root_integrity(S),
+    success = stem_verkle:check_root_integrity(S),
     P = tuple_to_list(stem_verkle:pointers(S)),
     T = tuple_to_list(stem_verkle:types(S)),
     H = tuple_to_list(stem_verkle:hashes(S)),
@@ -2071,7 +2071,7 @@ scan_verkle2([Pointer|PT], [1|TT], [Hash|HT], CFG) ->
     %another stem.
     Hash2 = scan_verkle(Pointer, CFG),
     S = stem_verkle:get(Pointer, CFG),
-    ok = stem_verkle:check_root_integrity(S),
+    success = stem_verkle:check_root_integrity(S),
     success = scan_verkle2(PT, TT, HT, CFG);
 scan_verkle2(_, _, _, _) -> 
     io:fwrite("scan verkle 2 impossible error\n"),
