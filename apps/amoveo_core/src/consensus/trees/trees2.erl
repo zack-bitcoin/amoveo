@@ -139,6 +139,7 @@ update_proof(L, ProofTree) ->
 
 %recurse over the tree, and do cs2v on each leaf we find, to convert to the format we will write in the verkle tree.
 store_verified(Loc, ProofTree) ->
+    io:fwrite("trees2 store_verified\n"),
     CFG = tree:cfg(amoveo),
     %io:fwrite(size(element(2, element(2, hd(hd(tl(ProofTree))))))), %32 bytes
 

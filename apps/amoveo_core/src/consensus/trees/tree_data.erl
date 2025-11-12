@@ -211,9 +211,11 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
                      io:fwrite("tree_data:verkle_dict_update_trie not unknown\n"),
                      %ProofTree = dict:fetch(proof, Dict),
                      ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
-                     %io:fwrite("updated the proof in tree_data\n"),
+                     io:fwrite("updated the proof in tree_data\n"),
                      RootHash = stem_verkle:hash_point(hd(ProofTreeB)),%verify that the new state root matches what was written on the block.
+                     io:fwrite("got roothash\n"),
                      Trees5 = trees2:store_verified(Trees, ProofTreeB),
+                     io:fwrite("store the verified data\n"),
                      Trees5
              end,
     %todo. before we can write the data to the tree, we need to somehow verify that the new verkle root match. or if the roothash is unknown, skip the check.
