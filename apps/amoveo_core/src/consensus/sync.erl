@@ -424,6 +424,11 @@ process_block_sequential(Block, Prev, N) ->
             Block;
         (not(AlreadyGot == empty)) ->
             io:fwrite("already got this block\n"),
+            if
+                (Block#block.height == 384428) ->
+                    io:fwrite({AlreadyGot});
+                true -> ok
+            end,
             Block;
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
         (Prev == error) -> io:fwrite("process block sequential, bad prev block " ++ integer_to_list(Block#block.height) ++ "\n"),
