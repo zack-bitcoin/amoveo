@@ -367,12 +367,13 @@ try_process_block(FullData = <<Size:64, Data/binary>>, MyTopBlock) ->
             %io:fwrite("got a block in try_process_block\n"),
             <<Blockx:(Size*8), Rest/binary>> = Data,
             Block = block_db3:uncompress(<<Blockx:(Size*8)>>),
-            Block2 = if
-                         ((Block#block.height + 1) == (MyTopBlock#block.height)) ->
-                             process_block_sequential(Block, MyTopBlock, 20);
-                         true ->
-                             process_block_sequential(Block, block:get_by_height(Block#block.height - 1), 20)
-                     end,
+%            Block2 = if
+%                         ((Block#block.height + 1) == (MyTopBlock#block.height)) ->
+%                             process_block_sequential(Block, MyTopBlock, 20);
+%                         true ->
+                             %process_block_sequential(Block, block:get_by_height(Block#block.height - 1), 20)
+%                     end,
+            Block2 = process_block_sequential(Block, block:get_by_hash(Block#block.prev_hash), 20),
 
 %            BH = block:hash(Block),
 %            true = (MyTopBlock#block.height + 1 == Block#block.height),
@@ -424,15 +425,11 @@ process_block_sequential(Block, Prev, N) ->
             Block;
         (not(AlreadyGot == empty)) ->
             io:fwrite("already got this block\n"),
-            if
-                (Block#block.height == 384428) ->
-                    io:fwrite({AlreadyGot});
-                true -> ok
-            end,
             Block;
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
         (Prev == error) -> io:fwrite("process block sequential, bad prev block " ++ integer_to_list(Block#block.height) ++ "\n"),
-                           process_block_sequential(Block, block:get_by_height(Block#block.height - 1), N-1);
+                           %process_block_sequential(Block, block:get_by_height(Block#block.height - 1), N-1);
+                           process_block_sequential(Block, block:get_by_hash(Block#block.prev_hash), N-1);
         ((Prev#block.height + 1) == Block#block.height) -> 
             true = ((Prev#block.height + 1) == Block#block.height),
             #block{
