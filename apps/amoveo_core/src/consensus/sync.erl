@@ -416,7 +416,7 @@ process_block_sequential(Block, Prev) ->
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
         (Prev == error) -> io:fwrite("process block sequential, bad prev block\n"),
                            process_block_sequential(Block, block:get_by_height(Block#block.height - 1));
-        (Prev#block.height + 1 == Block#block.height) -> ok;
+        ((Prev#block.height + 1) == Block#block.height) -> ok;
         true -> io:fwrite("not sequential " ++ integer_to_list(Prev#block.height) ++ " " ++ integer_to_list(Block#block.height))
     end,
         
