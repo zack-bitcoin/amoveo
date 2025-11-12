@@ -420,6 +420,7 @@ process_block_sequential(Block, Prev, N) ->
     MyBottom = block:bottom(),
     if
         (Block#block.height < MyBottom + 1) -> 
+            io:fwrite("block is earlier than we can learn about\n"),
             Block;
         (not(AlreadyGot == empty)) ->
             io:fwrite("already got this block\n"),
@@ -669,6 +670,9 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
             ok
     end.
 top_common_header(L) when is_list(L) ->
+    io:fwrite("starting top common header \n"),
+    io:fwrite("length " ++ integer_to_list(length(L)) ++ "\n"),
+    io:fwrite(integer_to_list((hd(L))#header.height) ++ " " ++ integer_to_list((hd(lists:reverse(L)))#header.height) ++ "\n"),
     tch(lists:reverse(L));
 top_common_header(_) -> error.
 tch([]) -> error;
