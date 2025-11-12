@@ -1156,7 +1156,9 @@ check2(OldBlock, Block) ->
     NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, ProofTree, TreesHash),
    
     CFG = tree:cfg(amoveo),
+    OldStem = stem_verkle:get(OldTrees, CFG),
     RootStem = stem_verkle:get(NewTrees3, CFG),
+    ok = stem_verkle:check_root_integrity(OldStem),
     ok = stem_verkle:check_root_integrity(RootStem),
  
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),

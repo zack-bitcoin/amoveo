@@ -183,6 +183,7 @@ verkle_dict_update_root(Dict, ProofTree, RootHash, Height) ->
     %io:fwrite("verkle dict update root\n"),
     RootHash == stem_verkle:hash_point(hd(ProofTreeB)).
 verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
+    io:fwrite("tree_data:verkle_dict_update_trie/5\n"),
     true = is_integer(Trees),
     Keys = dict:fetch_keys(Dict),
     Leaves = 
@@ -200,24 +201,14 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
     Leaves2b = lists:map(
                  fun(#consensus_state{val = X}) -> X;
                     (Y = {unmatched_head, _, _, _}) -> Y end, Leaves2),
-    if
-        true -> ok;
-        ((Height == 161186)) ->
-            io:fwrite({Leaves2b});
-        true -> ok;
-        ((Height == 8) and (not(ProofTree == unknown))) ->
-            io:fwrite({Keys});
-        true -> ok;
-        ((Height == 13) and (not(ProofTree == unknown))) ->
-            io:fwrite({Leaves2b});
-        true -> ok
-    end,
     Trees3 = case ProofTree of
                  unknown -> 
+                     io:fwrite("tree_data:verkle_dict_update_trie unknown\n"),
                      %io:fwrite({Leaves2}),
                      Trees4 = trees2:store_things(Leaves2b, Trees),
                      Trees4;
                  _ ->
+                     io:fwrite("tree_data:verkle_dict_update_trie not unknown\n"),
                      %ProofTree = dict:fetch(proof, Dict),
                      ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
                      %io:fwrite("updated the proof in tree_data\n"),
