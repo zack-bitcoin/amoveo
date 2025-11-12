@@ -366,8 +366,12 @@ try_process_block(FullData = <<Size:64, Data/binary>>, MyTopBlock) ->
             %io:fwrite("got a block in try_process_block\n"),
             <<Blockx:(Size*8), Rest/binary>> = Data,
             Block = block_db3:uncompress(<<Blockx:(Size*8)>>),
-            Block2 = process_block_sequential(Block, MyTopBlock), 
-            %Block2 = process_block_sequential(Block, block:get_by_height(Block#block.height - 1)), 
+            Block2 = if
+                         ((Block#block.height + 1) == (MyTopBlock#block.height)) ->
+                             process_block_sequential(Block, MyTopBlock);
+                         true ->
+                             process_block_sequential(Block, block:get_by_height(Block#block.height - 1))
+                     end,
 
 %            BH = block:hash(Block),
 %            true = (MyTopBlock#block.height + 1 == Block#block.height),
@@ -409,13 +413,13 @@ process_block_sequential(Block, Prev) ->
     BH = block:hash(Block),
     %io:fwrite(Prev),
     if
-        (Prev#block.height + 1 == Block#block.height) -> ok;
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
         (Prev == error) -> io:fwrite("process block sequential, bad prev block\n");
+        (Prev#block.height + 1 == Block#block.height) -> ok;
         true -> io:fwrite("not sequential " ++ integer_to_list(Prev#block.height) ++ " " ++ integer_to_list(Block#block.height))
     end,
         
-    true = (Prev#block.height + 1 == Block#block.height),
+    true = ((Prev#block.height + 1) == Block#block.height),
     #block{
        height = Height2
       } = Block,
