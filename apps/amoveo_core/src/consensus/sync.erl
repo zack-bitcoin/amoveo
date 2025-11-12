@@ -613,6 +613,7 @@ sync_peer(Peer) ->
     MyBlockHeight = block:height(),
     TheirTop = remote_peer({header}, Peer), 
     TheirBlockHeight = remote_peer({height}, Peer),
+    io:fwrite("getting headers " ++ integer_to_list(max(0, MyBlockHeight - FT)) ++ "\n"),
     TheirHeaders = remote_peer({headers, HB, max(0, MyBlockHeight - FT)}, Peer),
     TopCommonHeader = top_common_header(TheirHeaders),
     
