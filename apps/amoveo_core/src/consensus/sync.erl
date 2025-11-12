@@ -615,6 +615,13 @@ sync_peer(Peer) ->
     TheirBlockHeight = remote_peer({height}, Peer),
     io:fwrite("getting headers " ++ integer_to_list(max(0, MyBlockHeight - FT)) ++ " " ++ integer_to_list(HB) ++ "\n"),
     TheirHeaders = remote_peer({headers, HB, max(0, MyBlockHeight - FT)}, Peer),
+    if
+        (length(TheirHeaders) == 0) ->
+            io:fwrite("their headers was empty\n"),
+            io:fwrite({HB, max(0, MyBlockHeight - FT), Peer}),
+            ok;
+        true -> ok
+    end,
     TopCommonHeader = top_common_header(TheirHeaders),
     
     %io:fwrite("start if statement\n"),
