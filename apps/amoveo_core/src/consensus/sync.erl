@@ -306,12 +306,13 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
             end
     end.
 blocks_process_stream(Data0, MyTopBlock, Peer, TheirBlockHeight) ->
+    io:fwrite("blocks process stream\n"),
     receive
         {http, {_Ref, stream, Data}} ->
             %io:fwrite("process stream, more data\n"),
             Data2 = <<Data0/binary, Data/binary>>,
             {Data3, NewTop} = try_process_block(Data2, MyTopBlock),
-            NewHeight = NewTop#block.height,
+            %NewHeight = NewTop#block.height,
             SMC = sync_mode:check(),
             case SMC of
                 normal ->
@@ -319,11 +320,11 @@ blocks_process_stream(Data0, MyTopBlock, Peer, TheirBlockHeight) ->
                 quick -> ok
             end,
             DefragPeriod = 300,
-            if
-                ((SMC == normal) and ((NewHeight rem DefragPeriod) == 0)) ->
-                    success = trees2:garbage_collect();
-                true -> ok
-            end,
+%            if
+%                ((SMC == normal) and ((NewHeight rem DefragPeriod) == 0)) ->
+%                    success = trees2:garbage_collect();
+%                true -> ok
+%            end,
                     
             blocks_process_stream(Data3, NewTop, Peer, TheirBlockHeight);
         %{http, {_Ref, stream_end, _}} -> <<>>;
