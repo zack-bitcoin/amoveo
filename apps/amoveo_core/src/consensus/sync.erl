@@ -675,7 +675,8 @@ tch([H|T]) ->
     case Tch of
 	error -> tch(T);
 	empty -> tch(T);
-	_ -> H
+%	_ -> H
+        _ -> hd(tl(tl(tl(T))))
     end.
 reverse_syncing() ->
     case application:get_env(amoveo_core, reverse_syncing) of
