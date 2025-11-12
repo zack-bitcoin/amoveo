@@ -1138,7 +1138,6 @@ root_hash_check(OldBlock, Block, NewDict4, ProofTree) ->
 check2(OldBlock, Block) ->
    %updates the merkle/verkle tree to store the new version of the consensus state. Checks that the resultant root hash matches what is written on the block. After the update it is using tree_data:verkle_dict_update_trie
     %calculates the meta data we store with blocks. (as decided in the config file.)
-    io:fwrite("block check 2 " ++ integer_to_list(Block#block.height) ++ "\n"),
     {NewDict4, NewDict3, Dict, ProofTree} = 
         check3(OldBlock, Block), 
     Height = Block#block.height,

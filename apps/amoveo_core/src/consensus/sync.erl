@@ -306,7 +306,6 @@ stream_get_blocks(Peer, N, TheirBlockHeight) ->
             end
     end.
 blocks_process_stream(Data0, MyTopBlock, Peer, TheirBlockHeight) ->
-    io:fwrite("blocks process stream\n"),
     receive
         {http, {_Ref, stream, Data}} ->
             %io:fwrite("process stream, more data\n"),
@@ -424,7 +423,6 @@ process_block_sequential(Block, Prev, N) ->
             io:fwrite("block is earlier than we can learn about\n"),
             Block;
         (not(AlreadyGot == empty)) ->
-            io:fwrite("already got this block\n"),
             Block;
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
         (Prev == error) -> io:fwrite("process block sequential, bad prev block " ++ integer_to_list(Block#block.height) ++ "\n"),
@@ -603,7 +601,7 @@ trade_txs(Peer) ->
 %    end.
    
 sync_peer(Peer) ->
-    io:fwrite("sync peer \n"),
+    %io:fwrite("sync peer \n"),
     %io:fwrite("\n"),
     %io:fwrite("trade peers \n"),
     spawn(fun() -> trade_peers(Peer) end),
@@ -615,19 +613,8 @@ sync_peer(Peer) ->
     MyBlockHeight = block:height(),
     TheirTop = remote_peer({header}, Peer), 
     TheirBlockHeight = remote_peer({height}, Peer),
-    io:fwrite("getting headers " ++ integer_to_list(max(0, MyBlockHeight - FT)) ++ " " ++ integer_to_list(HB) ++ "\n"),
     TheirHeaders = remote_peer({headers, HB, max(0, MyBlockHeight - FT)}, Peer),
-    if
-        (length(TheirHeaders) == 0) ->
-            io:fwrite("their headers was empty\n"),
-            io:fwrite({HB, max(0, MyBlockHeight - FT), Peer}),
-            ok;
-        true -> ok
-    end,
     TopCommonHeader = top_common_header(TheirHeaders),
-    io:fwrite("calculated top common header " ++ integer_to_list(TopCommonHeader#header.height) ++ "\n"),
-    
-    %io:fwrite("start if statement\n"),
     if
         is_atom(TheirTop) -> error;
         is_atom(TheirBlockHeight) -> error;
@@ -636,7 +623,6 @@ sync_peer(Peer) ->
             io:fwrite(TopCommonHeader),
             error;
         true -> 
-            %io:fwrite("exited if statement\n"),
             sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTop)
     end.
 sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeader) ->
@@ -681,9 +667,9 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
             ok
     end.
 top_common_header(L) when is_list(L) ->
-    io:fwrite("starting top common header \n"),
-    io:fwrite("length " ++ integer_to_list(length(L)) ++ "\n"),
-    io:fwrite(integer_to_list((hd(L))#header.height) ++ " " ++ integer_to_list((hd(lists:reverse(L)))#header.height) ++ "\n"),
+    %io:fwrite("starting top common header \n"),
+    %io:fwrite("length " ++ integer_to_list(length(L)) ++ "\n"),
+    %io:fwrite(integer_to_list((hd(L))#header.height) ++ " " ++ integer_to_list((hd(lists:reverse(L)))#header.height) ++ "\n"),
     tch(lists:reverse(L));
 top_common_header(_) -> error.
 tch([]) -> error;
@@ -757,7 +743,7 @@ cron3() ->
 	    spawn(fun() ->
 			  if 
 			      B -> 
-                                  io:fwrite("sync cron 3 activated\n"),
+                                  %io:fwrite("sync cron 3 activated\n"),
                                   sync:start();
 			      true -> 
 				  P2 = shuffle(remove_self(peers:all())),
