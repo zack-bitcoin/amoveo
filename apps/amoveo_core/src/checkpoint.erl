@@ -1121,9 +1121,13 @@ chunkify2(<<S:8388608, R/binary>>, F, N) ->
     io:fwrite("chunkify2" ++ integer_to_list(N) ++ " \n"),
     file:write_file(F++chunk_name(N), <<S:8388608>>),
     chunkify2(R, F, N+1);
-chunkify2(R, F, N) -> 
+chunkify2(R, F, N) when (is_binary(R) and (size(R) < 1100000))-> 
     io:fwrite("chunkify done\n"),
     file:write_file(F ++ chunk_name(N), R),
+    ok;
+chunkify2(R, _, _) -> 
+    io:fwrite("chunkify failed \n"),
+    io:fwrite({R}),
     ok.
 chunk_name(N) ->
     "/" ++ integer_to_list(N) ++ 
