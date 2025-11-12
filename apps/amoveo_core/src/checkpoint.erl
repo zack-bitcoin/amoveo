@@ -1123,7 +1123,7 @@ chunkify2(<<>>, _, _) -> ok;
 %    chunkify2(R, F, N+1);
 chunkify2(<<S:1048576/binary, R/binary>>, F, N) -> 
     %8388608 is 1 megabyte.
-    io:fwrite("chunkify2" ++ integer_to_list(N) ++ " \n"),
+    %io:fwrite("chunkify2 " ++ integer_to_list(N) ++ " \n"),
     file:write_file(F++chunk_name(N), S),
     chunkify2(R, F, N+1);
 chunkify2(R, F, N) -> 

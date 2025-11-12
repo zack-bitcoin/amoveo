@@ -442,20 +442,20 @@ doit({checkpoint}) ->
     X = checkpoint:recent(),
     {ok, X};
 doit({checkpoint, Hash, N}) ->
-    io:fwrite("ext handler serving checkpoint 0\n"),
+    %io:fwrite("ext handler serving checkpoint 0\n"),
     CR = constants:custom_root(),
     Encoded = base58:binary_to_base58(Hash),
     case file:read_file(
            CR ++ "checkpoints/"++Encoded++
                "/" ++ checkpoint:chunk_name(N)) of
         {ok, D} -> 
-            io:fwrite("ext handler serving checkpoint 1"++ integer_to_list(size(D)) ++ "\n"),
+            %io:fwrite("ext handler serving checkpoint 1 "++ integer_to_list(size(D)) ++ "\n"),
             {ok, D};
         {error, enoent} -> 
-            io:fwrite("ext handler serving checkpoint 2\n"),
+            %io:fwrite("ext handler serving checkpoint 2\n"),
             {error, "out of bounds"};
         {error, _} -> 
-            io:fwrite("ext handler serving checkpoint 3\n"),
+            %io:fwrite("ext handler serving checkpoint 3\n"),
             {error, "unhandled error"}
     end;
 doit({status, 1}) -> 
