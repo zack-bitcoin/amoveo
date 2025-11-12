@@ -151,7 +151,13 @@ store_verified(Loc, ProofTree) ->
              Loc, ProofTree, CFG),
     Stem = stem_verkle:get(Loc2, CFG),
     io:fwrite("trees2 store_verified, check integrity\n"),
-    %success = stem_verkle:check_root_integrity(Stem),%fails here.
+    case stem_verkle:check_root_integrity(Stem) of%fails here.
+        success -> ok;
+        error ->
+            io:fwrite({{bad_stem, Stem},
+                       {good_version, Stem0}}),
+            1=2
+    end,
     io:fwrite("trees2 store_verified, check integrity succeeded\n"),
     Loc2.
 
