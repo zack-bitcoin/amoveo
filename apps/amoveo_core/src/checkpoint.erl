@@ -1116,11 +1116,16 @@ chunkify(File, Folder) ->
             ok
     end.
 chunkify2(<<>>, _, _) -> ok;
-chunkify2(<<S:8388608, R/binary>>, F, N) -> 
-    %8388608 is 1 megabyte.
+chunkify2(R0, F, N) when is_binary(R0) -> 
+    <<S:8388608, R/binary>> = R0,
     io:fwrite("chunkify2" ++ integer_to_list(N) ++ " \n"),
     file:write_file(F++chunk_name(N), <<S:8388608>>),
     chunkify2(R, F, N+1);
+%chunkify2(<<S:8388608, R/binary>>, F, N) -> 
+    %8388608 is 1 megabyte.
+%    io:fwrite("chunkify2" ++ integer_to_list(N) ++ " \n"),
+%    file:write_file(F++chunk_name(N), <<S:8388608>>),
+%    chunkify2(R, F, N+1);
 chunkify2(R, F, N) when (is_binary(R) and (size(R) < 1100000))-> 
     io:fwrite("chunkify done\n"),
     file:write_file(F ++ chunk_name(N), R),
