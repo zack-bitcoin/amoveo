@@ -146,7 +146,9 @@ store_verified(Loc, ProofTree) ->
     Loc2 = store_verkle:verified(
              Loc, ProofTree, CFG),
     Stem = stem_verkle:get(Loc2, CFG),
+    io:fwrite("trees2 store_verified, check integrity\n"),
     stem_verkle:check_root_integrity(Stem),
+    io:fwrite("trees2 store_verified, check integrity succeeded\n"),
     Loc2.
 
 remove_repeat([L1 = {leaf, A, X, <<Type, P1:56>>}, 
