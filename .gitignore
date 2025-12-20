@@ -29,3 +29,6 @@ sys.config.tmpl
 backup.tar.gz
 backup_temp/*
 /scripts/Blocks
+*.ppm
+*.jpg
+*.jpeg

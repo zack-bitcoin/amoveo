@@ -641,7 +641,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
     end,
     if
         TheirBlockHeight > MyBlockHeight ->
-	    io:fwrite("get blocks from them.\n"),
+	    %io:fwrite("get blocks from them.\n"),
 	    CommonHeight = min(TopCommonHeader#header.height, block:height()),
             RS = reverse_syncing(),
             BH = block:height(),
@@ -651,7 +651,7 @@ sync_peer2(Peer, TopCommonHeader, TheirBlockHeight, MyBlockHeight, TheirTopHeade
                     %todo, download and sync from a checkpoint.
                     ok;
                 true -> 
-                    io:fwrite("new get blocks start, common height " ++ integer_to_list(CommonHeight) ++ " their height: " ++ integer_to_list(TheirBlockHeight) ++ "\n"),
+                    %io:fwrite("new get blocks start, common height " ++ integer_to_list(CommonHeight) ++ " their height: " ++ integer_to_list(TheirBlockHeight) ++ "\n"),
                     %new_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight, ?tries)
                     stream_get_blocks(Peer, CommonHeight + 1, TheirBlockHeight)
             end;
