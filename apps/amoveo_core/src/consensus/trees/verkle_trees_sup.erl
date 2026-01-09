@@ -42,10 +42,10 @@ stop() ->
     %todo, kill the child processes.
     %supervisor:terminate_child(amoveo_sup, H),
     %trie_sup:stop(H),
-    verkle_sup:stop(verkle),
-    lists:map(fun({N, _}) ->
-                      dump_sup:stop(N)
-              end, dumps()).
+    verkle_sup:stop(verkle).
+%    lists:map(fun({N, _}) ->
+%                      dump_sup:stop(N)
+%              end, dumps()).
 
 mode() ->
     case application:get_env(amoveo_core, trie_mode) of
@@ -81,9 +81,10 @@ init([]) ->
              end, dumps2()),
     %Location = "",
     Children = [
-                {verkle_supervisor, {verkle_sup, start_link, [32, 32, amoveo, 0, MetaBytes, mode(), Location]}, permanent, 5000, supervisor, [verkle_sup]},
-                {verkle_cleaner, {verkle_sup, start_link, [32, 32, cleaner, 0, MetaBytes, mode(), CleanFolder]}, permanent, 5000, supervisor, [verkle_sup]}
-               ] ++ DChildren ++ DChildren2,
+                {verkle_supervisor, {verkle_sup, start_link, [amoveo, Location]}, permanent, 5000, supervisor, [verkle_sup]},
+                {verkle_cleaner, {verkle_sup, start_link, [cleaner, CleanFolder]}, permanent, 5000, supervisor, [verkle_sup]}
+                %{verkle_cleaner, {verkle_sup, start_link, [32, 32, cleaner, 0, MetaBytes, mode(), CleanFolder]}, permanent, 5000, supervisor, [verkle_sup]}
+               ],% ++ DChildren ++ DChildren2,
                 %{A1, {dump_sup, start_link,[A1, constants:account_size(), 0, hd, "data/account_verkle_dump.db"]}, permanent, 5000, supervisor, [dump_sup]}],
                 %{A1, {dump_sup, start_link,[A1, 44, 0, hd, ""]}, permanent, 5000, supervisor, [dump_sup]}],
     {ok, {{one_for_one, 50000, 1}, Children}}.
