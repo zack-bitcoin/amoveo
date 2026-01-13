@@ -4389,8 +4389,8 @@ test(69) ->
     Job = #job{id = ID, worker = <<0:264>>, boss = <<0:264>>, value = 1, salary = 1, balance = 1, time = 1},
 
     SJ = trees2:serialize(Job),
-    SL = dump:put(SJ, jobs_dump),
-    SJ = dump:get(SL, jobs_dump),
+    %SL = dump:put(SJ, jobs_dump),
+    %SJ = dump:get(SL, jobs_dump),
     
 
 

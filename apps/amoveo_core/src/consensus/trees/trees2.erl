@@ -1,6 +1,6 @@
 -module(trees2).
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/4, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/3, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
-         one_root_clean/2, one_root_maker/2, recover_from_clean_version/0,
+         one_root_clean/1, one_root_maker/1, recover_from_clean_version/0,
          copy_bits/4, scan_verkle/2, scan_verkle/1, scan_verkle/0, prune/2,
          recover/1, to_keys/1, store_leaves/2, get_proof/3,
          cs2v/1, restore_leaves_proof/3, remove_leaves_proof/2,
@@ -20,10 +20,9 @@
     
 
 root_hash(Loc) ->
-    CFG = tree:cfg(amoveo),
     stem_verkle:hash_point(
       stem_verkle:root(
-        stem_verkle:get(Loc, CFG))).
+        stem_verkle:get(Loc, amoveo))).
 
 range(N, N) ->
     [N];
@@ -110,45 +109,45 @@ cs2v([A|T]) ->
     %converts consensus state into the verkle data.
     %consensus state is like accounts and contracts and whatever.
     %verkle data is a list of leaves that can be fed into store_verkle:batch/3.
-    CFG = tree:cfg(amoveo),
     %#consensus_state{val = A} = A0,
     K = key(A), %A is {<<4,164,...>>, 1}
     case K of
         bad -> cs2v(T);
         _ ->
             V = serialize(A),
-            H = hash:doit(V),
+            %H = hash:doit(V),
             M1 = type2int(element(1, A)),
-            DBName = int2dump_name(M1),
-            M = dump:put(V, DBName),
-            Meta = <<M1, M:(7*8)>>, 
-            Leaf = leaf_verkle:new(K, H, Meta, CFG),
-            [Leaf|cs2v(T)]
+	    Leaf = leaf_verkle:new(K, V, <<M1:8>>),
+	    [Leaf|cs2v(T)]
     end.
+%            DBName = int2dump_name(M1),
+%            M = dump:put(V, DBName),
+%            Meta = <<M1, M:(7*8)>>, 
+%            Leaf = leaf_verkle:new(K, H, Meta),
+%            [Leaf|cs2v(T)]
+%    end.
     
 
 update_proof(L, ProofTree) ->
     %io:fwrite("trees2 update proof\n"),
     %io:fwrite({L, ProofTree}),
     %L is a list of accounts and contracts and whatever.
-    CFG = tree:cfg(amoveo),
     Leaves = cs2v(L),
-
     verify_verkle:update(
-      ProofTree, Leaves, CFG).
+      ProofTree, Leaves).
 
 %recurse over the tree, and do cs2v on each leaf we find, to convert to the format we will write in the verkle tree.
 store_verified(Loc, ProofTree) ->
-    CFG = tree:cfg(amoveo),
+    ID = amoveo,
     %io:fwrite(size(element(2, element(2, hd(hd(tl(ProofTree))))))), %32 bytes
 
-    Stem0 = stem_verkle:get(Loc, CFG),%sanity
+    Stem0 = stem_verkle:get(Loc, ID),%sanity
     success = stem_verkle:check_root_integrity(Stem0),%sanity
 
 
     Loc2 = store_verkle:verified(
-             Loc, ProofTree, CFG),
-    Stem = stem_verkle:get(Loc2, CFG),
+             Loc, ProofTree, ID),
+    Stem = stem_verkle:get(Loc2, ID),
     case stem_verkle:check_root_integrity(Stem) of%fails here.
         success -> ok;
         error ->
@@ -212,16 +211,14 @@ store_things(Things, Loc) ->
     V = cs2v(Things),
     store_leaves(V, Loc).
 store_leaves(V, Loc) ->
-    CFG = tree:cfg(amoveo),
     V2 = lists:sort(fun({leaf, <<A:256>>, _, _}, 
                         {leaf, <<B:256>>, _, _}) -> 
                             A =< B
                     end, V),
     V3 = remove_repeat(V2),
     
-    %io:fwrite("store batch\n"),
     %io:fwrite({Things, V}),
-    {P, _, _} = store_verkle:batch(V3, Loc, CFG),
+    {P, _, _} = store_verkle:batch(V3, Loc, amoveo),
     %io:fwrite("stored batch\n"),
     P.
 val2int({X, _}) ->
@@ -892,13 +889,13 @@ is_in(X, [_|T]) ->
     is_in(X, T).
    
 get(Keys, Loc) when is_integer(Loc) -> 
-    CFG = tree:cfg(amoveo),
+    ID = amoveo,
     {Keys3, TreesDict} = 
         strip_tree_info(Keys, [], dict:new()),%this is where we lose the tree info. it also hashes the keys.
     Keys4 = depth_order(Keys3),
     Keys5 = ordered_remove_repeats(Keys4),
     L = get_verkle:unverified(
-          Keys5, Loc, CFG), 
+          Keys5, Loc, ID), 
     if
         Keys5 == [<<0:256>>] -> 
             io:fwrite({Keys}),
@@ -912,7 +909,8 @@ get(Keys, Loc) when is_integer(Loc) ->
                                   dict:fetch(Key, TreesDict),
                               {UnhashedKey, empty};
                           _ ->
-                              {leaf, Key2, _, <<T,DL:56>>} = Leaf,
+                              %{leaf, Key2, _, <<T,DL:56>>} = Leaf,
+                              {leaf, Key2, Val, <<T>>} = Leaf,
                               if
                                   not(Key == Key2) ->
                           %it is weird that Key isn't the same as Key2.
@@ -930,7 +928,8 @@ get(Keys, Loc) when is_integer(Loc) ->
                                   true -> 
                                       UnhashedKey = 
                                           dict:fetch(Key, TreesDict),
-                                      {UnhashedKey, dump_get(T, DL)}
+                                      %{UnhashedKey, dump_get(T, DL)}
+                                      {UnhashedKey, deserialize(T, Val)}
                               end
                       end
               end, L).
@@ -946,7 +945,7 @@ get_proof(Keys0, Loc, Type, Height) ->
     %io:fwrite("trees:get_proofs many 1 "),
     %io:fwrite(integer_to_list(length(Keys))),
     %io:fwrite("\n"),
-    CFG = tree:cfg(amoveo),
+    ID = amoveo,
     case Type of
         fast -> ok;
         small -> ok
@@ -956,7 +955,8 @@ get_proof(Keys0, Loc, Type, Height) ->
     %io:fwrite(integer_to_list(length(Keys0))),
     %io:fwrite("\n"),
     {Proof, MetasDict} =
-        get_verkle:batch(Keys, Loc, CFG, Type),
+        get_verkle:batch(Keys, Loc, ID, Type),
+    %io:fwrite(MetasDict),
     %io:fwrite({Proof}),
     %order keys based on depth first scan of the tree from low to high.
     Keys30 = depth_order(Keys),
@@ -989,13 +989,18 @@ get_proof(Keys0, Loc, Type, Height) ->
     Leaves = 
         lists:map(fun(K) ->
                           case dict:find(K, MetasDict) of
-                              {ok, <<T, V:56>>} ->
-                                  if
-                                      (T == 0) ->
-                                          io:fwrite({T, V, <<T, V:56>>, K, dict:fetch_keys(MetasDict)});
-                                      true -> ok
-                                  end,
-                                  dump_get(T, V);
+                              {ok, {<<T>>, S}} ->
+				  deserialize(T, S);
+			      %io:fwrite("S is "),
+				%  io:fwrite(S),
+				%  1=2;
+                              %{ok, <<T, V:56>>} ->
+                              %    if
+                              %        (T == 0) ->
+                              %            io:fwrite({T, V, <<T, V:56>>, K, dict:fetch_keys(MetasDict)});
+                              %        true -> ok
+                              %    end,
+                              %    dump_get(T, V);
                               error ->
                                   {EmptyTree, UK} = 
                                       dict:fetch(K, TreesDict),
@@ -1036,7 +1041,7 @@ get_proof(Keys0, Loc, Type, Height) ->
                 true ->
                     io:fwrite("sanity check verkle proof\n"),
                     {true, _, _} = 
-                        verify_verkle:proof(Proof, CFG)
+                        verify_verkle:proof(Proof)
             end,
             {get_verkle:serialize_proof(
                    Proof2), Leaves};
@@ -1073,8 +1078,10 @@ remove_leaves_proof(T, Height) when is_tuple(T) ->
 remove_leaves_proof([H|T], Height) -> 
     [remove_leaves_proof(H, Height)|
      remove_leaves_proof(T, Height)];
-remove_leaves_proof(<<X:256>>, _) ->
-    <<X:256>>;
+remove_leaves_proof(X, _) when is_binary(X) ->
+    X;
+%remove_leaves_proof(<<X:256>>, _) ->
+%    <<X:256>>;
 remove_leaves_proof(N, _) when is_integer(N) -> N.
 
 
@@ -1239,8 +1246,6 @@ dump_get(T, V) ->
 
 verify_proof(Proof0, Things, Height) ->
     %io:fwrite(" 0 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
-    CFG = tree:cfg(amoveo),
-    
     Proof1 = 
         if
             is_binary(Proof0) ->
@@ -1251,9 +1256,8 @@ verify_proof(Proof0, Things, Height) ->
     {Proof, []} = 
         restore_leaves_proof(Proof1, Things, Height-1),%breaks here...
     %io:fwrite(" 2 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
-    CFG = tree:cfg(amoveo),
     {true, Leaves, ProofTree} = 
-        verify_verkle:proof(Proof, CFG),
+        verify_verkle:proof(Proof),
     %io:fwrite("prooftree size " ++ integer_to_list(size(term_to_binary(ProofTree)))),
     %io:fwrite(" 3 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     lists:map(fun(X) ->
@@ -1304,9 +1308,8 @@ verify_proof(Proof0, Things, Height) ->
     %{lists:sort(KHs) == lists:sort(Leaves),
     {Bool, ProofTree}.
 %verify_proof(Proof) ->
-%    CFG = tree:cfg(amoveo),
 %    Proof1 = get_verkle:deserialize_proof(Proof),
-%    verify_verkle:proof(Proof1, CFG).
+%    verify_verkle:proof(Proof1).
 
 merge_same([], []) -> 
     %io:fwrite("merge same done"),
@@ -1337,12 +1340,11 @@ merge_same([{Key, 0}|T1], %what you need.
     %io:fwrite(integer_to_list(size(term_to_binary(T2)))),
     %io:fwrite("\n"),
     %io:fwrite("merge same case 2\n"),
-    CFG = tree:cfg(amoveo),
     <<Key0:256>> = Key,
-    Key2 = leaf_verkle:path_maker(Key0, CFG),
+    Key2 = leaf_verkle:path_maker(Key0),
 
     <<LKey0:256>> = LKey,
-    LKey2 = leaf_verkle:path_maker(LKey0, CFG),
+    LKey2 = leaf_verkle:path_maker(LKey0),
 
     false = Key == LKey,
     SSD = starts_same_depth(Key2, LKey2, D),
@@ -1379,9 +1381,8 @@ merge_same([{Key, 0}|T1], [{Branch, 0}|T2]) ->
     %io:fwrite(integer_to_list(length(T2))),
     %io:fwrite("\n"),
     %io:fwrite("merge same case: 3\n"),
-    CFG = tree:cfg(amoveo),
     <<Key0:256>> = Key,
-    Key2 = leaf_verkle:path_maker(Key0, CFG),
+    Key2 = leaf_verkle:path_maker(Key0),
     Bool = starts_same(Key2, lists:reverse(Branch)),
     if
         Bool -> 
@@ -1538,6 +1539,7 @@ merkle2verkle(
      unmatched = U, sub_accounts = SA, contracts = CO,
      trades = T, markets = M2, receipts = R}, 
   Loc) ->
+    %io:fwrite("trees2 merkle2verkle\n"),
     Types = [accounts, oracles, matched, unmatched, sub_accounts, contracts, trades, markets, receipts],
     TypePairs = lists:zipwith(
                   fun(A, B) -> {A, B} end,
@@ -1571,13 +1573,13 @@ merkle2verkle(
     %io:fwrite(AllLeaves),
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
-one_root_clean(Pointer, CFG) ->
-    Hash = scan_verkle(Pointer, CFG),%sanity check of the verkle tree data.
-    NewPointer = one_root_maker(Pointer, CFG),%copies everything that can be proven from a single root over to a new database, the clean version
+one_root_clean(Pointer) ->
+    Hash = scan_verkle(Pointer, amoveo),%sanity check of the verkle tree data.
+    NewPointer = one_root_maker(Pointer),%copies everything that can be proven from a single root over to a new database, the clean version
     io:fwrite("one root clean 2\n"),
     recover_from_clean_version(),%reloads the database from the clean version.
     io:fwrite("one root clean 4\n"),
-    Hash = scan_verkle(NewPointer, CFG),%another sanity check to make sure that everything is ok.
+    Hash = scan_verkle(NewPointer, amoveo),%another sanity check to make sure that everything is ok.
     NewPointer.
 
 multi_root_clean() ->
@@ -1590,24 +1592,24 @@ multi_root_clean() ->
 
 multi_root_clean(Pointers) ->
     %the pointers are to the roots of the blocks that we want to keep.
-    CFG = tree:cfg(amoveo),
+    ID = amoveo,
     io:fwrite("checksum building\n"),
     Top = hd(lists:reverse(Pointers)),
-    Hashes = scan_verkle_many([Top], CFG),
+    Hashes = scan_verkle_many([Top], ID),
     io:fwrite("getting new pointers\n"),
-    NewPointers = multi_root_maker(Pointers, CFG),
+    NewPointers = multi_root_maker(Pointers),
     io:fwrite("recover from the clean version\n"),
     recover_from_clean_version(),
     io:fwrite("checksum sanitycheck\n"),
     %io:fwrite({Pointers, NewPointers}),
-    Hashes2 = scan_verkle_many([hd(lists:reverse(NewPointers))], CFG),
+    Hashes2 = scan_verkle_many([hd(lists:reverse(NewPointers))], ID),
     if
         (Hashes2 == Hashes2) -> ok;
         true -> io:fwrite({Hashes, Hashes2})
     end,
     NewPointers.
 
-setup_clean_db(CFG) ->
+setup_clean_db() ->
     %delete the contents of the files in the cleaner folder.
     %os:cmd("truncate -s 0 cleaner/data/*"),
     %os:cmd("rm cleaner/data/*"),
@@ -1618,57 +1620,25 @@ setup_clean_db(CFG) ->
     timer:sleep(500),
     %reload the cleaner verkle tree, it should be empty.
     %io:fwrite("one_root_clean: reload the now empty cleaner db\n"),
-    bits:reset(cleaner_v_leaf),
-    bits:reset(cleaner_v_stem),
-
-    bits:reset(accounts_cleaner),
-    bits:reset(contracts_cleaner),
-    bits:reset(markets_cleaner),
-    bits:reset(matched_cleaner),
-    bits:reset(oracles_cleaner),
-    bits:reset(receipts_cleaner),
-    bits:reset(sub_accs_cleaner),
-    bits:reset(trades_cleaner),
-    bits:reset(unmatched_cleaner),
-    bits:reset(jobs_cleaner),
-    bits:reset(futarchy_cleaner),
-    bits:reset(futarchy_unmatched_cleaner),
-    bits:reset(futarchy_matched_cleaner),
-
-    dump:reload(accounts_cleaner),
-    dump:reload(contracts_cleaner),
-    dump:reload(markets_cleaner),
-    dump:reload(matched_cleaner),
-    dump:reload(oracles_cleaner),
-    dump:reload(receipts_cleaner),
-    dump:reload(sub_accs_cleaner),
-    dump:reload(trades_cleaner),
-    dump:reload(unmatched_cleaner),
-    dump:reload(jobs_cleaner),
-    dump:reload(futarchy_cleaner),
-    dump:reload(futarchy_unmatched_cleaner),
-    dump:reload(futarchy_matched_cleaner),
-
-    tree:reload_ets(cleaner),
+    tree2:reload(cleaner),
     timer:sleep(500).
     
 
-multi_root_maker(Pointers, CFG) ->
+multi_root_maker(Pointers) ->
     io:fwrite("setup clean db\n"),
-    setup_clean_db(CFG),
+    setup_clean_db(),
     io:fwrite("multi_root_clean: copy the data for that one root to the cleaner db\n"),
-    CFG2 = CFG#cfg{id = cleaner},
-    NewPointers = multi_root_clean_stem(Pointers, CFG, CFG2),
+    %CFG2 = CFG#cfg{id = cleaner},
+    NewPointers = multi_root_clean_stem(Pointers),
     io:fwrite("multi_root_clean: back up the cleaner db to the hard disk\n"),
     tree:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
     NewPointers.
 
-one_root_maker(Pointer, CFG) ->
-    setup_clean_db(CFG),
+one_root_maker(Pointer) ->
+    setup_clean_db(),
     %build the clean version
     io:fwrite("one_root_clean: copy the data for that one root to the cleaner db\n"),
-    CFG2 = CFG#cfg{id = cleaner},
-    NewPointer = one_root_clean_stem(Pointer, CFG, CFG2),
+    NewPointer = one_root_clean_stem(Pointer),
     %copy the clean version over the main version.
     io:fwrite("one_root_clean: back up the cleaner db to the hard disk\n"),
     tree:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
@@ -1798,13 +1768,13 @@ copy_bits(I, Top, CleanName, Name) ->
 multi_root_clean_stem(
   %so you can delete everything in the database, except for the contents of those blocks that you care about.
   %it puts the data you care about into a new database. The output pointers are for the new database.
-  Pointers, 
-  CFG, %reading from this old database
-  CFG2) -> %writing to this new one
+  Pointers) ->
+%  CFG, %reading from this old database
+%  CFG2) -> %writing to this new one
     %make a new verkle database. copy over everything that we want to keep. It is a depth first scan of the old tree.
     %to avoid scanning the same things twice, we need to consolidate descendents.
     Stems = lists:map(fun(P) ->
-                              stem_verkle:get(P, CFG)
+                              stem_verkle:get(P, amoveo)
                       end, Pointers),
     SanityHashes = lists:map(fun(S) ->
                                      stem_verkle:hash(S)
@@ -1818,7 +1788,7 @@ multi_root_clean_stem(
     Hs = lists:map(fun(S) ->
                            tuple_to_list(stem_verkle:hashes(S))
                    end, Stems),
-    P2s = multi_root_clean2(Ps, Ts, Hs, CFG, CFG2),
+    P2s = multi_root_clean2(Ps, Ts, Hs),
     Stems2 = lists:map(fun({S, P}) ->
                                setelement(4, S, list_to_tuple(P))
                        end, lists:zip(Stems, P2s)),
@@ -1832,30 +1802,28 @@ multi_root_clean_stem(
         true -> ok
     end,
     lists:map(fun(S) ->
-                      stem_verkle:put(S, CFG2)
+                      stem_verkle:put(S, cleaner)
               end, Stems2).
     
 
-one_root_clean_stem(Pointer, 
-               CFG, %the old database we are reading from.
-               CFG2) -> %the new database we are inserting to.
-    
+one_root_clean_stem(Pointer) ->
     %make a new verkle database. copy over everything that we want to keep. It is a depth first scan of the old tree.
+    %copy everythin we want to keep into the cleaner database.
 
     %make the new database.
     %io:fwrite("one root clean stem "),
     %io:fwrite(integer_to_list(Pointer)),
     %io:fwrite("\n"),
-    S = stem_verkle:get(Pointer, CFG),
+    S = stem_verkle:get(Pointer, amoveo),
     SanityHash = stem_verkle:hash(S),
     P = tuple_to_list(stem_verkle:pointers(S)),
     T = tuple_to_list(stem_verkle:types(S)),
     H = tuple_to_list(stem_verkle:hashes(S)),
-    P2 = one_root_clean2(P, T, H, CFG, CFG2),
+    P2 = one_root_clean2(P, T, H),
     S2 = setelement(4, S, list_to_tuple(P2)),
     SanityHash = stem_verkle:hash(S2),
     %S2 = S#stem_verkle{pointers = list_to_tuple(P2)},
-    stem_verkle:put(S2, CFG2).
+    stem_verkle:put(S2, cleaner).
 
 cars(X) ->
     {lists:map(fun([H|_]) -> H end, X),
@@ -1865,16 +1833,16 @@ conds(A, B) ->
                       [X|Y]
               end, lists:zip(A, B)).
                      
-multi_root_clean2(X = [[]|_],_,_,_,_) -> 
+multi_root_clean2(X = [[]|_],_,_) -> 
     %io:fwrite("multi_root_clean2 terminate 1\n"),
     X;
-multi_root_clean2([],_,_,_,_) -> 
+multi_root_clean2([],_,_) -> 
     %io:fwrite("multi_root_clean2 terminate 2\n"),
     [];
 multi_root_clean2(Pss, %list of each stem's pointers to it's children.
                   Tss, %list of each stem's types
-                  Hss, %list of each stem's child's hash.
-                  CFG, CFG2) ->
+                  Hss) -> %list of each stem's child's hash.
+%                  CFG, CFG2) ->
     %io:fwrite("multi root clean2 " ++ integer_to_list(length(hd(Pss)))++ "\n"),
 %Pss
 %[[pointer_stem1_child1, pointer_stem2_child2,...],
@@ -1887,8 +1855,8 @@ multi_root_clean2(Pss, %list of each stem's pointers to it's children.
 %Ph
 %[pointer_stem1_child1, pointer_stem2_child1...]
 
-    conds(mrc2(Ph, Th, Hh, CFG, CFG2),
-          multi_root_clean2(Pt, Tt, Ht, CFG, CFG2)).
+    conds(mrc2(Ph, Th, Hh),
+          multi_root_clean2(Pt, Tt, Ht)).
     %we are looking at data from a bunch of stems here, each stem is in the same location in a verkle tree. So they potentially share many children in common.
     %so we need to consider the first child of each of these stems, then the second child, etc.
     %this way, every time 2 stems share a descendent, we can realize this and not do the same calculation twice.
@@ -1908,37 +1876,40 @@ next_stems([P|Ps], [1|Ts], R) ->
     end;
 next_stems([_|Ps], [_|T], R) -> 
     next_stems(Ps, T, R).
-next_leafs([], [], R, _, _) -> lists:reverse(R);
-next_leafs([P|Ps], [2|Ts], R, CFG, CFG2) ->
+next_leafs([], [], R) -> lists:reverse(R);
+next_leafs([P|Ps], [2|Ts], R) ->
     B = is_in(P, R),
     if
-        B -> next_leafs(Ps, Ts, R, CFG, CFG2);
+        B -> next_leafs(Ps, Ts, R);
         true -> 
-            Leaf = leaf_verkle:get(P, CFG),
-            #leaf{key = Key, value = LeafHash, meta = Meta} = Leaf,
-            Hash = store_verkle:leaf_hash(Leaf, CFG),
-            <<M1, Pointer2:(7*8)>> = Meta,
-            CS0 = dump:get(Pointer2, int2dump_name(M1)),
-            Pointer4 = dump:put(CS0, int2cleaner_name(M1)),
-            Meta2 = <<M1, Pointer4:(7*8)>>,
-            Leaf2 = Leaf#leaf{meta = Meta2},
-            Pointer3 = leaf_verkle:put(Leaf2, CFG2),
-            next_leafs(Ps, Ts, [{P, Pointer3}|R], CFG, CFG2)
+            Leaf = leaf_verkle:get(P, amoveo),
+	    Pointer3 = leaf_verkle:put(Leaf, cleaner),
+	    next_leafs(Ps, Ts, [{P, Pointer3}|R])
     end;
-next_leafs([_|Ps], [_|T], R, CFG, CFG2) ->
-    next_leafs(Ps, T, R, CFG, CFG2).
+%            #leaf{key = Key, value = LeafHash, meta = Meta} = Leaf,
+            %Hash = store_verkle:leaf_hash(Leaf, amoveo),
+%            <<M1, Pointer2:(7*8)>> = Meta,
+%            CS0 = dump:get(Pointer2, int2dump_name(M1)),
+%            Pointer4 = dump:put(CS0, int2cleaner_name(M1)),
+%            Meta2 = <<M1, Pointer4:(7*8)>>,
+%            Leaf2 = Leaf#leaf{meta = Meta2},
+%            Pointer3 = leaf_verkle:put(Leaf2, cleaner),
+%            next_leafs(Ps, Ts, [{P, Pointer3}|R], CFG, CFG2)
+%    end;
+next_leafs([_|Ps], [_|T], R) ->
+    next_leafs(Ps, T, R).
 
             
-mrc2(Ps, Ts, Hs, CFG, CFG2) ->
+mrc2(Ps, Ts, Hs) ->
     %mrc2 should return one pointer for every pointer given
     %we have 100 stems on the tree at the same position. Now we for each of those stems, we are considering a child. So each of these 100 children also share the same position in the tree.
 
     %first, if there are any stems, process them together, because this is a depth first algorithm.
 
     NextStems = next_stems(Ps, Ts, []),%pointers that need to be updated
-    NextStems2 = multi_root_clean_stem(NextStems, CFG, CFG2),
+    NextStems2 = multi_root_clean_stem(NextStems),
     MemoizedStems = load_transforms(lists:zip(NextStems, NextStems2), dict:new()),
-    NextLeafs = next_leafs(Ps, Ts, [], CFG, CFG2), %[{old, new}, {old2, new2}...]
+    NextLeafs = next_leafs(Ps, Ts, []), %[{old, new}, {old2, new2}...]
     MemoizedLeafs = load_transforms(NextLeafs, dict:new()),
     
     %then, calculate the new pointers to return.
@@ -1956,32 +1927,31 @@ mrc2(Ps, Ts, Hs, CFG, CFG2) ->
               end, lists:zip(Ps, Ts)).
             
             
-one_root_clean2([], [], _, _, _) -> [];
+one_root_clean2([], [], _) -> [];
 one_root_clean2(
-  [Pointer|PT], [Type|TT], [Hash|HT], 
-  CFG, CFG2 ) -> 
+  [Pointer|PT], [Type|TT], [Hash|HT]) -> 
     P2 = case Type of
              0 -> %empty
                  Hash = <<0:256>>,
                  0;
              1 -> %another stem
-                 P3 = one_root_clean_stem(Pointer, CFG, CFG2),
-                 Stem = stem_verkle:get(P3, CFG2),
+                 P3 = one_root_clean_stem(Pointer),
+                 Stem = stem_verkle:get(P3, cleaner),
                  Hash2 = stem_verkle:hash(Stem),%different.
                  if
                      not(Hash == Hash2) -> 
-                         Stem0 = stem_verkle:get(Pointer, CFG),
+                         Stem0 = stem_verkle:get(Pointer, amoveo),
                          Hash3 = stem_verkle:hash(Stem0),
                          io:fwrite({Hash2, Hash, Hash3, Stem, Stem0});
                      true -> ok
                  end,
                  P3;
              2 -> %a leaf
-                 Leaf = leaf_verkle:get(Pointer, CFG),
+                 Leaf = leaf_verkle:get(Pointer, amoveo),
                  #leaf{key = Key, value = LeafHash, meta = Meta} = Leaf,
-                 Hash = store_verkle:leaf_hash(Leaf, CFG),
-                 %Hash = leaf_verkle:hash(Leaf, CFG),
-                 %<<N:256>> = store_verkle:leaf_hash(Leaf, CFG),
+                 Hash = store_verkle:leaf_hash(Leaf, amoveo),
+                 %Hash = leaf_verkle:hash(Leaf, amoveo),
+                 %<<N:256>> = store_verkle:leaf_hash(Leaf, amoveo),
                  <<M1, Pointer2:(7*8)>> = Meta,
                  %Type = int2type(M1),
                  CS0 = dump:get(Pointer2, int2dump_name(M1)),
@@ -1995,7 +1965,7 @@ one_root_clean2(
                  %io:fwrite({Hash, LeafHash, CSHash}),
                  %io:fwrite({Key, M1, CS}),
                  %Hash = fr:encode(N),
-                 %SL = leaf_verkle:serialize(Leaf, CFG),
+                 %SL = leaf_verkle:serialize(Leaf, amoveo),
                  %ets:insert(LID, {Pointer, SL})
 
                  %todo, we need to store the actual consensus state data to it's file as well. decode the leaf, and store the data in the cleaner db.
@@ -2007,7 +1977,7 @@ one_root_clean2(
             %DBName = int2dump_name(M1),
 
 
-                 Pointer3 = leaf_verkle:put(Leaf2, CFG2),
+                 Pointer3 = leaf_verkle:put(Leaf2, cleaner),
                  %io:fwrite("put a leaf. stem1: "),
                  %io:fwrite(integer_to_list(Pointer)),
                  %io:fwrite(",  stem2: "),
@@ -2019,42 +1989,40 @@ one_root_clean2(
                  %io:fwrite("\n"),
                  Pointer3
          end,
-    [P2|one_root_clean2(PT, TT, HT, CFG, CFG2)].
+    [P2|one_root_clean2(PT, TT, HT)].
 
-scan_verkle_many(Pointers, CFG) ->
-    lists:map(fun(P) -> scan_verkle(P, CFG) end, Pointers).
+scan_verkle_many(Pointers, ID) ->
+    lists:map(fun(P) -> scan_verkle(P, ID) end, Pointers).
 
 scan_verkle(Height) ->
     Pointer = (block:get_by_height(Height))#block.trees,
-    CFG = tree:cfg(amoveo),
-    scan_verkle(Pointer, CFG).
+    scan_verkle(Pointer, amoveo).
 
 scan_verkle() ->
     Pointer = (block:top())#block.trees,
-    CFG = tree:cfg(amoveo),
-    scan_verkle(Pointer, CFG).
-scan_verkle(Pointer, CFG) ->
-    S = stem_verkle:get(Pointer, CFG),
+    scan_verkle(Pointer, amoveo).
+scan_verkle(Pointer, ID) ->
+    S = stem_verkle:get(Pointer, ID),
     success = stem_verkle:check_root_integrity(S),
     P = tuple_to_list(stem_verkle:pointers(S)),
     T = tuple_to_list(stem_verkle:types(S)),
     H = tuple_to_list(stem_verkle:hashes(S)),
-    success = scan_verkle2(P, T, H, CFG),
+    success = scan_verkle2(P, T, H, ID),
     stem_verkle:hash(S).
 scan_verkle2([],[],[],_) -> success;
-scan_verkle2([0|PT], [0|TT], [<<0:256>>|HT], CFG) -> 
+scan_verkle2([0|PT], [0|TT], [<<0:256>>|HT], ID) -> 
     %empty slot
-    success = scan_verkle2(PT, TT, HT, CFG);
-scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], CFG) -> 
+    success = scan_verkle2(PT, TT, HT, ID);
+scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], ID) -> 
     %a leaf.
     %io:fwrite("scanned a leaf\n"),
-    L = leaf_verkle:get(Pointer, CFG),
+    L = leaf_verkle:get(Pointer, ID),
     #leaf{key = Key, value = LeafHash, meta = Meta} = L,
     <<M1, Pointer2:(7*8)>> = Meta,
     CS0 = dump:get(Pointer2, int2dump_name(M1)),
     Hash3 = hash:doit(CS0),
     CS = deserialize(M1, CS0),
-    Hash2 = store_verkle:leaf_hash(L, CFG),
+    Hash2 = store_verkle:leaf_hash(L, ID),
     if
         not(Hash == Hash2) -> 
             io:fwrite("trees2:scan_verkle2: bad leaf verkle data\n"),
@@ -2069,13 +2037,13 @@ scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], CFG) ->
         true -> 
             ok
     end,
-    success = scan_verkle2(PT, TT, HT, CFG);
-scan_verkle2([Pointer|PT], [1|TT], [Hash|HT], CFG) -> 
+    success = scan_verkle2(PT, TT, HT, ID);
+scan_verkle2([Pointer|PT], [1|TT], [Hash|HT], ID) -> 
     %another stem.
-    Hash2 = scan_verkle(Pointer, CFG),
-    S = stem_verkle:get(Pointer, CFG),
+    Hash2 = scan_verkle(Pointer, ID),
+    S = stem_verkle:get(Pointer, ID),
     success = stem_verkle:check_root_integrity(S),
-    success = scan_verkle2(PT, TT, HT, CFG);
+    success = scan_verkle2(PT, TT, HT, ID);
 scan_verkle2(_, _, _, _) -> 
     io:fwrite("scan verkle 2 impossible error\n"),
     1=2.
@@ -2153,7 +2121,6 @@ recover_range(I, End, Name, CleanName, ID_num) ->
     S = dump:get(V, int2dump_name(ID_num)),
     %V1 = dump_get(ID_num, V),
     %S = serialize(V1),
-    CFG = tree:cfg(amoveo),
     
     LeafHashShouldBe = leaf_verkle:value(Leaf),
     ExistingLeafHash = hash:doit(S),
@@ -2177,12 +2144,12 @@ recover_range(I, End, Name, CleanName, ID_num) ->
     recover_range(I+1, End, Name, CleanName, ID_num).
     
 
-get_leaf(<<Key:256>>, Pointer, CFG) ->
-    Stem = stem_verkle:get(Pointer, CFG),
+get_leaf(<<Key:256>>, Pointer, ID) ->
+    Stem = stem_verkle:get(Pointer, ID),
     %io:fwrite({Key}),
-    Path = leaf_verkle:path_maker(Key, CFG),
-    get_leaf2(Stem, Path, CFG).
-get_leaf2(Stem, [<<P>>|Path], CFG) ->
+    Path = leaf_verkle:path_maker(Key),
+    get_leaf2(Stem, Path, ID).
+get_leaf2(Stem, [<<P>>|Path], ID) ->
     Type = element(P+1, stem_verkle:types(Stem)),
     Pointer = element(P+1, stem_verkle:pointers(Stem)),
     case Type of
@@ -2191,10 +2158,10 @@ get_leaf2(Stem, [<<P>>|Path], CFG) ->
              %1=2;
             none;
         2 -> %found the leaf
-            leaf_verkle:get(Pointer, CFG);
+            leaf_verkle:get(Pointer, ID);
         1 ->
-            NextStem = stem_verkle:get(Pointer, CFG),
-            get_leaf2(NextStem, Path, CFG)
+            NextStem = stem_verkle:get(Pointer, ID),
+            get_leaf2(NextStem, Path, ID)
     end.
             
             
@@ -2210,9 +2177,9 @@ all_zeros(_) -> false.
 
 test(0) ->
     %testing the raw verkle tree interface. only stores keys and values of 32 bytes.
-    CFG = tree:cfg(amoveo),
     Loc = 1,
     Many = 4,
+    ID = trie01,
     Pairs = 
         lists:map(
           fun(N) ->
@@ -2224,7 +2191,7 @@ test(0) ->
     Leaves = lists:map(
                fun({Key, Val, Meta}) ->
                        leaf_verkle:new(
-                         Key, Val, Meta, CFG)
+                         Key, Val, Meta)
                end, Pairs), 
     AddKey = <<1:256>>,
     Keys0 = lists:map(
@@ -2234,41 +2201,39 @@ test(0) ->
     Keys = [AddKey| Keys0],
     
     {Loc2, stem, _} = store_verkle:batch(
-                        Leaves, Loc, CFG),
+                        Leaves, Loc, ID),
 
     %normal proof has ~500 bytes overhead. Take ~1 second longer to make that fast proofs.
-    {Proof, _} = get_verkle:batch(Keys, Loc2, CFG),
+    {Proof, _} = get_verkle:batch(Keys, Loc2, ID),
     %fast proof has ~8000 bytes overhead, but can be made faster.
     {FastProof, _} = 
-        get_verkle:batch(Keys, Loc2, CFG, fast),
+        get_verkle:batch(Keys, Loc2, ID, fast),
 
     %verifying proofs
     Root = stem_verkle:root(
-             stem_verkle:get(Loc2, CFG)),
+             stem_verkle:get(Loc2, ID)),
     {ProofTree1, _Commit1, _Opening1} = Proof,
     {ProofTree2, _, _} = FastProof,
     Root01 = stem_verkle:hash_point(hd(ed:decompress_points([hd(ProofTree1)]))),
     Root01 = stem_verkle:hash_point(hd(ed:decompress_points([hd(ProofTree2)]))),
     Root01 = stem_verkle:hash_point(Root),
     {true, Leaves2, ProofTree3} = 
-        verify_verkle:proof(Proof, CFG),
+        verify_verkle:proof(Proof),
     {true, Leaves2, ProofTree3} = 
-        verify_verkle:proof(FastProof, CFG),
+        verify_verkle:proof(FastProof),
 
     %updating a proof
     AddLeaf = leaf_verkle:new(
-                AddKey, <<27, 0:248>>, <<1:64>>, 
-                CFG),
+                AddKey, <<27, 0:248>>, <<1:64>>),
     UpdateLeaf = leaf_verkle:new(
                    element(1, hd(Pairs)),
-                   <<28, 0:248>>, <<2:64>>, CFG),
+                   <<28, 0:248>>, <<2:64>>),
     DeleteLeaf = {element(1, hd(tl(Pairs))),
                   0},
     ProofTree4 = 
         verify_verkle:update(
           ProofTree3, 
-          [AddLeaf, UpdateLeaf, DeleteLeaf], 
-          CFG),
+          [AddLeaf, UpdateLeaf, DeleteLeaf]),
     %new root of new tree:
     Root2 = stem_verkle:hash_point(hd(ProofTree4)),
     
@@ -2465,12 +2430,11 @@ test(5) ->
     Loc = 1,
     {As0, As1} = lists:split(Many div 2, As),
     Loc2 = store_things(As1, Loc),
-    CFG = tree:cfg(amoveo),
-    Loc2V1 = stem_verkle:get(Loc2, CFG),
+    Loc2V1 = stem_verkle:get(Loc2, amoveo),
     Loc3 = store_things(AsB, Loc2),
     Loc4 = store_things(As0, Loc3),
     
-    one_root_clean(Loc3, CFG),
+    one_root_clean(Loc3),
     ok;
 
     %timer:sleep(1000),
@@ -2503,7 +2467,6 @@ test(6) ->
     Loc = 1,
     {As0, As1} = lists:split(Many div 2, As),
     Loc2 = store_things(As1, Loc),
-    CFG = tree:cfg(amoveo),
     %Loc2V1 = stem_verkle:get(Loc2, CFG),
     Loc3 = store_things(As0, Loc2),
     Loc4 = store_things(AsB, Loc3),
@@ -2512,7 +2475,7 @@ test(6) ->
     Loc6 = store_things([hd(As0)], Loc5),
     %Loc2V2 = stem_verkle:get(Loc2, CFG),
     %{Loc2V1, Loc2V2}.
-    {Loc3, Loc4, Loc5, Loc6, stem_verkle:get(Loc5, CFG)};
+    {Loc3, Loc4, Loc5, Loc6, stem_verkle:get(Loc5, amoveo)};
 test(7) ->
     api:mine_block(),
     api:mine_block(),

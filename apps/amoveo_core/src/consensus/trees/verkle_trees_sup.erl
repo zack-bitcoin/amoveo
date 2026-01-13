@@ -69,16 +69,16 @@ init([]) ->
     %Children = [{verkle_supervisor, {verkle_sup, start_link, [32, 32, verkle, 0, MetaBytes, hd, "data/verkle.db"]}, permanent, 5000, supervisor, [verkle_sup]},
     Location = constants:custom_root(),
     CleanFolder = "cleaner/",
-    DChildren = 
-        lists:map(
-          fun({N, V}) ->
-                     dump_child_maker(N, V, Location)
-             end, dumps()),
-    DChildren2 = 
-        lists:map(
-          fun({N, V}) ->
-                     dump_child_maker(N, V, CleanFolder)
-             end, dumps2()),
+%    DChildren = 
+%        lists:map(
+%          fun({N, V}) ->
+%                     dump_child_maker(N, V, Location)
+%             end, dumps()),
+%    DChildren2 = 
+%        lists:map(
+%          fun({N, V}) ->
+%                     dump_child_maker(N, V, CleanFolder)
+%             end, dumps2()),
     %Location = "",
     Children = [
                 {verkle_supervisor, {verkle_sup, start_link, [amoveo, Location]}, permanent, 5000, supervisor, [verkle_sup]},
