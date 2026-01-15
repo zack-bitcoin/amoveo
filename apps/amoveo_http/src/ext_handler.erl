@@ -364,6 +364,9 @@ doit({proof, TreeName, ID, Hash}) ->
             Proof2 = proof_packer(Proof),
             {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}}
     end;
+doit({tree, Path, Hash}) ->
+    Trees = (block:get_by_hash(Hash))#block.trees,
+    {ok, lookup_verkle_spot(Path, Trees)};
 doit({list_oracles}) ->
     {ok, order_book:keys()};
 doit({oracle, 2, QuestionHash}) ->
@@ -578,3 +581,28 @@ tx_spam_handler([Tx|T], IP) ->
 tx_spam_handler(Tx, IP) ->
     io:fwrite({Tx, IP}).
 
+
+lookup_verkle_spot(Path, Loc) ->
+    CFG = tree:cfg(amoveo),
+    Stem = stem_verkle:get(Loc, CFG),
+    lookup_verkle_spot2(Path, Stem).
+lookup_verkle_spot2([], S) -> S;
+lookup_verkle_spot2([P], {stem, Root, Types, Pointers, Hashes}) ->
+    CFG = tree:cfg(amoveo),
+    T = element(P, Types),
+    N = element(P, Pointers),
+    case T of
+	0 -> 0;
+	1 -> stem_verkle:get(N, CFG);
+	2 -> leaf_verkle:get(N, CFG)
+    end;
+lookup_verkle_spot2([P|Path], {stem, Root, Types, Pointers, Hashes}) ->
+    T = element(P, Types),
+    N = element(P, Pointers),
+    case T of
+	1 ->
+	    lookup_verkle_spot2(Path, stem_verkle:get(N, amoveo));
+	_ -> 
+	    io:fwrite("error, this path doesn't exist."),
+	    {error, existence}
+    end.
