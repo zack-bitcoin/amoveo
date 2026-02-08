@@ -595,7 +595,8 @@ lookup_verkle_spot2([P|Path], {stem, Root, Types, Pointers, Hashes}) ->
     N = element(P, Pointers),
     case T of
 	1 ->
-	    lookup_verkle_spot2(Path, stem_verkle:get(N, amoveo));
+	    CFG = tree:cfg(amoveo),
+	    lookup_verkle_spot2(Path, stem_verkle:get(N, CFG));
 	_ -> 
 	    io:fwrite("error, this path doesn't exist."),
 	    {error, existence}
