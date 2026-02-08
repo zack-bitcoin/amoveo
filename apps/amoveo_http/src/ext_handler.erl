@@ -336,12 +336,6 @@ doit({proof, IDs, Hash}) ->
     Height = B#block.height,
     Loc = B#block.trees,
     true = is_integer(Loc),
-    
-    %io:fwrite({IDs, Loc}),%{<<_:520>>, 13}
-%    IDs2 = lists:map(fun([TreeName, ID]) ->
-                             %trees2:key({TreeName, ID}) end,
-%                             {TreeName, ID} end,
-%                     IDs),
     {Proof, IDs3} = trees2:get_proof(IDs, Loc, fast, Height),
     %todo. put this proof in a format that javascript will understand.
     {ok, {Proof, IDs3}};
