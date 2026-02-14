@@ -588,7 +588,12 @@ lookup_verkle_spot2([P], {stem, Root, Types, Pointers, Hashes}) ->
     case T of
 	0 -> 0;
 	1 -> stem_verkle:get(N, CFG);
-	2 -> leaf_verkle:get(N, CFG)
+	2 -> 
+	    L = leaf_verkle:get(N, CFG),
+	    {leaf, Key, _, <<Type, DL:56>>} = L,
+	    V = dump:get(DL, trees2:int2dump_name(Type)),
+	    {leaf, Key, V, <<Type>>}
+	    
     end;
 lookup_verkle_spot2([P|Path], {stem, Root, Types, Pointers, Hashes}) ->
     T = element(P, Types),

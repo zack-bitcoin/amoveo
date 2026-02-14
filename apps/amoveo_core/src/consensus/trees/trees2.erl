@@ -5,7 +5,7 @@
          recover/1, to_keys/1, store_leaves/2, get_proof/3,
          cs2v/1, restore_leaves_proof/3, remove_leaves_proof/2,
          multi_root_clean/0, garbage_collect/0,
-         val2int/1]).
+         val2int/1, int2dump_name/1]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).

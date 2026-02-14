@@ -562,7 +562,7 @@ reverse_sync(Height, Peer) ->
     Trees = block:check0(Block),
     io:fwrite("reverse sync/2 check0\n"),
     %Block2 = Block#block{trees = {BDict, BNDict, BProofTree, BlockHash}},
-    Block2 = Block#block{trees = Trees},
+    %Block2 = Block#block{trees = Trees},
     %TDB = Block#block.trees,
     %Roots = block:make_roots(TDB),
     %{ok, NBlock} = talker:talk({block, Height+1}, Peer),%one above bottom.
