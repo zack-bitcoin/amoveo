@@ -46,8 +46,10 @@ internal(PruneBlock, KeepBlock, F) ->
     TC = TB ++ [sub_accounts, contracts, trades],
     TD = TC ++ [markets],
     TE = TD ++ [receipts, stablecoins],
-    T1 = PruneBlock#block.trees,
-    T2 = KeepBlock#block.trees,
+    T1 = recent_blocks:pointer(block:hash(PruneBlock)),
+    T2 = recent_blocks:pointer(block:hash(KeepBlock)),
+    %T1 = PruneBlock#block.trees,
+    %T2 = KeepBlock#block.trees,
     if
         is_integer(T1) -> 
             %io:fwrite("tree data internal. pruning block number: "),
@@ -67,8 +69,8 @@ internal(PruneBlock, KeepBlock, F) ->
                     end,%
             _ = 
                 lists:map(fun(T) ->
-                                  T1 = PruneBlock#block.trees,
-                                  T2 = KeepBlock#block.trees,
+                                  %T1 = PruneBlock#block.trees,
+                                  %T2 = KeepBlock#block.trees,
                                   A1 = trees:T(T1),
                                   A2 = trees:T(T2),
                                   F(A1, A2, T)
@@ -206,7 +208,13 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
                      Trees4;
                  _ ->
                      ProofTreeB = trees2:update_proof(Leaves2b, ProofTree),
-                     RootHash = stem_verkle:hash_point(hd(ProofTreeB)),%verify that the new state root matches what was written on the block.
+                     RootHash2 = stem_verkle:hash_point(hd(ProofTreeB)),%verify that the new state root matches what was written on the block.
+		     case RootHash2 of
+			 RootHash -> ok;
+			 _ ->
+			     io:fwrite("tree_data error. root hash doesn't match\n"),
+			     io:fwrite({RootHash, RootHash2})
+		     end,
                      Trees5 = trees2:store_verified(Trees, ProofTreeB),
                      Trees5
              end,

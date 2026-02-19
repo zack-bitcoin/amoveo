@@ -196,11 +196,11 @@ genesis_maker() ->
     GovInit = governance:genesis_state(),
     Accounts = accounts:write(First, trees:empty_tree(accounts)),%This is leaking a small amount of memory, but it is probably too small to care about, since this function gets executed so rarely.
     Trees = trees:new(Accounts, 
-                      trees:empty_tree(channels), 
-                      trees:empty_tree(existence), 
-                      ok, 
-                      trees:empty_tree(oracles), 
-                      GovInit),
+		      trees:empty_tree(channels), 
+		      trees:empty_tree(existence), 
+		      ok, 
+		      trees:empty_tree(oracles), 
+		      GovInit),
     TreesRoot = trees:root_hash(Trees),
     BlockPeriod = governance:get_value(block_period, GovInit),
     HistoryString = <<"bitcoin 511599  0000000000000000005cdf7dafbfa2100611f14908ad99098c2a91719da93a50">>,
@@ -754,7 +754,7 @@ mine(Block, Rounds, Cores) ->
 mine2(Block, Times) ->
     PH = Block#block.prev_hash,
     ParentPlus = get_by_hash(PH),
-    Trees = ParentPlus#block.trees,
+    %Trees = ParentPlus#block.trees,
     MineDiff = Block#block.difficulty,
     F2 = forks:get(2),
     Height = Block#block.height,
@@ -883,11 +883,13 @@ verify(Block) ->
       %unused.
     X = check0(Block),
     B2 = Block#block{trees = X},
-    OldBlock = get_by_hash(Block#block.prev_hash),
+    PH = Block#block.prev_hash,
+    OldBlock = get_by_hash(PH),
     {NewDict4, NewDict3, Dict, ProofTree} = 
         check3(OldBlock, B2), 
     Height = Block#block.height,
-    OldTrees = OldBlock#block.trees,
+    %OldTrees = OldBlock#block.trees,
+    OldTrees = recent_blocks:pointer(PH),
     HeightCheck = Height,
     %Block2 = Block#block{trees = NewTrees3, meta = calculate_block_meta(Block, OldTrees, Dict, NewDict3)},
     Block2 = B2#block{meta = calculate_block_meta(Block, OldTrees, Dict, NewDict3)},
@@ -1024,7 +1026,7 @@ check3(OldBlock, Block) ->
     %io:fwrite("block check3 2\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    OldTrees = OldBlock#block.trees,
+    %OldTrees = OldBlock#block.trees,
     Txs = Block#block.txs,
     Txs0 = tl(Txs),
     true = Block#block.channels_veo == OldBlock#block.channels_veo + deltaCV(Txs0, Dict),
@@ -1121,7 +1123,8 @@ check3(OldBlock, Block) ->
 root_hash_check(OldBlock, Block, NewDict4, ProofTree) ->
     TreesHash = Block#block.trees_hash,
     Height = Block#block.height,
-    OldTrees = OldBlock#block.trees,
+    OldTrees = recent_blocks:pointer(block:hash(OldBlock)),
+    %OldTrees = OldBlock#block.trees,
     false = is_integer(ProofTree),
     %NewTrees3 = 
     true = %use tree_data:verkle_dict_update_root TODO.
@@ -1141,7 +1144,8 @@ check2(OldBlock, Block) ->
     {NewDict4, NewDict3, Dict, ProofTree} = 
         check3(OldBlock, Block), 
     Height = Block#block.height,
-    OldTrees = OldBlock#block.trees,
+    OldTrees = recent_blocks:pointer(block:hash(OldBlock)),
+    %OldTrees = OldBlock#block.trees,
     _Roots = Block#block.roots,
     %io:fwrite("block check 5.3\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
@@ -1154,11 +1158,10 @@ check2(OldBlock, Block) ->
     %false = (Height == 39),
     NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, ProofTree, TreesHash),
    
-    CFG = tree:cfg(amoveo),
-    OldStem = stem_verkle:get(OldTrees, CFG),
-    RootStem = stem_verkle:get(NewTrees3, CFG),
-    success = stem_verkle:check_root_integrity(OldStem),
-    success = stem_verkle:check_root_integrity(RootStem),
+    OldStem = stem_verkle:get(OldTrees, amoveo),
+    RootStem = stem_verkle:get(NewTrees3, amoveo),
+    ok = stem_verkle:check_root_integrity(OldStem),
+    ok = stem_verkle:check_root_integrity(RootStem),
  
     %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
     %io:fwrite("block check 5.4\n"),
@@ -1188,10 +1191,33 @@ check2(OldBlock, Block) ->
     TreesHash2 = trees:root_hash(NewTrees3),
     if
         (TreesHash2 == TreesHash) -> ok;
-        true -> io:fwrite(
+        true -> 
+	    Pubs = [<<4,183,204,29,53,221,54,93,126,159,189,105,
+		      119,193,35,234,230,187,238,119,181,120,221,
+		      65,62,163,82,228,25,249,135,14,113,80,105,
+		      192,26,237,76,147,189,76,65,164,233,109,252,
+		      222,218,120,146,187,227,225,117,196,72,44,
+		      101,224,168,197,38,36,72>>,
+		    <<4,68,35,43,92,93,148,115,142,103,17,215,
+		      95,6,112,29,171,114,149,0,196,97,150,141,
+		      244,248,36,216,213,193,36,28,23,212,95,
+		      218,156,143,146,37,73,227,150,58,54,140,
+		      131,197,30,152,200,105,175,93,2,218,196,
+		      50,99,44,219,17,62,55,171>>,
+		    <<4,132,33,232,4,163,151,245,117,79,160,106,181,46,17,39,
+		      220,34,207,126,100,110,153,97,106,162,25,20,19,43,172,
+		      16,138,176,234,159,2,241,110,233,9,53,217,162,27,97,165,
+		      181,216,214,1,171,185,214,186,201,204,141,221,143,24,38,
+		      26,82,136>>],
+	    Keys = lists:map(fun(P) -> {accounts, P} end, Pubs),
+		    
+	    io:fwrite(
                   {broken_tree_hash,
+		   NewTrees3,
+		   TreesHash, TreesHash2,
+		   trees2:get(Keys, NewTrees3)
                    %Block2#block.meta,
-                   orders:all(trees:orders(NewTrees3))
+                   %orders:all(trees:orders(NewTrees3))
                    })
     end,
     {true, Block2}.
@@ -1604,8 +1630,8 @@ initialize_chain() ->
             block_db3:write(GB, GH);
         true -> ok
     end,
-%    gen_server:call(headers, {add, GH, Header0, 1}),
-%    gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
+    gen_server:call(headers, {add, GH, Header0, 1}),
+    gen_server:call(headers, {add_with_block, block:hash(Header0), Header0}),
     Header0.
 
 gov_fees([], _, _) -> 0;
@@ -2164,8 +2190,10 @@ test() ->
     test(1).
 test(1) ->
     Header0 = headers:top(),
+    H0 = hash(Header0),
     Block0 = get_by_hash(Header0),
-    Trees = Block0#block.trees,
+    Trees = recent_blocks:pointer(H0),
+    %Trees = Block0#block.trees,
     make_roots(Trees),
     Pub = keys:pubkey(),
     Block1 = make(Header0, [], Trees, Pub),
@@ -2178,6 +2206,7 @@ test(1) ->
     headers:absorb_with_block([Header1]),
     H1 = hash(Header1),
     H1 = hash(WBlock10),
+    P1 = recent_blocks:pointer(H1),
     {ok, _} = headers:read(H1),
     block_db3:absorb(WBlock10),
     timer:sleep(400),
@@ -2191,7 +2220,7 @@ test(1) ->
     WBlock11 = WBlock12,
     io:fwrite(packer:pack(WBlock10)),
     io:fwrite("\n"),
-    WBlock13 = WBlock11#block{trees = WBlock10#block.trees, meta = <<>>},
+    WBlock13 = WBlock11#block{trees = P1, meta = <<>>},
     %io:fwrite(packer:pack([WBlock13, WBlock10])),
     WBlock13 = WBlock10,
     success;

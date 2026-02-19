@@ -334,7 +334,8 @@ doit({proof, IDs, Hash}) ->
     %batch verkle proofs.
     B = block:get_by_hash(Hash),
     Height = B#block.height,
-    Loc = B#block.trees,
+    %Loc = B#block.trees,
+    Loc = recent_blocks:pointer(Hash),
     true = is_integer(Loc),
     
     %io:fwrite({IDs, Loc}),%{<<_:520>>, 13}
@@ -351,7 +352,8 @@ doit({proof, TreeName, ID, Hash}) ->
 %curl -i -d '["proof", "Z292ZXJuYW5jZQ==", 5, Hash]' http://localhost:8080 
     %io:fwrite(base64:encode(Hash)),
     %io:fwrite("\n"),
-    Trees = (block:get_by_hash(Hash))#block.trees,
+    %Trees = (block:get_by_hash(Hash))#block.trees,
+    Trees = recent_blocks:pointer(Hash),
     TN = trees:name(TreeName), 
     if
         is_integer(Trees) ->
@@ -364,6 +366,10 @@ doit({proof, TreeName, ID, Hash}) ->
             Proof2 = proof_packer(Proof),
             {ok, {return, trees:serialized_roots(Trees), RootHash, Value, Proof2}}
     end;
+doit({tree, Path, Hash}) ->
+    Trees =  recent_blocks:pointer(Hash),
+    %Trees = (block:get_by_hash(Hash))#block.trees,
+    {ok, lookup_verkle_spot(Path, Trees)};
 doit({list_oracles}) ->
     {ok, order_book:keys()};
 doit({oracle, 2, QuestionHash}) ->
@@ -388,7 +394,8 @@ doit({oracle, Y}) ->
 doit({oracle_bets, OID}) ->
     %This is a very poor choice of name. "oracle_bets" for something that doesn't touch the oracle_bets merkel tree, and only touches the orders merkel tree.
     B = block:top(),
-    Trees = B#block.trees,
+    %Trees = B#block.trees,
+    Trees = recent_blocks:pointer(block:hash(B)),
     Oracles = trees:oracles(Trees),
     {_, Oracle, _} = oracles:get(OID, Oracles),
     orders:all(Oracle#oracle.orders);%This does multiple hard drive reads. It could be a security vulnerability. Maybe we should keep copies of this data in ram, for recent blocks.
@@ -411,7 +418,8 @@ doit({trade, Account, Price, Type, Amount, OID, SSPK, Fee}) ->
     Height = TPG#tx_pool.height,
     {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
-    OldTrees = OldBlock#block.trees,
+    %OldTrees = OldBlock#block.trees,
+    OldTrees = recent_blocks:pointer(block:hash(OldBlock)),
     false = empty == trees:get(channels, CD#cd.cid, dict:new(), OldTrees),%channel existed confirmation blocks ago.
 
     true = Expires < CD#cd.expiration,
@@ -578,3 +586,25 @@ tx_spam_handler([Tx|T], IP) ->
 tx_spam_handler(Tx, IP) ->
     io:fwrite({Tx, IP}).
 
+lookup_verkle_spot(Path, Loc) ->
+    Stem = stem_verkle:get(Loc, amoveo),
+    lookup_verkle_spot2(Path, Stem).
+lookup_verkle_spot2([], S) -> S;
+lookup_verkle_spot2([P], {stem, Root, Types, Pointers, Hashes}) ->
+    T = element(P, Types),
+    N = element(P, Pointers),
+    case T of
+	0 -> 0;
+	1 -> stem_verkle:get(N, amoveo);
+	2 -> leaf_verkle:get(N, amoveo)
+    end;
+lookup_verkle_spot2([P|Path], {stem, Root, Types, Pointers, Hashes}) ->
+    T = element(P, Types),
+    N = element(P, Pointers),
+    case T of
+	1 ->
+	    lookup_verkle_spot2(Path, stem_verkle:get(N, amoveo));
+	_ -> 
+	    io:fwrite("error, this path doesn't exist."),
+	    {error, existence}
+    end.

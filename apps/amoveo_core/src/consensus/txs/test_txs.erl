@@ -89,13 +89,16 @@ test() ->
 absorb(Tx) -> 
     tx_pool_feeder:absorb(Tx, 1000).
 block_trees(X) ->
-    X#block.trees.
+    recent_blocks:pointer(block:hash(X)).
+%X#block.trees.
 restart_chain() ->
     headers:dump(),
+    recent_blocks:dump(),
     block:initialize_chain(),
     tx_reserve:dump(),
     tx_pool:dump(),
-    mine_blocks(1),
+    potential_block:new(),
+    %mine_blocks(4),
     ok.
 test(1) ->
     io:fwrite(" create_account tx test \n"),
@@ -181,10 +184,11 @@ test(2) ->
     %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block_trees(BP),
+    %Trees = block_trees(BP),
     {NewPub,NewPriv} = signing:new_key(),
     Fee = -900000000,
-    {Ctx, _} = create_account_tx:new(NewPub, 1, Fee, constants:master_pub(), Trees),
+    %{Ctx, _} = create_account_tx:new(NewPub, 1, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:make_dict(NewPub, 1, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     mine_blocks(1),
@@ -252,13 +256,14 @@ test(5) ->
     %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block_trees(BP),
-    Accounts = trees:accounts(Trees),
+    %Trees = block_trees(BP),
+    %Accounts = trees:accounts(Trees),
     {NewPub,NewPriv} = signing:new_key(),
     
     Fee = constants:initial_fee() + 20,
     Amount = 1000000,
-    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    %{Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:make_dict(NewPub, Amount, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     
@@ -1037,10 +1042,11 @@ test(22) ->
     %block:initialize_chain(),
     %tx_pool:dump(),
     BP = block:get_by_height(0),
-    Trees = block_trees(BP),
+    %Trees = block_trees(BP),
     {NewPub,NewPriv} = signing:new_key(),
     Fee = constants:initial_fee() + 20,
-    {Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
+    %{Ctx, _} = create_account_tx:new(NewPub, 100000000, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:make_dict(NewPub, 100000000, Fee, constants:master_pub()),
     Stx0 = keys:sign(Ctx),
     Ctx2 = setelement(6, Ctx, 1),
     Stx = setelement(2, Stx0, Ctx2),
@@ -1062,10 +1068,11 @@ test(23) ->
     %block:initialize_chain(),
     %tx_pool:dump(),
     BP = block:get_by_height(0),
-    Trees = block_trees(BP),
+    %Trees = block_trees(BP),
     {NewPub,NewPriv} = signing:new_key(),
     Fee = constants:initial_fee() + 20,
-    {Ctx, _} = create_account_tx:new(NewPub, 10000000000000, Fee, constants:master_pub(), Trees),
+    %{Ctx, _} = create_account_tx:new(NewPub, 10000000000000, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:new(NewPub, 10000000000000, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     Out2 = tx_pool_feeder:absorb(Stx),
     case Out2 of
@@ -1086,11 +1093,12 @@ test(28) ->
     %tx_pool:dump(),
     BP = block:get_by_height(0),
     PH = block:hash(BP),
-    Trees = block_trees(BP),
+    %Trees = block_trees(BP),
     {NewPub,NewPriv} = signing:new_key(),
     Fee = constants:initial_fee() + 20,
     Amount = 5000000000,
-    {Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    %{Ctx, _Proof} = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub(), Trees),
+    Ctx = create_account_tx:new(NewPub, Amount, Fee, constants:master_pub()),
     Stx = keys:sign(Ctx),
     absorb(Stx),
     1 = many_txs(),
@@ -4102,7 +4110,8 @@ test(66) ->
     true = (DL > 1),
 
     Block = block:top(),
-    Trees = Block#block.trees,
+    %Trees = Block#block.trees,
+    Trees = recent_blocks:pointer(block:hash(Block)),
     true = (Trees > 1),
 
     %record to the hard drive
@@ -4138,7 +4147,8 @@ test(68) ->
     restart_chain(),
     mine_blocks(4),
     true = forks:get(52) < block:height(),
-    TP = (block:top())#block.trees,
+    %TP = (block:top())#block.trees,
+    TP = recent_blocks:pointer(block:hash(block:top())),
     {Proof, Leaves} = trees2:get_proof([{accounts, keys:pubkey()}], TP, fast),
     {true, _ProofTree} = trees2:verify_proof(Proof, Leaves, block:height()),
     success;
@@ -4348,8 +4358,9 @@ test(67) ->
     1 = many_txs(),
     mine_blocks(1),
     
-    RootHash = trees:root_hash(
-                 (block:top())#block.trees),
+%    RootHash = trees:root_hash(
+%                 (block:top())#block.trees),
+    RootHash = trees:root_hash(recent_blocks:pointer(block:hash(block:top()))),
     %io:fwrite({(block:top())#block.trees}),
                             %{{trees5,45,1,1,1,
                             %  473,1,1,1,5,1,1,1,
@@ -5136,7 +5147,12 @@ mine_block_no_tx_reserve_dump() ->
     PB = block:get_by_height(Height),
     Hash = block:hash(PB),
     {ok, Top} = headers:read(Hash),
-    Block = block:make(Top, Txs, block_trees(PB), keys:pubkey()),
+    Block = case block_trees(PB) of
+		fail ->
+		    block:make(Top, Txs, PB#block.trees, keys:pubkey());
+		Pointer ->
+		    block:make(Top, Txs, Pointer, keys:pubkey())
+	    end,
     block:mine(Block, 10000),
     wait_till_next_block(Height, 100).
     

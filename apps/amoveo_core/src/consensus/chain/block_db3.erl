@@ -305,21 +305,21 @@ write(Block) ->
     Hash.
 write(Block, Hash) ->
     local_print("block db3 write 2\n"),
-    Bool = (is_integer(Block#block.trees)),
-    Bool2 = is_record(Block#block.trees, trees),
-    Bool3 = is_record(Block#block.trees, trees5),
-    if
-        Bool -> %local_print("cant store block 1\n"),
-                ok;
-        Bool2 -> %local_print("can't store block 2\n"),
-                 ok;
-        Bool3 -> %local_print("can't store block 3\n"),
-                 ok;
-        true -> %local_print(Block#block.trees)
-            ok
-    end,
+%    Bool = (is_integer(Block#block.trees)),
+%    Bool2 = is_record(Block#block.trees, trees),
+%    Bool3 = is_record(Block#block.trees, trees5),
+%    if
+%        Bool -> %local_print("cant store block 1\n"),
+%                ok;
+%        Bool2 -> %local_print("can't store block 2\n"),
+%                 ok;
+%        Bool3 -> %local_print("can't store block 3\n"),
+%                 ok;
+%        true -> %local_print(Block#block.trees)
+%            ok
+%    end,
     gen_server:cast(?MODULE, {write, Block, Hash}),
-    recent_blocks:add(Hash, Block#block.height),
+    recent_blocks:add(Hash, Block#block.height, Block#block.trees),
     %if this is the top of the headers, then do a set_top(Hash).
     spawn(fun() ->
                   H = headers:top_with_block(),

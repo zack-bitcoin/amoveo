@@ -68,7 +68,7 @@ init([]) ->
     MetaBytes = 8,
     %Children = [{verkle_supervisor, {verkle_sup, start_link, [32, 32, verkle, 0, MetaBytes, hd, "data/verkle.db"]}, permanent, 5000, supervisor, [verkle_sup]},
     Location = constants:custom_root(),
-    CleanFolder = "cleaner/",
+    CleanFolder = "./cleaner/",
 %    DChildren = 
 %        lists:map(
 %          fun({N, V}) ->

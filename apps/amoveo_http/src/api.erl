@@ -594,9 +594,10 @@ tree_common(TreeName, ID) ->
         _ -> X
     end.
 tree_common(TreeName, ID, BlockHash) ->
-    B = block:get_by_hash(BlockHash),
+    %B = block:get_by_hash(BlockHash),
     %T = block:trees(B),
-    T = B#block.trees,
+    %T = B#block.trees,
+    T = recent_blocks:pointer(BlockHash),
     X = trees:get(TreeName, ID, dict:new(), T),
     %X.
     case X of
@@ -652,7 +653,8 @@ confirmed_balance(P) ->
     Pubkey = decode_pubkey(P),
     M = max(api:height() - 10, 1),
     Block = block:get_by_height(M),
-    Trees = Block#block.trees,
+    %Trees = Block#block.trees,
+    Trees = recent_blocks:pointer(block:hash(Block)),
     Accounts = trees:accounts(Trees),
     {_, V, _} = accounts:get(Pubkey, Accounts),
     B1 = V#acc.balance,
@@ -841,7 +843,8 @@ new_market(OID, OracleStartHeight, Expires, Period, LL, UL) -> %<<5:256>>, 4000,
     Height = TPG#tx_pool.height,
     {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
-    OldTrees = OldBlock#block.trees,
+    %OldTrees = OldBlock#block.trees,
+    OldTrees = recent_blocks:pointer(block:hash(OldBlock)),
     true = not_empty_oracle(OID, OldTrees),
     order_book:new_scalar_market(OID, Expires, Period, LL, UL, OracleStartHeight).
 new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
@@ -852,7 +855,8 @@ new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     Height = TPG#tx_pool.height,
     {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
-    OldTrees = OldBlock#block.trees,
+    %OldTrees = OldBlock#block.trees,
+    OldTrees = recent_blocks:pointer(block:hash(OldBlock)),
     %io:fwrite("api oid is "),
     %io:fwrite(packer:pack([OID, OldTrees, Height-Confirmations])),
     %io:fwrite("\n"),

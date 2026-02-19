@@ -1,3 +1,15 @@
+when I mine blocks, the amoveo.db file still looks empty. Where is the data being stored?
+quick_save closes and opens the file, so there is no way it is cached. But, I can look up the data via stem_verkle:get, so it must be somewhere.
+
+
+
+
+checkpoint:sync2/2
+we want to sync the database bit by bit, which involves updating pointers written on the blocks.
+
+
+
+
 the code currently syncs from the oldest checkpoint on it's peer. We should fix this to use recent checkpoints once we are able to.
 
 
