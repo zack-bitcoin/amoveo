@@ -1,6 +1,4 @@
-when I mine blocks, the amoveo.db file still looks empty. Where is the data being stored?
-quick_save closes and opens the file, so there is no way it is cached. But, I can look up the data via stem_verkle:get, so it must be somewhere.
-
+get checkpointing working with the new code.
 
 
 

@@ -2,7 +2,7 @@
 -export([test/1, decompress_pub/1, merkle2verkle/2, root_hash/1, get_proof/4, hash_key/2, key/1, serialize/1, store_things/2, verify_proof/3, deserialize/2, store_verified/2, update_proof/2, compress_pub/1, get/2,
          one_root_clean/1, one_root_maker/1, recover_from_clean_version/0,
          copy_bits/4, scan_verkle/2, scan_verkle/1, scan_verkle/0, prune/2,
-         recover/1, to_keys/1, store_leaves/2, get_proof/3,
+         to_keys/1, store_leaves/2, get_proof/3,
          cs2v/1, restore_leaves_proof/3, remove_leaves_proof/2,
          multi_root_clean/0, garbage_collect/0,
 	 scan_verkle_many/2, multi_root_clean_stem/1,
@@ -1602,63 +1602,21 @@ multi_root_clean(Pointers) ->
     TopStem = stem_verkle:get(Top, amoveo),
     Hashes = scan_verkle_many([Top], ID),
     io:fwrite("getting new pointers\n"),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    NewPointers = multi_root_maker(Pointers),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
+    setup_clean_db(),
+    NewPointers = multi_root_clean_stem(Pointers),
+    tree2:quick_save(cleaner),
     io:fwrite("recover from the clean version\n"),
     recover_from_clean_version(),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    %io:fwrite(lists:map(fun(X) -> stem_verkle:get(X, amoveo) end, NewPointers)),
     io:fwrite("checksum sanitycheck\n"),
-    %io:fwrite({Pointers, NewPointers}),
-    Hashes2 = scan_verkle_many([hd(lists:reverse(NewPointers))], ID),
-    if
-        (Hashes == Hashes2) -> ok;
-        %true -> io:fwrite({Hashes, Hashes2, Pointers, NewPointers, scan_verkle_many(NewPointers, ID)})
-        true -> io:fwrite({Hashes, Hashes2, Pointers, NewPointers, stem_verkle:get(hd(NewPointers), cleaner), TopStem})
-    end,
+    Hashes = scan_verkle_many([hd(lists:reverse(NewPointers))], ID),
     NewPointers.
 
 setup_clean_db() ->
-    %delete the contents of the files in the cleaner folder.
-    %os:cmd("truncate -s 0 cleaner/data/*"),
-    %os:cmd("rm cleaner/data/*"),
-    %os:cmd("rm -r cleaner/data"),
-    %os:cmd("cp -r cleaner/empty_version cleaner/data"),
-    %os:cmd("tar -xf ../../../../empty_version.tar.gz"),
-    %os:cmd("cp -r empty_version cleaner/data"),
-    %timer:sleep(500),
-    %reload the cleaner verkle tree, it should be empty.
-    %io:fwrite("one_root_clean: reload the now empty cleaner db\n"),
+    %should delete the contents of the files in the cleaner folder.
     tree2:reset(cleaner),
     EmptyStem = stem_verkle:new_empty(),
     1 = stem_verkle:put(EmptyStem, cleaner),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    timer:sleep(500).
-    
-
-multi_root_maker(Pointers) ->
-    io:fwrite("setup clean db\n"),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    setup_clean_db(),
-    io:fwrite("multi_root_clean: copy the data for that one root to the cleaner db\n"),
-    %CFG2 = CFG#cfg{id = cleaner},
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    %tree2:quick_save(cleaner),
-    %true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    %tree2:quick_save(cleaner),
-    %os:cmd("rm ./cleaner/data/*.db"),
-    timer:sleep(1000),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    %1=2,
-    NewPointers = multi_root_clean_stem(Pointers),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    %io:fwrite({Pointers}),
-    timer:sleep(1000),
-    io:fwrite("multi_root_clean: back up the cleaner db to the hard disk\n"),
-    tree2:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
-    NewPointers.
+    ok.
 
 one_root_maker(Pointer) ->
     setup_clean_db(),
@@ -1673,11 +1631,7 @@ one_root_maker(Pointer) ->
 
 recover_from_clean_version() ->
     io:fwrite("one_root_clean: copying everything from the cleaner db back to the main db\n"),
-    io:fwrite("\n"),
-
-
     tree2:quick_save(cleaner),
-    timer:sleep(1000),
     case application:get_env(amoveo_core, kind) of
 	{ok, "production"} ->
 	    os:cmd("cp -r ./cleaner/data/cleaner.db ../../../../db/data/amoveo.db"),
@@ -1686,112 +1640,7 @@ recover_from_clean_version() ->
 	    os:cmd("cp -r ./cleaner/data/cleaner.db ./data/amoveo.db"),
 	    os:cmd("cp -r ./cleaner/data/cleaner_top.db ./data/amoveo_top.db")
     end,
-    
-    
-
-
-    %TODO. we need to make sure it is on the hard disk in the cleaner folder before we start copying things.
-
-%    IDs = [1,3,4,5,6,7,8,9,10,11,12,13,14],
-
-%    lists:map(fun(ID) -> dump:quick_save(
-%                           int2cleaner_name(ID)) end, 
-%              IDs),
-
-
-%    dump:quick_save(cleaner_v_leaf),
-%    dump:quick_save(cleaner_v_stem),
-%    timer:sleep(3000),
-
-%    os:cmd("cp -r cleaner/data/accounts_cleaner.db ../../../../db/data/accounts_dump.db"),
-%    os:cmd("cp -r cleaner/data/contracts_cleaner.db ../../../../db/data/contracts_dump.db"),
-%    os:cmd("cp -r cleaner/data/existence_cleaner.db ../../../../db/data/existence_dump.db"),
-%    os:cmd("cp -r cleaner/data/markets_cleaner.db ../../../../db/data/markets_dump.db"),
-%    os:cmd("cp -r cleaner/data/matched_cleaner.db ../../../../db/data/matched_dump.db"),
-%    os:cmd("cp -r cleaner/data/oracles_cleaner.db ../../../../db/data/oracles_dump.db"),
-%    os:cmd("cp -r cleaner/data/receipts_cleaner.db ../../../../db/data/receipts_dump.db"),
-%    os:cmd("cp -r cleaner/data/sub_accs_cleaner.db ../../../../db/data/sub_accs_dump.db"),
-%    os:cmd("cp -r cleaner/data/trades_cleaner.db ../../../../db/data/trades_dump.db"),
-%    os:cmd("cp -r cleaner/data/unmatched_cleaner.db ../../../../db/data/unmatched_dump.db"),
-%    os:cmd("cp -r cleaner/data/jobs_cleaner.db ../../../../db/data/jobs_dump.db"),
-%    os:cmd("cp -r cleaner/data/futarchy_cleaner.db ../../../../db/data/futarchy_dump.db"),
-%    os:cmd("cp -r cleaner/data/futarchy_unmatched_cleaner.db ../../../../db/data/futarchy_unmatched_dump.db"),
-%    os:cmd("cp -r cleaner/data/futarchy_matched_cleaner.db ../../../../db/data/futarchy_matched_dump.db"),
-
-%    os:cmd("cp -r cleaner/data/accounts_cleaner_rest.db ../../../../db/data/accounts_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/contracts_cleaner_rest.db ../../../../db/data/contracts_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/existence_cleaner_rest.db ../../../../db/data/existence_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/markets_cleaner_rest.db ../../../../db/data/markets_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/matched_cleaner_rest.db ../../../../db/data/matched_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/oracles_cleaner_rest.db ../../../../db/data/oracles_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/receipts_cleaner_rest.db ../../../../db/data/receipts_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/sub_accs_cleaner_rest.db ../../../../db/data/sub_accs_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/trades_cleaner_rest.db ../../../../db/data/trades_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/unmatched_cleaner_rest.db ../../../../db/data/unmatched_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/jobs_cleaner_rest.db ../../../../db/data/jobs_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/futarchy_cleaner_rest.db ../../../../db/data/futarchy_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/futarchy_unmatched_cleaner_rest.db ../../../../db/data/futarchy_unmatched_dump_rest.db"),
-%    os:cmd("cp -r cleaner/data/futarchy_matched_cleaner_rest.db ../../../../db/data/futarchy_matched_dump_rest.db"),
-
-
-%    lists:map(fun(ID_num) ->
-%                      Name = int2dump_name(ID_num),
-%                      CleanName = int2cleaner_name(ID_num),
-%                      Top = bits:top(CleanName),%dies here on the jobs iteration.
-%                      bits:reset(Name),
-%                      copy_bits(1, Top, CleanName, Name),
-%                      Top = bits:top(Name),
-%                      bits:quick_save(Name)
-%              end, IDs),
-
-    io:fwrite("trees2:recover_from_clean_version 3\n"),
-
-%    bits:reset(amoveo_v_leaf),
-%    bits:reset(amoveo_v_stem),
-%    copy_bits(1, bits:top(cleaner_v_leaf), cleaner_v_leaf, amoveo_v_leaf),
-%    copy_bits(1, bits:top(cleaner_v_stem), cleaner_v_stem, amoveo_v_stem),
-%                      bits:quick_save(amoveo_v_leaf),
-%                      bits:quick_save(amoveo_v_stem),
-
-
-%    os:cmd("cp -r cleaner/data/cleaner_v_leaf_bits.db ../../../../db/data/amoveo_v_leaf_bits.db"),
-%    os:cmd("cp -r cleaner/data/cleaner_v_leaf.db ../../../../db/data/amoveo_v_leaf.db"),
-%    os:cmd("cp -r cleaner/data/cleaner_v_leaf_rest.db ../../../../db/data/amoveo_v_leaf_rest.db"),
-%    os:cmd("cp -r cleaner/data/cleaner_v_stem_bits.db ../../../../db/data/amoveo_v_stem_bits.db"),
-%    os:cmd("cp -r cleaner/data/cleaner_v_stem.db ../../../../db/data/amoveo_v_stem.db"),
-%    os:cmd("cp -r cleaner/data/cleaner_v_stem_rest.db ../../../../db/data/amoveo_v_stem_rest.db"),
-
-    timer:sleep(1000),
-
-
-
-%accounts_cleaner.db     cleaner_v_leaf_rest.db  cleaner_v_stem_rest.db  matched_cleaner.db   sub_accs_cleaner.db
-%cleaner_v_leaf_bits.db  cleaner_v_stem_bits.db  contracts_cleaner.db    oracles_cleaner.db   trades_cleaner.db
-%cleaner_v_leaf.db       cleaner_v_stem.db       markets_cleaner.db      receipts_cleaner.db  unmatched_cleaner.db
-
-    %reload the verkle tree.
-    io:fwrite("one_root_clean: reloading the main db \n"),
     tree2:reload(amoveo),
-%    dump:reload(amoveo_v_leaf),%reload the bits part....
-%    dump:reload(amoveo_v_stem),
-    %tree:clean_ets(amoveo, Pointer),
-
-%    dump:reload(accounts_dump),
-%    dump:reload(contracts_dump),
-%    dump:reload(markets_dump),
-%    dump:reload(matched_dump),
-%    dump:reload(oracles_dump),
-%    dump:reload(receipts_dump),
-%    dump:reload(sub_accs_dump),
-%    dump:reload(trades_dump),
-%    dump:reload(unmatched_dump),
-%    dump:reload(jobs_dump),
-%    dump:reload(futarchy_dump),
-%    dump:reload(futarchy_unmatched_dump),
-%    dump:reload(futarchy_matched_dump),
-
-    %delete the contents of the cleaner folder to save space.
-    %os:cmd("rm -rf cleaner/*.db"),
     ok.
 
 copy_bits(X, Top, _, _) when X > Top ->
@@ -1809,12 +1658,7 @@ multi_root_clean_stem(
   %so you can delete everything in the database, except for the contents of those blocks that you care about.
   %it puts the data you care about into a new database. The output pointers are for the new database.
   Pointers) ->
-%  CFG, %reading from this old database
-%  CFG2) -> %writing to this new one
     %make a new verkle database. copy over everything that we want to keep. It is a depth first scan of the old tree.
-    %to avoid scanning the same things twice, we need to consolidate descendents.
-    %Pointers = lists:filter(fun(X) -> is_integer(X) end, Pointers0),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     lists:map(fun(X) -> is_integer(X) end, Pointers),
     Stems = lists:map(fun(P) ->
 			      if
@@ -1836,9 +1680,7 @@ multi_root_clean_stem(
     Hs = lists:map(fun(S) ->
                            tuple_to_list(stem_verkle:hashes(S))
                    end, Stems),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     P2s = multi_root_clean2(Ps, Ts, Hs),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     Stems2 = lists:map(fun({S, P}) ->
                                setelement(4, S, list_to_tuple(P))
                        end, lists:zip(Stems, P2s)),
@@ -1907,7 +1749,6 @@ multi_root_clean2(Pss, %list of each stem's pointers to it's children.
 %Ph
 %[pointer_stem1_child1, pointer_stem2_child1...]
 
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     conds(mrc2(Ph, Th, Hh),
           multi_root_clean2(Pt, Tt, Ht)).
     %we are looking at data from a bunch of stems here, each stem is in the same location in a verkle tree. So they potentially share many children in common.
@@ -1940,16 +1781,6 @@ next_leafs([P|Ps], [2|Ts], R) ->
 	    %io:fwrite("storing a leaf from slot " ++ integer_to_list(P) ++ " in the cleaner in slot " ++ integer_to_list(Pointer3) ++ "\n"),
 	    next_leafs(Ps, Ts, [{P, Pointer3}|R])
     end;
-%            #leaf{key = Key, value = LeafHash, meta = Meta} = Leaf,
-            %Hash = store_verkle:leaf_hash(Leaf, amoveo),
-%            <<M1, Pointer2:(7*8)>> = Meta,
-%            CS0 = dump:get(Pointer2, int2dump_name(M1)),
-%            Pointer4 = dump:put(CS0, int2cleaner_name(M1)),
-%            Meta2 = <<M1, Pointer4:(7*8)>>,
-%            Leaf2 = Leaf#leaf{meta = Meta2},
-%            Pointer3 = leaf_verkle:put(Leaf2, cleaner),
-%            next_leafs(Ps, Ts, [{P, Pointer3}|R], CFG, CFG2)
-%    end;
 next_leafs([_|Ps], [_|T], R) ->
     next_leafs(Ps, T, R).
 
@@ -1961,15 +1792,10 @@ mrc2(Ps, Ts, Hs) ->
     %first, if there are any stems, process them together, because this is a depth first algorithm.
 
     NextStems = next_stems(Ps, Ts, []),%pointers that need to be updated
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     NextStems2 = multi_root_clean_stem(NextStems),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     MemoizedStems = load_transforms(lists:zip(NextStems, NextStems2), dict:new()),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     NextLeafs = next_leafs(Ps, Ts, []), %[{old, new}, {old2, new2}...]
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     MemoizedLeafs = load_transforms(NextLeafs, dict:new()),
-    true = (stem_verkle:get(1, amoveo) == stem_verkle:get(1, cleaner)),
     
     %then, calculate the new pointers to return.
     lists:map(fun({P, T}) ->
@@ -2009,57 +1835,21 @@ one_root_clean2(
                  Leaf = leaf_verkle:get(Pointer, amoveo),
                  #leaf{key = Key, value = LeafHash, meta = Meta} = Leaf,
                  Hash = store_verkle:leaf_hash(Leaf, amoveo),
-                 %Hash = leaf_verkle:hash(Leaf, amoveo),
-                 %<<N:256>> = store_verkle:leaf_hash(Leaf, amoveo),
                  <<M1, Pointer2:(7*8)>> = Meta,
-                 %Type = int2type(M1),
                  CS0 = dump:get(Pointer2, int2dump_name(M1)),
-                 %CSHash = hash:doit(CS0),
-                 %CS = deserialize(M1, CS0),
-
                  Pointer4 = dump:put(CS0, int2cleaner_name(M1)),
                  Meta2 = <<M1, Pointer4:(7*8)>>,
                  Leaf2 = Leaf#leaf{meta = Meta2},
-
-                 %io:fwrite({Hash, LeafHash, CSHash}),
-                 %io:fwrite({Key, M1, CS}),
-                 %Hash = fr:encode(N),
-                 %SL = leaf_verkle:serialize(Leaf, amoveo),
-                 %ets:insert(LID, {Pointer, SL})
-
-                 %todo, we need to store the actual consensus state data to it's file as well. decode the leaf, and store the data in the cleaner db.
-                 %from cs2v
-                 %meta = <<M1, M:(7*8)>>
-            %V = serialize(A),
-            %H = hash:doit(V),
-            %M1 = type2int(element(1, A)),
-            %DBName = int2dump_name(M1),
-
-
                  Pointer3 = leaf_verkle:put(Leaf2, cleaner),
-                 %io:fwrite("put a leaf. stem1: "),
-                 %io:fwrite(integer_to_list(Pointer)),
-                 %io:fwrite(",  stem2: "),
-                 %io:fwrite(integer_to_list(Pointer3)),
-                 %io:fwrite(",  leaf1: "),
-                 %io:fwrite(integer_to_list(Pointer2)),
-                 %io:fwrite(",  leaf2: "),
-                 %io:fwrite(integer_to_list(Pointer4)),
-                 %io:fwrite("\n"),
                  Pointer3
          end,
     [P2|one_root_clean2(PT, TT, HT)].
-
 scan_verkle_many(Pointers, ID) ->
     lists:map(fun(P) -> scan_verkle(P, ID) end, Pointers).
-
 scan_verkle(Height) ->
-    %Pointer = (block:get_by_height(Height))#block.trees,
     Pointer = recent_blocks:pointer(block:hash(block:get_by_height(Height))),
     scan_verkle(Pointer, amoveo).
-
 scan_verkle() ->
-    %Pointer = (block:top())#block.trees,
     Pointer = recent_blocks:pointer(block:hash(block:top())),
     scan_verkle(Pointer, amoveo).
 scan_verkle(Pointer, ID) ->
@@ -2076,28 +1866,13 @@ scan_verkle2([0|PT], [0|TT], [<<0:256>>|HT], ID) ->
     success = scan_verkle2(PT, TT, HT, ID);
 scan_verkle2([Pointer|PT], [2|TT], [Hash|HT], ID) -> 
     %a leaf.
-    %io:fwrite("scanned a leaf\n"),
     L = leaf_verkle:get(Pointer, ID),
     #leaf{key = Key, value = Leaf, meta = Meta} = L,
     Hash2 = store_verkle:leaf_hash(L),
-
-%    #leaf{key = Key, value = LeafHash, meta = Meta} = L,
-%    <<M1, Pointer2:(7*8)>> = Meta,
-%    CS0 = dump:get(Pointer2, int2dump_name(M1)),
-%    Hash3 = hash:doit(CS0),
-%    CS = deserialize(M1, CS0),
-%    Hash2 = store_verkle:leaf_hash(L, ID),
     if
         not(Hash == Hash2) -> 
             io:fwrite("trees2:scan_verkle2: bad leaf verkle data\n"),
             1=2;
-%        not(LeafHash == Hash3) ->
-%            io:fwrite("trees2:scan_verkle2 bad cs data\n"),
-%            io:fwrite(integer_to_list(Pointer2)),
-%            io:fwrite("\n"),
-%            io:fwrite({M1, Pointer2, LeafHash, CS0, CS});
-            %1=2;
-            %ok;
         true -> 
             ok
     end,
@@ -2118,104 +1893,6 @@ scan_verkle2(Ps, Ts, Hs, _ID) ->
     io:fwrite({Ps, Ts, Hs}),
     io:fwrite("scan verkle 2 impossible error\n"),
     1=2.
-   
-
-recover(0) ->
-    %we lost almost all the consensus state, so we are trying to recover it from some data from an old node's database.
-
-    os:cmd("cp -r ../../../../../german_backup/accounts_dump.db cleaner/data/accounts_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/contracts_dump.db cleaner/data/contracts_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/existence_dump.db cleaner/data/existence_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/markets_dump.db cleaner/data/markets_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/matched_dump.db cleaner/data/matched_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/oracles_dump.db cleaner/data/oracles_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/receipts_dump.db cleaner/data/receipts_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/sub_accs_dump.db cleaner/data/sub_accs_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/trades_dump.db cleaner/data/trades_cleaner.db"),
-    os:cmd("cp -r ../../../../../german_backup/unmatched_dump.db cleaner/data/unmatched_cleaner.db"),
-    
-    os:cmd("cp -r ../../../../../german_backup/accounts_dump_rest.db cleaner/data/accounts_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/contracts_dump_rest.db cleaner/data/contracts_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/existence_dump_rest.db cleaner/data/existence_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/markets_dump_rest.db cleaner/data/markets_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/matched_dump_rest.db cleaner/data/matched_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/oracles_dump_rest.db cleaner/data/oracles_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/receipts_dump_rest.db cleaner/data/receipts_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/sub_accs_dump_rest.db cleaner/data/sub_accs_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/trades_dump_rest.db cleaner/data/trades_cleaner_rest.db"),
-    os:cmd("cp -r ../../../../../german_backup/unmatched_dump_rest.db cleaner/data/unmatched_cleaner_rest.db"),
-
-
-    IDs = [1,3,4,5,6,7,8,9,10],
-    lists:map(fun(ID_num) ->
-                      
-                      CleanName = int2cleaner_name(ID_num),
-                      Name = int2dump_name(ID_num),
-                      {Top} = binary_to_term(db:read("cleaner/data/" ++ atom_to_list(CleanName) ++ "_rest.db")),
-                      io:fwrite("recovering "),
-                      io:fwrite(atom_to_list(Name)),
-                      io:fwrite(" it has top: "),
-                      io:fwrite(integer_to_list(Top)),
-                      io:fwrite("\n"),
-                      %recover_range(1, bits:top(CleanName),
-                      Top2 = case Top of
-                                 1 -> 2000;
-                                 Top -> Top
-                             end,
-                      recover_range(1, Top2,
-                                    Name, CleanName, ID_num)
-              end, IDs),
-
-    ok.
-                                    
-recover_range(I, End, Name, _, _) when I > End -> 
-    io:fwrite("recover range finished "),
-    io:fwrite(atom_to_list(Name)),
-    io:fwrite("\n"),
-    ok;
-recover_range(I, End, Name, CleanName, ID_num) ->
-
-    CS = dump:get(I, CleanName),
-    D = deserialize(ID_num, CS),
-    K = trees2:key(D),
-    %Loc = (block:top())#block.trees,
-    Loc = recent_blocks:pointer(block:hash(block:top())),
-    Leaf = get_leaf(K, Loc, tree:cfg(amoveo)),
-    if
-        (none == Leaf) -> ok;
-        true ->
-            K2 = leaf_verkle:raw_key(Leaf),
-            if
-                not(K2 == K) -> ok;
-                true ->
-
-    <<ID_num, V:56>> = leaf_verkle:meta(Leaf),
-    S = dump:get(V, int2dump_name(ID_num)),
-    %V1 = dump_get(ID_num, V),
-    %S = serialize(V1),
-    
-    LeafHashShouldBe = leaf_verkle:value(Leaf),
-    ExistingLeafHash = hash:doit(S),
-    ReplacementLeafHash = hash:doit(CS),
-    if
-        ExistingLeafHash == LeafHashShouldBe ->
-            %io:fwrite("data is already good, so change nothing\n");
-            ok;
-        ReplacementLeafHash == LeafHashShouldBe ->
-            %store at pointer V in the matched dump.
-            %store CS. 
-            Word = size(CS),
-            file_manager:write(Name, V*Word, CS),
-            bits:set(Name, V),
-            io:fwrite("replace this bad data\n");
-        true ->
-            io:fwrite("this is bad data, and the potential replacement is also bad\n")
-    end
-    end
-    end,
-    recover_range(I+1, End, Name, CleanName, ID_num).
-    
-
 get_leaf(<<Key:256>>, Pointer, ID) ->
     Stem = stem_verkle:get(Pointer, ID),
     %io:fwrite({Key}),
@@ -2470,15 +2147,10 @@ test(4) ->
     Loc3 = store_verified(Loc2, ProofTree2),
     print_now(),
     io:fwrite("get proof 2\n"),
-    %io:fwrite({to_keys(As2)}),
-    %Keys3 = to_keys(As2),
-    %io:fwrite(As2),
     Keys3 = to_flagged_keys(As2),
-    %Keys3 = lists:map(fun(A) -> {accounts, A#acc.pubkey} end, As2),
     {Proof3, As2b} = get_proof(Keys3, Loc3, Height),
     print_now(),
     io:fwrite("verify proof 2\n"),
-    %{true, V2} = verify_proof(Proof3, As3),
     {true, V2} = verify_proof(Proof3, As2b, Height),
     %prune(Loc2, Loc3),
     success;
@@ -2597,39 +2269,21 @@ test(9) ->
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, _, _} = stem_verkle:get(Loc2, amoveo).
 
-
-    
 garbage_collect() ->
     tree2:quick_save(amoveo),
-    stem_verkle:get(1, amoveo),
     L = recent_blocks:read(),
-    stem_verkle:get(1, amoveo),
     Blocks = lists:map(fun(H) -> block:get_by_hash(H) end, L),
-    stem_verkle:get(1, amoveo),
-    %A = lists:map(fun(Block) -> Block#block.trees end, Blocks),
     A = lists:map(fun(H) -> recent_blocks:pointer(H) end, L),
-    stem_verkle:get(1, amoveo),
-    A2 = multi_root_clean(),
-    stem_verkle:get(1, amoveo),
+    A2 = multi_root_clean(A),
     lists:map(fun({Block, P}) ->
 		      Hash = block:hash(Block),
 		      Height = Block#block.height,
-		      %Height = block:height(Block),
 		      io:fwrite("new pointer " ++ integer_to_list(P) ++ "\n"),
 		      recent_blocks:change_pointer(Hash, Height, P)
 	      end, lists:zip(Blocks, A2)),
-    stem_verkle:get(1, amoveo),
     tx_pool:dump(),
     potential_block:new(),
     success.
-
-%    Blocks2 = 
-%        lists:map(fun({Block, P}) -> Block#block{trees = P} end, 
-%                  lists:zip(Blocks, A2)),
-%    block_db3:rewrite(lists:zip(L, Blocks2)),
-%    success.
-    
-    
     
 print_now() ->    
     {_, A, B} = erlang:timestamp(),
@@ -2640,6 +2294,3 @@ print_now() ->
     io:fwrite(" "),
     ok.
     
-
-
-
