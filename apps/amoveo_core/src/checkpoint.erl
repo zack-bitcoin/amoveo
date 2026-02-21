@@ -517,7 +517,7 @@ sync2b(BlockHeight, Peer, BlockHash, Many) ->
 	    {sync2b, BlockHeight, Peer, BlockHash};
 	true -> done
     end.
-	    
+-record(leaf, {key, value, meta}).
 sync2b2(_, _, MyStem, _TheirStem, _Path, Many, _N) when Many < 1->
     io:fwrite("ran out of many\n"),
     {MyStem, 0};
@@ -567,15 +567,20 @@ sync2b2(Peer, BlockHash, MyStem, TheirStem, Path, Many, N) ->
 	    %io:fwrite({size(element(3, TheirLeaf)), size(element(4, TheirLeaf))}),
 	    %TheirLeaf2 = TheirLeaf#leaf{value = hash:doit(TheirLeaf#leaf.value)},
 	    %Bool = ((element(N, Hs) == store_verkle:leaf_hash(TheirLeaf2))),
-	    Bool = ((element(N, Hs) == leaf_hash(TheirLeaf))),
+	    IsLeaf = is_record(TheirLeaf, leaf),
 	    if
-	        Bool -> ok;
-		true -> io:fwrite({element(N, Hs), leaf_hash(TheirLeaf), TheirLeaf})
-	    end,
-	    Pointer = leaf_verkle:put(TheirLeaf, amoveo),
-	    Psb = setelement(N, Ps, Pointer),
-	    MyStemb = MyStem#stem{pointers = Psb, types = Tsb},
-	    sync2b2(Peer, BlockHash, MyStemb, TheirStem, Path, Many-1, N+1);
+		not(IsLeaf) ->  io:fwrite(TheirLeaf);
+		true ->
+		    Bool = ((element(N, Hs) == leaf_hash(TheirLeaf))),
+		    if
+			Bool -> ok;
+			true -> io:fwrite({element(N, Hs), leaf_hash(TheirLeaf), TheirLeaf})
+		    end,
+		    Pointer = leaf_verkle:put(TheirLeaf, amoveo),
+		    Psb = setelement(N, Ps, Pointer),
+		    MyStemb = MyStem#stem{pointers = Psb, types = Tsb},
+		    sync2b2(Peer, BlockHash, MyStemb, TheirStem, Path, Many-1, N+1)
+	    end;
 	true ->%slot already filled.
 	    sync2b2(Peer, BlockHash, MyStem, TheirStem, Path, Many, N+1)
     end.
@@ -603,7 +608,6 @@ scan_stem(Hash, E, Ps1, Ps2, Ts, Path) ->
     
     %stem_verkle:put(Stem, amoveo, compressedroot).
     %leaf_verkle:put(Stem, amoveo).
--record(leaf, {key, value, meta}).
 leaf_hash(L) ->
     TheirLeaf2 = L#leaf{value = hash:doit(L#leaf.value)},
     store_verkle:leaf_hash(TheirLeaf2).
