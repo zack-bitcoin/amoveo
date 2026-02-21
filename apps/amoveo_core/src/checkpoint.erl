@@ -19,6 +19,7 @@
          mem_check/0,
 	 sync2_height/1,
 	 sync2/0,
+	 sync2/1,
          start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 
 %Eventually we will need a function that can recombine the chunks, and unencode the gzipped tar to restore from a checkpoint.
@@ -438,8 +439,9 @@ sync2_height(Height) ->
 
 sync2() ->
     %This version of syncing the checkpoint works by walking through the verkle tree, and downloading each stem and leaf with an individual http request. So, it is very slow. But, it has the benefit of being compatible. Even if the database changes format, this way of syncing will still work.
-    IP = {64,227,21,70},
+    %IP = {64,227,21,70},
     %IP = {159,65,126,146},
+    IP = {46,101,81,5},
     Port = 8080,
     sync2({IP, Port}).
 sync2({IP, Port}) ->

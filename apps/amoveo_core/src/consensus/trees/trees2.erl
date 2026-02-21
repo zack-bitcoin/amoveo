@@ -1588,12 +1588,10 @@ multi_root_clean() ->
     RecentHashes = recent_blocks:read(),
     L = lists:map(fun(H) ->
 			  recent_blocks:pointer(H)
-			  %Block = block:get_by_hash(H),
-			  %Block#block.trees
               end, RecentHashes),
     multi_root_clean(L).
 
-multi_root_clean(Pointers) ->
+multi_root_clean(Pointers) ->%in order of block height, low to high.
     %the pointers are to the roots of the blocks that we want to keep.
     lists:map(fun(X) -> true = is_integer(X) end, Pointers),
     ID = amoveo,
