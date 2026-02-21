@@ -525,6 +525,7 @@ sync2b2(_, _, MyStem, _TheirStem, Path, Many, 257) ->
     {MyStem, Many};
 sync2b2(Peer, BlockHash, MyStem, TheirStem, Path, Many, N) ->
     %io:fwrite("sync stem\n"),
+    timer:sleep(11),
     #stem{pointers = Ps, types = Ts, hashes = Hs} = MyStem,
     #stem{pointers = Ps2, types = Ts2} = TheirStem,
     P1 = element(N, Ps),
