@@ -204,9 +204,9 @@ get_chunks2(Hash, Peer, N, Result) ->
 
 sync_hardcoded() -> 
     %IP = {159,223,85,216},%the pool
-    IP = {46,101,81,5},%explorer
+    %IP = {46,101,81,5},%explorer
     %IP = {159,65,126,146},%germany
-    %IP = {64,227,100,178}, % san francisco
+    IP = {64,227,100,178}, % san francisco
     Port = 8080,
     spawn(fun() ->
                   sync(IP, Port)
@@ -219,7 +219,7 @@ sync() ->
                   checksync(P)
           end).
 checksync(P = {IP, Port}) ->
-    %io:fwrite("checksync\n"),
+    io:fwrite("checksync\n"),
     sync_kill:start(),
     Y = talker:talk(
           {checkpoint}, P),
@@ -227,9 +227,11 @@ checksync(P = {IP, Port}) ->
     case Y of
         {ok, []} -> 
             io:fwrite("This peer doesn't have any checkpoints. Attempting to find a different peer\n"),
+	    1=2,
             sync();
         {ok, CPL} -> sync(P, CPL);
         X -> io:fwrite(X),
+	     1=2,
              sync()
     end.
     
@@ -356,7 +358,7 @@ sync(IP, Port, CPL0) ->
 	    timer:sleep(1000),
 	    tree:reload_ets(ID),
 	    timer:sleep(1000),
-	    Stem0 = stem_verkle:get(Pointer, CFG),
+	    Stem0 = stem_verkle:get(Pointer, ID),
 	    io:fwrite("checkpoint lookup root integrity " ++ integer_to_list(Pointer) ++ "\n"),
 	    case stem_verkle:check_root_integrity(Stem0) of
 		success -> ok;

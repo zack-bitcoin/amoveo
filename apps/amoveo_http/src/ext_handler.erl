@@ -115,7 +115,14 @@ doit({give_block, Block}) -> %block can also be a list of blocks.
             ok
     end;
 doit({block, N}) when (is_integer(N) and (N > -1))->
-    {ok, block:get_by_height(N)};
+    B = block:get_by_height(N),
+    H = block:hash(B),
+    P = recent_blocks:pointer(H),
+    B2 = if
+	     is_integer(P) -> B#block{trees = P};
+	     true -> B
+	 end,
+    {ok, B2};
 doit({block, 2, H}) ->
     {ok, block:get_by_hash(H)};
 doit({blocks, Many, N}) -> 
@@ -334,17 +341,9 @@ doit({proof, IDs, Hash}) ->
     %batch verkle proofs.
     B = block:get_by_hash(Hash),
     Height = B#block.height,
-    %Loc = B#block.trees,
     Loc = recent_blocks:pointer(Hash),
     true = is_integer(Loc),
-    
-    %io:fwrite({IDs, Loc}),%{<<_:520>>, 13}
-%    IDs2 = lists:map(fun([TreeName, ID]) ->
-                             %trees2:key({TreeName, ID}) end,
-%                             {TreeName, ID} end,
-%                     IDs),
     {Proof, IDs3} = trees2:get_proof(IDs, Loc, fast, Height),
-    %todo. put this proof in a format that javascript will understand.
     {ok, {Proof, IDs3}};
     
 doit({proof, TreeName, ID, Hash}) ->
