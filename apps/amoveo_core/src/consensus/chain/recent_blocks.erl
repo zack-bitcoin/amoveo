@@ -40,7 +40,8 @@ handle_call({add, Hash, Height, Pointer}, _, X) ->
     {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     io:fwrite("height: " ++ integer_to_list(Height) ++ " FT: " ++ integer_to_list(FT) ++ " Xheight " ++ integer_to_list(X#r.height)),
     if
-        ((Height - FT) > X#r.height) -> 
+        %((Height - FT) > X#r.height) -> 
+        (Height > X#r.height) -> 
 	    io:fwrite("recent blocks adding a block 2\n"),
             NewBottom = Height - FT,
             X2 = X#r{height = NewBottom, blocks = remove_before(X#r.blocks ++ [{Height, Hash, Pointer}], NewBottom)},
