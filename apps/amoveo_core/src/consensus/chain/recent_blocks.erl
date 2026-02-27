@@ -34,15 +34,12 @@ handle_cast(dump, X) ->
     {noreply, #r{}};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({add, Hash, Height, Pointer}, _, X) ->
-    io:fwrite("recent blocks adding a block\n"),
+    %io:fwrite("recent blocks adding a block\n"),
     %io:fwrite(packer:pack(Hash)),
     %io:fwrite("\n"),
-    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
-    io:fwrite("height: " ++ integer_to_list(Height) ++ " FT: " ++ integer_to_list(FT) ++ " Xheight " ++ integer_to_list(X#r.height)),
+    %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     if
-        %((Height - FT) > X#r.height) -> 
         (Height > X#r.height) -> 
-	    io:fwrite("recent blocks adding a block 2\n"),
             NewBottom = Height - FT,
             X2 = X#r{height = NewBottom, blocks = remove_before(X#r.blocks ++ [{Height, Hash, Pointer}], NewBottom)},
             {reply, ok, X2};
