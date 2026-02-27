@@ -37,10 +37,10 @@ handle_call({add, Hash, Height, Pointer}, _, X) ->
     %io:fwrite("recent blocks adding a block\n"),
     %io:fwrite(packer:pack(Hash)),
     %io:fwrite("\n"),
-    %{ok, FT} = application:get_env(amoveo_core, fork_tolerance),
+    {ok, FT} = application:get_env(amoveo_core, fork_tolerance),
     if
         (Height > X#r.height) -> 
-            NewBottom = Height - FT,
+            NewBottom = max(X#r.height, Height - FT),
             X2 = X#r{height = NewBottom, blocks = remove_before(X#r.blocks ++ [{Height, Hash, Pointer}], NewBottom)},
             {reply, ok, X2};
         true ->
