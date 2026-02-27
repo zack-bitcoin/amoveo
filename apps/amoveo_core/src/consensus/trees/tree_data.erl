@@ -37,7 +37,8 @@ remove_before(Blocks, Work) ->
 dict_update_root(Trees, Dict, Height, ProofTree, RootHash) ->
     gen_server:call(?MODULE, {update_root, Trees, Dict, Height, ProofTree, RootHash}).
 dict_update_trie(Trees, Dict, Height, ProofTree, RootHash) ->
-    false = (Trees = fail),
+    %io:fwrite("dict update tree height " ++ integer_to_list(Height) ++ "\n"),
+    %false = (Trees = fail),
     gen_server:call(?MODULE, {update, Trees, Dict, Height, ProofTree, RootHash}).
 garbage(Trash, Keep) ->
     gen_server:call(?MODULE, {garbage, Trash, Keep}).

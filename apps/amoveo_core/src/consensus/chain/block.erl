@@ -304,6 +304,7 @@ trees_hash_maker(HeightCheck, Trees, NewDict4,
 
 
 trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
+    false = (Trees == fail),
     %io:fwrite("trees maker "),
     %io:fwrite(integer_to_list(HeightCheck)),
     %DEls = dict:fetch_keys(NewDict4),
@@ -1145,6 +1146,7 @@ check2(OldBlock, Block) ->
         check3(OldBlock, Block), 
     Height = Block#block.height,
     OldTrees = recent_blocks:pointer(block:hash(OldBlock)),
+    false = (OldTrees == fail),
     %OldTrees = OldBlock#block.trees,
     _Roots = Block#block.roots,
     %io:fwrite("block check 5.3\n"),

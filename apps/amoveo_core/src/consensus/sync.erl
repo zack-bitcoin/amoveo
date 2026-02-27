@@ -268,6 +268,21 @@ ip_url_format({{A, B, C, D}, _}) ->
 stream_get_blocks(Peer, N, TheirBlockHeight) ->
     Batch = 100,
     io:fwrite("stream get blocks\n"),
+
+
+    %temporary check to fix problem with variable sized verkle update.
+    MyHeight = block:height(),
+    RecentBlocksCheck = recent_blocks:pointer(block:hash(block:top())),
+    if
+	((MyHeight > 1000) and (RecentBlocksCheck == fail)) ->
+	    sync:stop(),
+	    1=2;
+	true -> ok
+    end,
+    %check done
+
+
+
 %    true = N =< TheirBlockHeight,
     if 
         N > TheirBlockHeight -> ok;
@@ -427,7 +442,7 @@ process_block_sequential(Block, Prev, N) ->
         (Block == error) -> io:fwrite("process block sequential, bad block\n");
         (Prev == error) -> io:fwrite("process block sequential, bad prev block " ++ integer_to_list(Block#block.height) ++ "\n"),
                            %process_block_sequential(Block, block:get_by_height(Block#block.height - 1), N-1);
-                           process_block_sequential(Block, block:get_by_hash(Block#block.prev_hash), N-1);
+                process_block_sequential(Block, block:get_by_hash(Block#block.prev_hash), N-1);
         ((Prev#block.height + 1) == Block#block.height) -> 
             true = ((Prev#block.height + 1) == Block#block.height),
             #block{

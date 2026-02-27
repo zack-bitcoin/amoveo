@@ -318,6 +318,13 @@ write(Block, Hash) ->
 %        true -> %local_print(Block#block.trees)
 %            ok
 %    end,
+    F52 = forks:get(52),
+    BHeight = Block#block.height,
+    if
+	(BHeight > F52) ->
+	    true = is_integer(Block#block.trees);
+	true -> ok
+    end,
     gen_server:cast(?MODULE, {write, Block, Hash}),
     recent_blocks:add(Hash, Block#block.height, Block#block.trees),
     %if this is the top of the headers, then do a set_top(Hash).
