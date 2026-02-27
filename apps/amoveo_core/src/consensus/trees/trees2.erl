@@ -1576,6 +1576,8 @@ merkle2verkle(
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
 one_root_clean(Pointer) ->
+    multi_root_clean([Pointer]).
+one_root_clean_old(Pointer) ->
     Hash = scan_verkle(Pointer, amoveo),%sanity check of the verkle tree data.
     NewPointer = one_root_maker(Pointer),%copies everything that can be proven from a single root over to a new database, the clean version
     io:fwrite("one root clean 2\n"),
@@ -1591,7 +1593,7 @@ multi_root_clean() ->
               end, RecentHashes),
     multi_root_clean(L).
 
-multi_root_clean(Pointers) ->%in order of block height, low to high.
+multi_root_clean(Pointers) ->%Pointers is in order of block height, low to high.
     %the pointers are to the roots of the blocks that we want to keep.
     lists:map(fun(X) -> true = is_integer(X) end, Pointers),
     ID = amoveo,
@@ -1832,14 +1834,16 @@ one_root_clean2(
              2 -> %a leaf
                  Leaf = leaf_verkle:get(Pointer, amoveo),
                  #leaf{key = Key, value = LeafHash, meta = Meta} = Leaf,
-                 Hash = store_verkle:leaf_hash(Leaf, amoveo),
-                 <<M1, Pointer2:(7*8)>> = Meta,
-                 CS0 = dump:get(Pointer2, int2dump_name(M1)),
-                 Pointer4 = dump:put(CS0, int2cleaner_name(M1)),
-                 Meta2 = <<M1, Pointer4:(7*8)>>,
-                 Leaf2 = Leaf#leaf{meta = Meta2},
-                 Pointer3 = leaf_verkle:put(Leaf2, cleaner),
-                 Pointer3
+                 Hash = store_verkle:leaf_hash(Leaf),
+		 leaf_verkle:put(Leaf, cleaner)
+
+%                 <<M1, Pointer2:(7*8)>> = Meta,
+%                 CS0 = dump:get(Pointer2, int2dump_name(M1)),
+%                 Pointer4 = dump:put(CS0, int2cleaner_name(M1)),
+%                 Meta2 = <<M1, Pointer4:(7*8)>>,
+%                 Leaf2 = Leaf#leaf{meta = Meta2},
+%                 Pointer3 = leaf_verkle:put(Leaf2, cleaner),
+%                 Pointer3
          end,
     [P2|one_root_clean2(PT, TT, HT)].
 scan_verkle_many(Pointers, ID) ->
