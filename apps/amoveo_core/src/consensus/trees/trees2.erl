@@ -1576,7 +1576,7 @@ merkle2verkle(
     store_things(AllLeaves, Loc).
 -record(cfg, {path, value, id, meta, hash_size, mode, empty_root, parameters}).
 one_root_clean(Pointer) ->
-    multi_root_clean([Pointer]).
+    hd(multi_root_clean([Pointer])).
 one_root_clean_old(Pointer) ->
     Hash = scan_verkle(Pointer, amoveo),%sanity check of the verkle tree data.
     NewPointer = one_root_maker(Pointer),%copies everything that can be proven from a single root over to a new database, the clean version
@@ -1605,10 +1605,15 @@ multi_root_clean(Pointers) ->%Pointers is in order of block height, low to high.
     setup_clean_db(),
     NewPointers = multi_root_clean_stem(Pointers),
     tree2:quick_save(cleaner),
+    TopStem1 = stem_verkle:get(hd(lists:reverse(NewPointers)), cleaner),
     io:fwrite("recover from the clean version\n"),
     recover_from_clean_version(),
     io:fwrite("checksum sanitycheck\n"),
+    TopStem2 = stem_verkle:get(hd(lists:reverse(NewPointers)), amoveo),
+    %TopStem3 = stem_verkle:get(hd(lists:reverse(Pointers)), amoveo),
+    %io:fwrite({Top, hd(NewPointers), element(2, TopStem), element(2, TopStem1), element(2, TopStem2)}),
     Hashes = scan_verkle_many([hd(lists:reverse(NewPointers))], ID),
+    io:fwrite("multi root clean finished\n"),
     NewPointers.
 
 setup_clean_db() ->
@@ -1632,15 +1637,21 @@ one_root_maker(Pointer) ->
 recover_from_clean_version() ->
     io:fwrite("one_root_clean: copying everything from the cleaner db back to the main db\n"),
     tree2:quick_save(cleaner),
+    timer:sleep(1000),
     case application:get_env(amoveo_core, kind) of
 	{ok, "production"} ->
+	    io:fwrite("in production mode \n"),
+	    io:fwrite("cp -r ./cleaner/data/cleaner.db ../../../../db/data/amoveo.db \n"),
 	    os:cmd("cp -r ./cleaner/data/cleaner.db ../../../../db/data/amoveo.db"),
+	    io:fwrite("cp -r ./cleaner/data/cleaner_top.db ../../../../db/data/amoveo_top.db \n"),
 	    os:cmd("cp -r ./cleaner/data/cleaner_top.db ../../../../db/data/amoveo_top.db");
 	_ ->
 	    os:cmd("cp -r ./cleaner/data/cleaner.db ./data/amoveo.db"),
 	    os:cmd("cp -r ./cleaner/data/cleaner_top.db ./data/amoveo_top.db")
     end,
+    timer:sleep(1000),
     tree2:reload(amoveo),
+    timer:sleep(1000),
     ok.
 
 copy_bits(X, Top, _, _) when X > Top ->
@@ -2240,7 +2251,7 @@ test(7) ->
 test(8) ->
     io:fwrite("test garbage collection\n"),
     test_txs:restart_chain(),
-    test_txs:mine_blocks(4),
+    test_txs:mine_blocks(10),
     trees2:garbage_collect(),
     success;
 test(9) ->

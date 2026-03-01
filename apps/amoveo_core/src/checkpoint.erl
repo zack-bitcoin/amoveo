@@ -370,26 +370,26 @@ sync(IP, Port, CPL0) ->
 	    io:fwrite("verkle checkpoint\n"),
 	    ID = amoveo,
 	    Pointer = TDBN,
+	    Pointer2 = Block#block.trees,
 	    %CFG = tree:cfg(ID),
 	    timer:sleep(1000),
 	    %tree:reload_ets(ID),
 	    tree2:reload(ID),
-	    timer:sleep(1000),
-
+	    timer:sleep(3000),
 
 	    recent_blocks:change_pointer(BlockHash, Block#block.height, Block#block.trees),
 	    recent_blocks:change_pointer(NBlockHash, NBlock#block.height, NBlock#block.trees),
 
-	    io:fwrite("looking up pointer " ++ integer_to_list(Pointer) ++ "\n"),
-	    Stem0 = stem_verkle:get(Pointer, ID),
-	    io:fwrite("checkpoint lookup root integrity " ++ integer_to_list(Pointer) ++ "\n"),
-	    case stem_verkle:check_root_integrity(Stem0) of
-		ok -> ok;
-		_ -> 
-		    io:fwrite("invalid root stem\n"),
-		    io:fwrite(Stem0)
-	    end,
-	    Types = element(3, Stem0),
+	    %io:fwrite("looking up pointer " ++ integer_to_list(Pointer2) ++ "\n"),
+	    %Stem0 = stem_verkle:get(Pointer2, ID),
+	    %io:fwrite("checkpoint lookup root integrity " ++ integer_to_list(Pointer2) ++ "\n"),
+	   % case stem_verkle:check_root_integrity(Stem0) of
+		%ok -> ok;
+		%_ -> 
+	%	    io:fwrite("invalid root stem\n"),
+	%	    io:fwrite(Stem0)
+	%    end,
+	    %Types = element(3, Stem0),
 	    NRoots = tree2:root_hash(Pointer, ID),
 	    NRoots2 = NBlock2#block.trees_hash,
 	    if
@@ -423,8 +423,9 @@ sync(IP, Port, CPL0) ->
                     trees2:scan_verkle(Pointerb, amoveo),
                     io:fwrite("scanned 2\n"),
                     Stem1 = stem_verkle:get(Pointerb, amoveo),
+		    io:fwrite("checkpointing here 5\n"),
                     NewPointer = trees2:one_root_clean(Pointerb),
-                    io:fwrite("cleaned\n"),
+                    io:fwrite("cleaned. newpointer: "++ integer_to_list(NewPointer)++"\n"),
                     trees2:scan_verkle(NewPointer, amoveo),
                     io:fwrite("scan cleaned\n"),
                     Stem2 = stem_verkle:get(NewPointer, amoveo),
