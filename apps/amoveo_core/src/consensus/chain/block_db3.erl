@@ -26,13 +26,18 @@ init(ok) ->
     io:fwrite("block_db3 init\n"),
     process_flag(trap_exit, true),
     {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
-    os:cmd("mkdir " ++ constants:root())
-    os:cmd("touch " ++ ?LOC)
+    spawn(fun() ->
+		  os:cmd("mkdir " ++ constants:root())
+	  end),
+    spawn(fun() ->
+		  os:cmd("touch " ++ ?LOC)
+	  end),
+    timer:sleep(100),
     X = db:read(?LOC),
     %ZLIB = element(2, file:read_file("../../../../lzip_dictionary")),
     ZLIB = element(2, file:read_file(?lzip_file)),
     Ka = if
-             X == "" ->
+             X == <<>> ->
                  G = block:genesis_maker(),
                  GH = block:hash(G),
                  CG = compress(G, ZLIB),
