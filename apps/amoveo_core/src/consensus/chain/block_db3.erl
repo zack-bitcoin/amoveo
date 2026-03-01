@@ -37,7 +37,8 @@ init(ok) ->
     %ZLIB = element(2, file:read_file("../../../../lzip_dictionary")),
     ZLIB = element(2, file:read_file(?lzip_file)),
     Ka = if
-             X == <<>> ->
+             is_record(X, d)  -> X;
+             true ->
                  G = block:genesis_maker(),
                  GH = block:hash(G),
                  CG = compress(G, ZLIB),
@@ -46,8 +47,7 @@ init(ok) ->
                  H2H = dict:store(GH, 1, dict:new()),
                  #d{hash2block = H2B, height2hash = H2H,
                     zlib_dictionary = ZLIB,
-                    file_pointer = P+1};
-             true -> X
+                    file_pointer = P+1}
          end,
     K2 = Ka#d{file = F},
     io:fwrite("block_db3 init done\n"),
