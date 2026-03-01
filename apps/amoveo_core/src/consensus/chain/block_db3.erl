@@ -25,7 +25,6 @@ update_pointer/2, exists/1, rewrite/1]).
 init(ok) -> 
     io:fwrite("block_db3 init\n"),
     process_flag(trap_exit, true),
-    {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
     spawn(fun() ->
 		  os:cmd("mkdir " ++ constants:root())
 	  end),
@@ -33,6 +32,7 @@ init(ok) ->
 		  os:cmd("touch " ++ ?LOC)
 	  end),
     timer:sleep(100),
+    {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
     X = db:read(?LOC),
     %ZLIB = element(2, file:read_file("../../../../lzip_dictionary")),
     ZLIB = element(2, file:read_file(?lzip_file)),
