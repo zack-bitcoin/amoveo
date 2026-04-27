@@ -1,7 +1,7 @@
 .idea
 .edts
 *.iml
-_build
+/_build/
 /rel/
 *.db
 *~

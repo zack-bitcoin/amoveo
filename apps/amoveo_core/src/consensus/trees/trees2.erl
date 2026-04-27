@@ -889,6 +889,8 @@ is_in(X, []) -> false;
 is_in(X, [X|_]) -> true;
 is_in(X, [_|T]) -> 
     is_in(X, T).
+
+-record(leaf, {key, value, meta}).
    
 get(Keys, Loc) when is_integer(Loc) -> 
     ID = amoveo,
@@ -898,6 +900,7 @@ get(Keys, Loc) when is_integer(Loc) ->
     Keys5 = ordered_remove_repeats(Keys4),
     L = get_verkle:unverified(
           Keys5, Loc, ID), 
+    %lists:map(fun({_, Leaf}) -> true = is_binary(Leaf#leaf.meta) end, L),
     if
         Keys5 == [<<0:256>>] -> 
             io:fwrite({Keys}),
@@ -991,6 +994,10 @@ get_proof(Keys0, Loc, Type, Height) ->
     Leaves = 
         lists:map(fun(K) ->
                           case dict:find(K, MetasDict) of
+                              {ok, #leaf{key = Key, value = S, meta = <<T>>}} ->
+				  %io:fwrite({Key, Value, Meta}),
+				  deserialize(T, S);
+				  %ok;
                               {ok, {<<T>>, S}} ->
 				  deserialize(T, S);
 			      %io:fwrite("S is "),
@@ -1766,7 +1773,6 @@ multi_root_clean2(Pss, %list of each stem's pointers to it's children.
     %so we need to consider the first child of each of these stems, then the second child, etc.
     %this way, every time 2 stems share a descendent, we can realize this and not do the same calculation twice.
 
--record(leaf, {key, value, meta}).
 load_transforms([], Dict) -> Dict;
 load_transforms([{A, B}|As], Dict) ->
     D2 = dict:store(A, B, Dict),
@@ -1925,9 +1931,32 @@ get_leaf2(Stem, [<<P>>|Path], ID) ->
             NextStem = stem_verkle:get(Pointer, ID),
             get_leaf2(NextStem, Path, ID)
     end.
-            
-            
-            
+     
+
+all_accounts() ->       
+    Pointer = recent_blocks:pointer(block:hash(block:top())),
+    all_accounts(Pointer).
+all_accounts(Pointer) ->
+    ID = amoveo,
+    S = stem_verkle:get(Pointer, ID),
+    P = tuple_to_list(stem_verkle:pointers(S)),
+    T = tuple_to_list(stem_verkle:types(S)),
+    H = tuple_to_list(stem_verkle:hashes(S)),
+    all_accounts2(P, T, H, []).
+all_accounts2([], [], [], R) -> R;
+all_accounts2([0|PT], [0|TT], [<<0:256>>|HT], R) -> 
+    all_accounts2(PT, TT, HT, R);
+all_accounts2([P|PT], [2|TT], [_Hash|HT], R) -> 
+    L = leaf_verkle:get(P, amoveo),
+    #leaf{key = Key, value = Leaf, meta = Meta} = L,
+    %Hash = store_verkle:leaf_hash(L),
+    io:fwrite(Leaf),
+    all_accounts2(PT, TT, HT, [Leaf|R]);
+all_accounts2([P|PT], [1|TT], [_Hash|HT], R) -> 
+    %S = stem_verkle:get(P, ID),
+    %Hash = stem_verkle:hash(Stem),
+    R2 = all_accounts(P),
+    all_accounts2(PT, TT, HT, R2 ++ R).
     
 
 all_zeros(<<>>) -> true;

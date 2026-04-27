@@ -3,7 +3,7 @@
 test() ->
     case keys:status() of
 	unlocked -> test1();
-	_ -> "you need to unlock with keys:unlock(""password"") first"
+	_ -> "you need to unlock with keys:unlock(\"password\") first"
     end.
 test_helper([]) -> success;
 test_helper([A|B]) ->

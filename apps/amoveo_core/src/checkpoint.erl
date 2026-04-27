@@ -522,7 +522,7 @@ sync2(Peer, Height) ->
     io:fwrite("header stuff\n"),
     io:fwrite("db3 stuff\n"),
     %recent_blocks:change_pointer(BlockHash, Height-1, Pointer),
-    sync2b(Height, Peer, BlockHash, 10000).
+    sync2b(Height, Peer, BlockHash, 100000).
 sync2b(BlockHeight, Peer, BlockHash, Many) ->
     io:fwrite("sync2b\n"),
     %Block = block:get_by_hash(BlockHash),
