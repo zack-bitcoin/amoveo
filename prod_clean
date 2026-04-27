@@ -1,0 +1,15 @@
+#!/bin/awk -f
+
+BEGIN {
+    system("rm -rf db/data/")
+    system("mkdir -p db/data")
+    system("rm -rf db/blocks/")
+    system("mkdir -p db/blocks")
+    system("rm -rf db/checkpoints/")
+    system("mkdir -p db/checkpoints")
+    system("rm -rf db/cleaner/")
+    system("mkdir -p db/cleaner/")
+    system("mkdir -p db/cleaner/data")
+    system("rm -rf ./_build/prod/rel/log/")
+    system("mkdir ./_build/prod/rel/log")
+}

@@ -1,0 +1,46 @@
+#!/bin/awk -f
+
+BEGIN {
+    #- @curl -i -d '["off"]' http://127.0.0.1:8081
+
+    #create the config's template file from the default, if it does not exit.
+    system("./scripts/config_setup.sh")
+
+    config_string = "{port, 8080},\n {kind, \"production\"},\n {internal_port, 8081},\n {swagger_port_internal, 8042},\n {swagger_port_external, 8043},\n {peers, [{{193,178,170,111},8080},{{159,223,85,216},8080},{{159,65,126,146},8080},{{64,227,21,70},8080},{{46,101,81,5},8080},{{43,133,42,108},8080}]},\n {pools, [{{193,178,170,111},8080},{{159,223,85,216},8080},{{159,65,126,146},8080},{{43,133,42,108},8080}]},\n {master_pub, <<\"BL0SzhkFGFW1kTTdnO8sGnwPEzUvx2U2nyECwWmUJPRhLxbPPK+ep8eYMxlTxVO/wnQS5WmsGIKcrPP7/Fw1WVc=\">>},\n {test_mode,false},\n {request_frequency, 10},\n"
+
+    config_file = "config/prod/sys.config"
+    if((getline unused < config_file) < 1) {
+	#if the file doesn't exist, then create it.
+	while((getline line < "config/sys.config.tmpl") > 0){
+	    if(line ~ /comment/){
+		print config_string >> config_file
+	    } else {
+		print line >> config_file
+	    }
+	}
+    }
+    close(config_file)
+    system("sleep 0.2")
+
+    #use rebar to compile amoveo.
+    system("./rebar3 as prod release")
+    print("is compiling")
+
+    #make the folders to store stuff.
+    system("mkdir -p ./_build/prod/rel/amoveo_core/ebin")
+    system("mkdir -p ./_build/prod/rel/amoveo_core/precomputes")
+
+    #find out where the erlang libraries are stored, so we can access them when we are compiling C code.
+    system("ls /usr/lib/erlang/ | cat | awk 'match($0, /erts/) {print($0)}' > erts_version")
+    getline ERTS_VERSION < "erts_version"
+
+    #finally compile the C code
+    system("gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/prod/rel/amoveo_core/ebin/fr.so ./_build/prod/lib/verkle/src/crypto/fr.c -I $ERL_ROOT/user/include/ -I /usr/lib/erlang/" ERTS_VERSION "/include ")
+    system("gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/prod/rel/amoveo_core/ebin/ed25519.so ./_build/prod/lib/verkle/src/crypto/ed25519.c -I $ERL_ROOT/user/include/ -I /usr/lib/erlang/" ERTS_VERSION "/include ")
+    system("rm erts_version")
+
+
+    system("./_build/prod/rel/amoveo_core/bin/amoveo_core daemon")
+
+}
+
