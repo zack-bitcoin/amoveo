@@ -1160,6 +1160,21 @@ restore_leaves_proof2([{I, {T1 = <<_:256>>, V = <<_:256>>}}], [L|T]) ->
                     {[{I, {T1, V}}], [L|T]}
             end
     end;
+restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], [L|T]) when is_binary(V) ->
+    case L of 
+        {Tree, Key} ->
+            {[{I, 0}], T};
+        _ ->
+            KeyL = key(L),
+            if
+                (T1 == KeyL) -> 
+                    %restoring value
+                    {[{I, {KeyL, hash:doit(serialize(L))}}], T};
+                true ->
+                    %value used to prove non-empty status of an element, to prove that a different element must be empty.
+                    {[{I, {T1, hash:doit(V)}}], [L|T]}
+            end
+    end;
 restore_leaves_proof2([{I, {T1, V}}], [L|T]) ->
     io:fwrite({I, T1, V, L, T});
 restore_leaves_proof2(Proofs, [X = {_, _}|T]) ->
