@@ -315,7 +315,8 @@ blocks_process_stream(Data0, MyTopBlock, Peer, TheirBlockHeight) ->
             SMC = sync_mode:check(),
             case SMC of
                 normal ->
-                    checkpoint:make();
+                    %checkpoint:make();
+		    ok;
                 quick -> ok
             end,
             DefragPeriod = 300,

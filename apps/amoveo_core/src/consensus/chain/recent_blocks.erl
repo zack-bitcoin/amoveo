@@ -52,7 +52,7 @@ read() -> gen_server:call(?MODULE, read).
 
 %assumes that the list is low to high.
 remove_before([], _) -> [];
-remove_before([{Height, Hash}|T], Bottom) when Bottom > Height ->
+remove_before([{Height, _Hash}|T], Bottom) when Bottom > Height ->
     remove_before(T, Bottom);
 remove_before(X, _) -> X.
 

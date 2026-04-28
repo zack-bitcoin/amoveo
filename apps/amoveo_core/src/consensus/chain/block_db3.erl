@@ -6,6 +6,7 @@
 read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
 compress/1, uncompress/1, compress/2, uncompress/2,
 compress2/1, absorb/1,
+write_in_reverse/2,
 update_pointer/2, exists/1, rewrite/1]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db3_dict()). %this file stores the #d record. The ram part of this gen server.
@@ -303,7 +304,11 @@ write(Block) ->
     Hash = block:hash(Block),
     write(Block, Hash),
     Hash.
+write_in_reverse(Block, Hash) ->
+    write2(Block, Hash, false).
 write(Block, Hash) ->
+    write2(Block, Hash, true).
+write2(Block, Hash, ForwardCheck) ->
     local_print("block db3 write 2\n"),
     Bool = (is_integer(Block#block.trees)),
     Bool2 = is_record(Block#block.trees, trees),
@@ -319,7 +324,11 @@ write(Block, Hash) ->
             ok
     end,
     gen_server:cast(?MODULE, {write, Block, Hash}),
-    recent_blocks:add(Hash, Block#block.height),
+    if
+	ForwardCheck ->
+	    recent_blocks:add(Hash, Block#block.height);
+	true -> ok
+    end,
     %if this is the top of the headers, then do a set_top(Hash).
     spawn(fun() ->
                   H = headers:top_with_block(),
