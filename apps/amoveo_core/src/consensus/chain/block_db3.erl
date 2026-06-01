@@ -312,8 +312,6 @@ write(Block) ->
     Hash = block:hash(Block),
     write(Block, Hash),
     Hash.
-write_in_reverse(Block, Hash) ->
-    write2(Block, Hash, false).
 write(Block, Hash) ->
     write2(Block, Hash, true).
 write2(Block, Hash, ForwardCheck) ->
@@ -341,11 +339,7 @@ write2(Block, Hash, ForwardCheck) ->
     gen_server:cast(?MODULE, {write, Block, Hash}),
     if
 	ForwardCheck ->
-<<<<<<< HEAD
 	    recent_blocks:add(Hash, Block#block.height, Block#block.trees);
-=======
-	    recent_blocks:add(Hash, Block#block.height);
->>>>>>> master
 	true -> ok
     end,
     %if this is the top of the headers, then do a set_top(Hash).

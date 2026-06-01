@@ -585,50 +585,24 @@ tx_spam_handler([Tx|T], IP) ->
 tx_spam_handler(Tx, IP) ->
     io:fwrite({Tx, IP}).
 
-<<<<<<< HEAD
 lookup_verkle_spot(Path, Loc) ->
     Stem = stem_verkle:get(Loc, amoveo),
     lookup_verkle_spot2(Path, Stem).
 lookup_verkle_spot2([], S) -> S;
 lookup_verkle_spot2([P], {stem, Root, Types, Pointers, Hashes}) ->
-=======
-
-lookup_verkle_spot(Path, Loc) ->
-    CFG = tree:cfg(amoveo),
-    Stem = stem_verkle:get(Loc, CFG),
-    lookup_verkle_spot2(Path, Stem).
-lookup_verkle_spot2([], S) -> S;
-lookup_verkle_spot2([P], {stem, Root, Types, Pointers, Hashes}) ->
-    CFG = tree:cfg(amoveo),
->>>>>>> master
     T = element(P, Types),
     N = element(P, Pointers),
     case T of
 	0 -> 0;
-<<<<<<< HEAD
 	1 -> stem_verkle:get(N, amoveo);
 	2 -> leaf_verkle:get(N, amoveo)
-=======
-	1 -> stem_verkle:get(N, CFG);
-	2 -> 
-	    L = leaf_verkle:get(N, CFG),
-	    {leaf, Key, _, <<Type, DL:56>>} = L,
-	    V = dump:get(DL, trees2:int2dump_name(Type)),
-	    {leaf, Key, V, <<Type>>}
-	    
->>>>>>> master
     end;
 lookup_verkle_spot2([P|Path], {stem, Root, Types, Pointers, Hashes}) ->
     T = element(P, Types),
     N = element(P, Pointers),
     case T of
 	1 ->
-<<<<<<< HEAD
 	    lookup_verkle_spot2(Path, stem_verkle:get(N, amoveo));
-=======
-	    CFG = tree:cfg(amoveo),
-	    lookup_verkle_spot2(Path, stem_verkle:get(N, CFG));
->>>>>>> master
 	_ -> 
 	    io:fwrite("error, this path doesn't exist."),
 	    {error, existence}
