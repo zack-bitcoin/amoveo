@@ -7,6 +7,7 @@
 *~
 .#*
 \#*
+rebar3
 .rebar
 erl_crash.dump
 keys_backup

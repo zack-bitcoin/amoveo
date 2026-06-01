@@ -6,9 +6,27 @@
 	 address_history/2,address_history/3,address_history/4,
 	 push_txs/0, key_full_to_light/1, iterator/2,
          recent_miners/1, all_keys/0, scan_db_top/0,
-         mining_pool_summary/1, flush_headers/0
+         mining_pool_summary/1, flush_headers/0, checkpoint/0, checkpoint_cron/0
 	]).
 -include("records.hrl").
+
+checkpoint_cron() ->
+    timer:sleep(1000*60*60*24),
+    spawn(fun()->
+		  checkpoint()
+	  end),
+    checkpoint_cron().
+
+checkpoint() ->
+    sync:stop(),
+    io:fwrite("starting automatic checkpoint process. Please do not turn syncing on, or do anything to change the consensus state until this completes.\n"),
+    timer:sleep(5000),
+    trees2:garbage_collect(),
+    checkpoint:make(true),
+    sync_mode:normal(),
+    io:fwrite("automatic checkpoint process completed normally. \n"),
+    sync:start().
+
 
 scan_db_top() ->
     CFG = tree:cfg(amoveo),
