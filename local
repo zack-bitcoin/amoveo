@@ -1,0 +1,59 @@
+#!/bin/awk -f
+
+
+BEGIN {
+#kill
+#scripts/config_setup.sh
+#local-build
+#local-clean
+#local-compile
+    #./_build/local/rel/amoveo_core/bin/amoveo_core console
+
+    #first clean up any data from previously using this
+    system("rm -rf ./_build/local/rel/amoveo_core/data/")
+    system("mkdir ./_build/local/rel/amoveo_core/data")
+    system("rm -rf ./_build/local/rel/amoveo_core/blocks/")
+    system("mkdir ./_build/local/rel/amoveo_core/blocks/")
+    system("rm -rf ./_build/local/rel/amoveo_core/checkpoints/")
+    system("mkdir ./_build/local/rel/amoveo_core/checkpoints/")
+    system("rm -rf ./_build/local/rel/amoveo_core/cleaner/")
+    system("mkdir ./_build/local/rel/amoveo_core/cleaner/")
+    system("mkdir ./_build/local/rel/amoveo_core/cleaner/data")
+    system("touch ./config/local/sys.config")
+    system("rm  ./config/local/sys.config")
+    system("rm -rf ./_build/local/rel/log/")
+    system("mkdir ./_build/local/rel/log")
+
+
+    system("./scripts/config_setup.sh")
+    config_string = "%% comment:\n {port, 3010},\n {kind, \"local\"},\n {internal_port, 3011},\n {swagger_port_internal, 3012},\n {swagger_port_external, 3013},\n {keys_priv, <<\"laPlc2mJq5PM9AjIABaGHKpT/miiL0MNhm7puUh89JI=\">>},\n {keys_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\n {keys_pass, \"\"},\n {request_frequency, 100},\n {master_pub, <<\"BIVZhs16gtoQ/uUMujl5aSutpImC4va8MewgCveh6MEuDjoDvtQqYZ5FeYcUhY/QLjpCBrXjqvTtFiN4li0Nhjo=\">>},\n {test_mode, true},\n"
+
+    #system("rm config/local/sys.config")
+    config_file = "config/local/sys.config"
+    if((getline unused < config_file) < 1) {
+	while((getline line < "config/sys.config.tmpl") > 0){
+	    if(line ~ /comment/){
+		print config_string >> config_file
+	    } else {
+		print line >> config_file
+	    }
+	}
+    }
+    close(config_file)
+    system("sleep 0.2")
+    system("./rebar3 as local release")
+    print("is compiling")
+    system("mkdir -p ./_build/local/rel/amoveo_core/ebin")
+    system("mkdir -p ./_build/local/rel/amoveo_core/precomputes")
+
+    #find out where the erlang libraries are stored, so we can access them when we are compiling C code.
+    system("ls /usr/lib/erlang/ | cat | awk 'match($0, /erts/) {print($0)}' > erts_version")
+    getline ERTS_VERSION < "erts_version"
+
+    system("gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/local/rel/amoveo_core/ebin/fr.so ./_build/local/lib/verkle/src/crypto/fr.c -I $ERL_ROOT/user/include/ -I /usr/lib/erlang/" ERTS_VERSION "/include ")
+    system("gcc -O2 -march=native -funroll-loops -fomit-frame-pointer -flto -fPIC -shared -o ./_build/local/rel/amoveo_core/ebin/ed25519.so ./_build/local/lib/verkle/src/crypto/ed25519.c -I $ERL_ROOT/user/include/ -I /usr/lib/erlang/" ERTS_VERSION "/include ")
+
+
+    system("./_build/local/rel/amoveo_core/bin/amoveo_core console")
+    
+}

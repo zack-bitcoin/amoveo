@@ -1,3 +1,5 @@
+#!/bin/awk -f
+
 function int_command(H, Peer,     x, ln, line, s, Ins) {
     Ins = "curl -s -i -d " H " " Peer " -o temp"
     x = system(Ins)

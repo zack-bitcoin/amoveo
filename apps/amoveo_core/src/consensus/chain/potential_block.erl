@@ -124,7 +124,12 @@ new_internal2(TP) ->
 	    Top = block:block_to_header(PB),%it would be way faster if we had a copy of the block's hash ready, and we just looked up the header by hash.
     %Top = headers:top_with_block(),
     %PB = block:get_by_hash(block:hash(Top)),
-	    Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
+	    %Block = block:make(Top, Txs, PB#block.trees, keys:pubkey()),
+	    Pointer = case recent_blocks:pointer(block:hash(PB)) of
+			  fail -> PB#block.trees;
+			  Px -> Px
+		      end,
+	    Block = block:make(Top, Txs, Pointer, keys:pubkey()),
             pool_command(),
             Block
     end.

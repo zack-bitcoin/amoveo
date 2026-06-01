@@ -155,7 +155,8 @@ absorb_with_block([F|T]) ->
     Hash = block:hash(F),
     %false = empty == block:get_by_hash(Hash),
     true = is_record(F, header),
-    ok = gen_server:call(?MODULE, {add_with_block, Hash, F}),
+    %ok = gen_server:call(?MODULE, {add_with_block, Hash, F}),
+    ok = gen_server:call(?MODULE, {add_with_block, Hash, F}, infinity),
     absorb_with_block(T).
 absorb(X) -> 
     H = block:height(),

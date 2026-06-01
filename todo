@@ -1,3 +1,13 @@
+get checkpointing working with the new code.
+
+
+
+checkpoint:sync2/2
+we want to sync the database bit by bit, which involves updating pointers written on the blocks.
+
+
+
+
 the code currently syncs from the oldest checkpoint on it's peer. We should fix this to use recent checkpoints once we are able to.
 
 

@@ -27,6 +27,8 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 
 [Amoveo on Telegram](https://t.me/amoveo)
 
+<!---
+
 [Amoveo on Discord. Русский чат. 中文聊天.](https://discord.gg/a52szJw)
 
 [Historic difficulty in depth.](https://amoveo.tools/)
@@ -34,7 +36,6 @@ Amoveo main net was launched at 11:00 AM GMT on March 2, 2018.
 [Amoveo website from the Exantech, the same people who wrote an iphone and android app](https://amoveo.io/)
 
 [Website for exploring oracles and governance variables](https://veo.sh/oracles)
-<!---
 
 [Statistics page to see historic difficulty, blocktime, hashrate, and more.](https://jimhsu.github.io/amoveo-stats/)
 --->

@@ -5,8 +5,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
 compress/1, uncompress/1, compress/2, uncompress/2,
-compress2/1, absorb/1,
-write_in_reverse/2,
+compress2/1, absorb/1, write_in_reverse/2,
 update_pointer/2, exists/1, rewrite/1]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db3_dict()). %this file stores the #d record. The ram part of this gen server.
@@ -26,12 +25,20 @@ update_pointer/2, exists/1, rewrite/1]).
 init(ok) -> 
     io:fwrite("block_db3 init\n"),
     process_flag(trap_exit, true),
+    spawn(fun() ->
+		  os:cmd("mkdir " ++ constants:root())
+	  end),
+    spawn(fun() ->
+		  os:cmd("touch " ++ ?LOC)
+	  end),
+    timer:sleep(100),
     {ok, F} = file:open(?blocks_loc, [write, read, raw, binary]),
     X = db:read(?LOC),
     %ZLIB = element(2, file:read_file("../../../../lzip_dictionary")),
     ZLIB = element(2, file:read_file(?lzip_file)),
     Ka = if
-             X == "" ->
+             is_record(X, d)  -> X;
+             true ->
                  G = block:genesis_maker(),
                  GH = block:hash(G),
                  CG = compress(G, ZLIB),
@@ -40,8 +47,7 @@ init(ok) ->
                  H2H = dict:store(GH, 1, dict:new()),
                  #d{hash2block = H2B, height2hash = H2H,
                     zlib_dictionary = ZLIB,
-                    file_pointer = P+1};
-             true -> X
+                    file_pointer = P+1}
          end,
     K2 = Ka#d{file = F},
     io:fwrite("block_db3 init done\n"),
@@ -299,6 +305,8 @@ zlib_reload(Bin) ->
 update_pointer(Hash, Pointer) ->
     local_print("block db3 update pointer\n"),
     gen_server:cast(?MODULE, {update_pointer, Hash, Pointer}).
+write_in_reverse(Block, Hash) ->
+    write2(Block, Hash, false).
 write(Block) ->
     local_print("block db3 write\n"),
     Hash = block:hash(Block),
@@ -310,23 +318,34 @@ write(Block, Hash) ->
     write2(Block, Hash, true).
 write2(Block, Hash, ForwardCheck) ->
     local_print("block db3 write 2\n"),
-    Bool = (is_integer(Block#block.trees)),
-    Bool2 = is_record(Block#block.trees, trees),
-    Bool3 = is_record(Block#block.trees, trees5),
+%    Bool = (is_integer(Block#block.trees)),
+%    Bool2 = is_record(Block#block.trees, trees),
+%    Bool3 = is_record(Block#block.trees, trees5),
+%    if
+%        Bool -> %local_print("cant store block 1\n"),
+%                ok;
+%        Bool2 -> %local_print("can't store block 2\n"),
+%                 ok;
+%        Bool3 -> %local_print("can't store block 3\n"),
+%                 ok;
+%        true -> %local_print(Block#block.trees)
+%            ok
+%    end,
+    F52 = forks:get(52),
+    BHeight = Block#block.height,
     if
-        Bool -> %local_print("cant store block 1\n"),
-                ok;
-        Bool2 -> %local_print("can't store block 2\n"),
-                 ok;
-        Bool3 -> %local_print("can't store block 3\n"),
-                 ok;
-        true -> %local_print(Block#block.trees)
-            ok
+	(BHeight > F52) ->
+	    true = is_integer(Block#block.trees);
+	true -> ok
     end,
     gen_server:cast(?MODULE, {write, Block, Hash}),
     if
 	ForwardCheck ->
+<<<<<<< HEAD
+	    recent_blocks:add(Hash, Block#block.height, Block#block.trees);
+=======
 	    recent_blocks:add(Hash, Block#block.height);
+>>>>>>> master
 	true -> ok
     end,
     %if this is the top of the headers, then do a set_top(Hash).

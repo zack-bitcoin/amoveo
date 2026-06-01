@@ -82,8 +82,13 @@ state2(Block) ->
 	    %{ok, PrevHeader} = headers:read(Header#header.prev_hash),
 	%    state2(PrevHeader);
 	%_ ->
-    Trees = Block#block.trees,
-    #tx_pool{block_trees = Trees, 
+    %Trees = Block#block.trees,
+    Trees = recent_blocks:pointer(block:hash(Block)),
+    Trees2 = case Trees of
+		 fail -> Block#block.trees;
+		 _ -> Trees
+	     end,
+    #tx_pool{block_trees = Trees2, 
              height = Block#block.height}.
     %end.
 checksum(Tx) ->

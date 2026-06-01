@@ -1,12 +1,13 @@
 .idea
 .edts
 *.iml
-_build
+/_build/
 /rel/
 *.db
 *~
 .#*
 \#*
+rebar3
 .rebar
 erl_crash.dump
 keys_backup

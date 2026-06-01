@@ -493,6 +493,7 @@ get(TreeID, Key, Dict, VP) when is_integer(VP) ->
         X -> X
     end;
 get(TreeID, Key, Dict, Trees) ->
+    %false = (Trees == fail),
     case TreeID:dict_get(Key, Dict) of
 	error -> 
 	    Tree = trees:TreeID(Trees),

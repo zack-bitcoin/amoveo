@@ -196,31 +196,6 @@ spend(ID0, Amount, Fee) ->
             io:fwrite("signing tx\n"),
             tx_maker0(spend_tx:make_dict(ID, Amount, Fee, keys:pubkey()))
     end.
-delete_account(ID0) ->
-    ID = decode_pubkey(ID0),
-    Cost = governance:value(
-             trees:get(governance, delete_acc_tx)),
-    delete_account(ID, ?Fee + Cost).
-delete_account(ID0, Fee) ->
-    ID = decode_pubkey(ID0),
-    tx_maker0(delete_account_tx:make_dict(ID, keys:pubkey(), Fee)).
-new_channel_tx(CID, Acc2, Bal1, Bal2, Delay) ->
-    Cost = governance:value(
-             trees:get(governance, nc)),
-    new_channel_tx(CID, Acc2, Bal1, Bal2, ?Fee+Cost, Delay).
-new_channel_tx(CID, Acc2, Bal1, Bal2, Fee, Delay) ->
-    %the delay is how many blocks you have to wait to close the channel if your partner disappears.
-    %delay is also how long you have to stop your partner from closing at the wrong state.
-    Tx = new_channel_tx:make_dict(CID, keys:pubkey(), Acc2, Bal1, Bal2, Delay, Fee),
-    keys:sign(Tx).
-new_channel_with_server(Bal1, Bal2, Delay, Expires) ->
-    new_channel_with_server(Bal1, Bal2, Delay, Expires, ?IP, ?Port).
-new_channel_with_server(Bal1, Bal2, Delay, Expires, IP, Port) ->
-    CID = find_id2(),
-    Cost = governance:value(
-             trees:get(governance, nc)),
-    new_channel_with_server(IP, Port, CID, Bal1, Bal2, ?Fee+Cost, Delay, Expires),
-    CID.
 find_id2() -> find_id2(1, 1).
 find_id2(_, _) -> crypto:strong_rand_bytes(32).
 %find_id(Name, Tree) ->
@@ -230,26 +205,6 @@ find_id2(_, _) -> crypto:strong_rand_bytes(32).
 %	{_, empty, _} -> N;
 %	_ -> find_id(Name, N+1, Tree)
 %    end.
-new_channel_with_server(IP, Port, CID, Bal1, Bal2, Fee, Delay, Expires) ->
-    Acc1 = keys:pubkey(),
-    {ok, Acc2} = talker:talk({pubkey}, IP, Port),
-    Tx = new_channel_tx:make_dict(CID, Acc1, Acc2, Bal1, Bal2, Delay, Fee),
-    {ok, ChannelDelay} = application:get_env(amoveo_core, channel_delay),
-    {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
-    %make sure the customer is aware of the time_value before they click this button. Don't request time_value now, it should have been requested earlier.
-    LifeSpan = Expires - api:height(),
-    true = LifeSpan > 0,
-    CFee = TV * (Delay + LifeSpan) * (Bal1 + Bal2) div 100000000,
-    SPK0 = new_channel_tx:spk(Tx, ChannelDelay),
-    SPK = SPK0#spk{amount = CFee},
-    STx = keys:sign(Tx),
-    SSPK = keys:sign(SPK),
-    Msg = {new_channel, STx, SSPK, Expires},
-    {ok, [SSTx, S2SPK]} = talker:talk(Msg, IP, Port),
-    io:fwrite(packer:pack(SSTx)),
-    tx_pool_feeder:absorb(SSTx),
-    channel_feeder:new_channel(Tx, S2SPK, Expires),
-    0.
 signed(Signed, Pub) ->
     X = element(2, Signed),
     S = element(3, Signed),
@@ -594,9 +549,10 @@ tree_common(TreeName, ID) ->
         _ -> X
     end.
 tree_common(TreeName, ID, BlockHash) ->
-    B = block:get_by_hash(BlockHash),
+    %B = block:get_by_hash(BlockHash),
     %T = block:trees(B),
-    T = B#block.trees,
+    %T = B#block.trees,
+    T = recent_blocks:pointer(BlockHash),
     X = trees:get(TreeName, ID, dict:new(), T),
     %X.
     case X of
@@ -652,7 +608,8 @@ confirmed_balance(P) ->
     Pubkey = decode_pubkey(P),
     M = max(api:height() - 10, 1),
     Block = block:get_by_height(M),
-    Trees = Block#block.trees,
+    %Trees = Block#block.trees,
+    Trees = recent_blocks:pointer(block:hash(Block)),
     Accounts = trees:accounts(Trees),
     {_, V, _} = accounts:get(Pubkey, Accounts),
     B1 = V#acc.balance,
@@ -721,50 +678,6 @@ mine_block(_, _, _) -> %only creates a headers, no blocks.
     WB = block:mine2(PB, 1000000),
     Header = block:block_to_header(WB),
     headers:absorb([Header]).
-channel_close() ->
-    channel_close(?IP, ?Port).
-channel_close(IP, Port) ->
-    Cost = governance:value(
-             trees:get(governance, ctc)),
-    channel_close(IP, Port, ?Fee+Cost).
-channel_close(IP, Port, Fee) ->
-    {ok, PeerId} = talker:talk({pubkey}, IP, Port),
-    {ok, CD} = channel_manager:read(PeerId),
-    SPK = signing:data(CD#cd.them),
-    Dict = (tx_pool:get())#tx_pool.dict,
-    Height = (block:get_by_hash(headers:top()))#block.height,
-    SS = CD#cd.ssthem,
-    SS = [],
-    {Amount, _Nonce, _Delay} = spk:dict_run(fast, SS, SPK, Height, 0, Dict),
-    CID0 = SPK#spk.cid,
-    Aid1 = SPK#spk.acc1,
-    CID = new_channel_tx:salted_id(CID0, Aid1),
-    Channel = trees:get(channels, CID),
-    Bal1 = channels:bal1(Channel),
-    Bal2 = channels:bal2(Channel),
-    {ok, TV} = talker:talk({time_value}, IP, Port),%We need to ask the server for their time_value.
-    Expires = CD#cd.expiration,
-    LifeSpan= max(0, Expires - Height),
-    CFee = TV * LifeSpan * (Bal1 + Bal2) div 100000000,
-    Tx = channel_team_close_tx:make_dict(CID, Amount-CFee,Fee),
-    STx = keys:sign(Tx),
-    {ok, SSTx} = talker:talk({channel_close, CID, keys:pubkey(), SS, STx}, IP, Port),
-    tx_pool_feeder:absorb(SSTx),
-    0.
-channel_solo_close() -> channel_solo_close({127,0,0,1}, 3010).
-channel_solo_close(IP, Port) ->
-    {ok, Other} = talker:talk({pubkey}, IP, Port),
-    channel_solo_close(Other).
-channel_solo_close(Other) ->
-    {ok, CD} = channel_manager:read(Other),
-    SSPK = CD#cd.them,
-    SS = CD#cd.ssthem,
-    Tx = channel_solo_close:make_dict(keys:pubkey(), ?Fee, keys:sign(SSPK), SS),
-    STx = keys:sign(Tx),
-    tx_pool_feeder:absorb(STx),
-    ok.
-channel_solo_close(_CID, Fee, SPK, ScriptSig) ->
-    tx_maker0(channel_solo_close:make_dict(keys:pubkey(), Fee, SPK, ScriptSig)).
 add_peer(0,0) ->
     peers:remove_all();
 add_peer(IP, Port) ->
@@ -807,6 +720,7 @@ keys_unlock(Password) ->
     keys:unlock(Password),
     0.
 keys_new(Password) ->
+    1=2,
     %WARNING!!! THIS DELETES YOUR PRIVATE KEY!!! 
     %there is a different command for saving your 
     %private key and deleting your password.
@@ -841,7 +755,8 @@ new_market(OID, OracleStartHeight, Expires, Period, LL, UL) -> %<<5:256>>, 4000,
     Height = TPG#tx_pool.height,
     {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
-    OldTrees = OldBlock#block.trees,
+    %OldTrees = OldBlock#block.trees,
+    OldTrees = recent_blocks:pointer(block:hash(OldBlock)),
     true = not_empty_oracle(OID, OldTrees),
     order_book:new_scalar_market(OID, Expires, Period, LL, UL, OracleStartHeight).
 new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
@@ -852,7 +767,8 @@ new_market(OID, Expires, Period) -> %<<5:256>>, 4000, 5
     Height = TPG#tx_pool.height,
     {ok, Confirmations} = application:get_env(amoveo_core, confirmations_needed),
     OldBlock = block:get_by_height(Height - Confirmations),
-    OldTrees = OldBlock#block.trees,
+    %OldTrees = OldBlock#block.trees,
+    OldTrees = recent_blocks:pointer(block:hash(OldBlock)),
     %io:fwrite("api oid is "),
     %io:fwrite(packer:pack([OID, OldTrees, Height-Confirmations])),
     %io:fwrite("\n"),
