@@ -6,7 +6,7 @@
          cs2v/1, restore_leaves_proof/3, remove_leaves_proof/2,
          multi_root_clean/0, garbage_collect/0,
 	 scan_verkle_many/2, multi_root_clean_stem/1,
-         val2int/1]).
+         val2int/1, int2dump_name/1]).
 
 -include("../../records.hrl").
 %-record(exist, {hash, height}).
@@ -2300,15 +2300,24 @@ test(8) ->
     success;
 test(9) ->
     %testing determinism
+<<<<<<< HEAD
     Loc = 1,
     A = #acc{pubkey = constants:master_pub(), 
 		balance = 1, 
 		nonce = 0},
+=======
+    CFG = tree:cfg(amoveo),
+    Loc = 1,
+    A = #acc{pubkey = constants:master_pub(), 
+	     balance = 1, 
+	     nonce = 0},
+>>>>>>> master
     V = serialize(A),
     As0 = [A],
     M1 = type2int(acc),
     %K = hash_key(accounts, constants:master_pub()),
     K = key(A),
+<<<<<<< HEAD
     Leaf = leaf_verkle:new(K, V, <<M1:8>>),
     io:fwrite("leaf hash \n"),
     <<128,214,116,226,197,188,212,188,190,165,60,34,139,88,120,52,209,216,35,134,227,246,108,48,37,49,131,40,163,134,76,140>> = leaf_verkle:hash(Leaf),
@@ -2316,6 +2325,17 @@ test(9) ->
     <<175,170,76,244,130,102,109,118,216,118,94,9,147,137,134,126,233,36,141,232,121,194,103,165,207,73,33,255,212,116,146,4>> = root_hash(Loc2), %should be
     %<<203,252,195,32,64,35,74,15,8,55,116,221,96,82,168,140,2,178,216,251,135,160,10,104,224,128,21,161,34,229,121,10>> = root_hash(Loc2), %is
 %success.
+=======
+    N = dump:put(V, int2dump_name(M1)),
+    Meta = <<M1, N:(7*8)>>,
+    H = hash:doit(V),
+    Leaf = leaf_verkle:new(K, H, Meta, CFG),
+    <<128,214,116,226,197,188,212,188,190,165,60,34,139,88,120,52,209,216,35,134,227,246,108,48,37,49,131,40,163,134,76,140>> = leaf_verkle:hash(Leaf, CFG),
+
+    Loc2 = store_things(As0, Loc),
+    <<175,170,76,244,130,102,109,118,216,118,94,9,147,137,134,126,233,36,141,232,121,194,103,165,207,73,33,255,212,116,146,4>> = root_hash(Loc2),
+    %success.
+>>>>>>> master
       {stem, _, {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -2324,7 +2344,13 @@ test(9) ->
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+<<<<<<< HEAD
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, _, _} = stem_verkle:get(Loc2, amoveo).
+=======
+       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, _, _} = stem_verkle:get(Loc2, CFG).
+    
+
+>>>>>>> master
 
 garbage_collect() ->
     tree2:quick_save(amoveo),
