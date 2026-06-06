@@ -1,3 +1,6 @@
+
+%This tx type is no longer in use. Smart contracts were generalized to give all the features of channels, so channel tx types are no longer needed.
+
 %If you did not get slashed, and you waited delay since channel_timeout, then this is how you close the channel and get the money out.
 
 -module(channel_team_close_tx2).

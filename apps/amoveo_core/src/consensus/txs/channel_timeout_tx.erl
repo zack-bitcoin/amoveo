@@ -1,3 +1,5 @@
+%This tx type is no longer in use. Smart contracts were generalized to give all the features of channels, so channel tx types are no longer needed.
+
 -module(channel_timeout_tx).
 -export([go/4, make/5, make_dict/3, cid/1, aid/1, spk_aid1/1, spk_aid2/1]).
 -include("../../records.hrl").

@@ -1,3 +1,5 @@
+%This tx type is no longer in use. Smart contracts were generalized to give all the features of channels, so channel tx types are no longer needed.
+
 -module(channel_solo_close).
 -export([go/4, make/5, make_dict/4, from/1, id/1, to_prove/2]).
 %-record(csc, {from, nonce, fee = 0, 
