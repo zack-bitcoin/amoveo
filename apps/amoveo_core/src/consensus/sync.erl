@@ -71,7 +71,8 @@ start() -> start(peers:all()).
 start(P) when not(is_list(P)) -> start([P]);
 start(P) ->
     %io:fwrite("sync start\n"),
-    sync_kill:start(),
+    %sync_kill:start(),
+    go = sync_kill:status(),
     H = api:height(),
     %{ok, Reverse} = application:get_env(amoveo_core, reverse_syncing),
     if
