@@ -18,14 +18,14 @@ checkpoint_cron() ->
     checkpoint_cron().
 
 checkpoint() ->
-    sync:stop(),
+    sync_kill:stop(),
     io:fwrite("starting automatic checkpoint process. Please do not turn syncing on, or do anything to change the consensus state until this completes.\n"),
     timer:sleep(5000),
     trees2:garbage_collect(),
     checkpoint:make(true),
     sync_mode:normal(),
     io:fwrite("automatic checkpoint process completed normally. \n"),
-    sync:start().
+    sync_kill:start().
 
 
 scan_db_top() ->
