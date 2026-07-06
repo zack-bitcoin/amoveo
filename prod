@@ -12,7 +12,8 @@ BEGIN {
     rebar_file = "rebar3"
     if((getline unused < rebar_file) < 1) {
 	#if we don't have rebar, then get it.
-	system("curl --output \"rebar3\" https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3 ")
+	#system("curl --output \"rebar3\" https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3 ")
+	system("./get_rebar")
     }
     if((getline unused < config_file) < 1) {
 	#if the file doesn't exist, then create it.

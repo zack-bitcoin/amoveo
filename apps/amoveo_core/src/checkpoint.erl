@@ -100,7 +100,7 @@ handle_call({make, Force}, _, X) ->
                          backup_trees(T, CR),
                          ok;%makes a copy of the tree files.
                      true ->
-                         tree2:quick_save(amoveo),
+                         file_bytes:quick_save(amoveo),
                          %VerkleTrees = ["accounts", "contracts", "markets", "matched", "oracles", "receipts", "sub_accs", "trades", "unmatched", "jobs", "futarchy", "futarchy_unmatched", "futarchy_matched"],
                          io:fwrite("quicksaving dumps\n"),
                          %lists:map(fun(S) ->
@@ -374,7 +374,7 @@ sync(IP, Port, CPL0) ->
 	    %CFG = tree:cfg(ID),
 	    timer:sleep(1000),
 	    %tree:reload_ets(ID),
-	    tree2:reload(ID),
+	    file_bytes:reload(ID),
 	    timer:sleep(3000),
 
 	    recent_blocks:change_pointer(BlockHash, Block#block.height, Block#block.trees),
@@ -390,7 +390,7 @@ sync(IP, Port, CPL0) ->
 	%	    io:fwrite(Stem0)
 	%    end,
 	    %Types = element(3, Stem0),
-	    NRoots = tree2:root_hash(Pointer, ID),
+	    NRoots = file_bytes:root_hash(Pointer, ID),
 	    NRoots2 = NBlock2#block.trees_hash,
 	    if
 		(NRoots2 == NRoots) -> ok;

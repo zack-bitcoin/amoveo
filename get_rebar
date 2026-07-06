@@ -1,0 +1,19 @@
+#!/bin/awk -f
+
+#Checks which version of erlang you are using, and downloads a compatible version of rebar3.
+
+BEGIN {
+    x = system("erl -noshell -eval 'io:fwrite(\"~s~n\", [erlang:system_info(otp_release)]), halt().' > temp")
+    getline ERL_VERSION < "temp"
+    print("erl version is " ERL_VERSION)
+    close("temp")
+    system("rm temp")
+    if(ERL_VERSION > 25){
+	address = "https://github.com/erlang/rebar3/releases/download/3.27.0/rebar3"
+    } else if (ERL_VERSION == 25){
+	address = "https://github.com/erlang/rebar3/releases/download/3.24.0/rebar3"
+    } else if ((ERL_VERSION == 23) || (ERL_VERSION == 24)){
+	address = "https://github.com/erlang/rebar3/releases/download/3.20.0/rebar3"
+    }
+    system("curl -L --output \"rebar3\" "address" && chmod +x rebar3")
+}

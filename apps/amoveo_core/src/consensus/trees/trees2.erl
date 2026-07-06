@@ -1626,7 +1626,7 @@ multi_root_clean(Pointers) ->%Pointers is in order of block height, low to high.
     io:fwrite("getting new pointers\n"),
     setup_clean_db(),
     NewPointers = multi_root_clean_stem(Pointers),
-    tree2:quick_save(cleaner),
+    file_bytes:quick_save(cleaner),
     TopStem1 = stem_verkle:get(hd(lists:reverse(NewPointers)), cleaner),
     io:fwrite("recover from the clean version\n"),
     recover_from_clean_version(),
@@ -1640,7 +1640,7 @@ multi_root_clean(Pointers) ->%Pointers is in order of block height, low to high.
 
 setup_clean_db() ->
     %should delete the contents of the files in the cleaner folder.
-    tree2:reset(cleaner),
+    file_bytes:reset(cleaner),
     EmptyStem = stem_verkle:new_empty(),
     1 = stem_verkle:put(EmptyStem, cleaner),
     ok.
@@ -1652,13 +1652,13 @@ one_root_maker(Pointer) ->
     NewPointer = one_root_clean_stem(Pointer),
     %copy the clean version over the main version.
     io:fwrite("one_root_clean: back up the cleaner db to the hard disk\n"),
-    tree2:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
+    file_bytes:quick_save(cleaner),%this is not backing up the consensus state to any files. Where are we writing and reading to???
 
     NewPointer.
 
 recover_from_clean_version() ->
     io:fwrite("one_root_clean: copying everything from the cleaner db back to the main db\n"),
-    tree2:quick_save(cleaner),
+    file_bytes:quick_save(cleaner),
     timer:sleep(1000),
     case application:get_env(amoveo_core, kind) of
 	{ok, "production"} ->
@@ -1672,7 +1672,7 @@ recover_from_clean_version() ->
 	    os:cmd("cp -r ./cleaner/data/cleaner_top.db ./data/amoveo_top.db")
     end,
     timer:sleep(1000),
-    tree2:reload(amoveo),
+    file_bytes:reload(amoveo),
     timer:sleep(1000),
     ok.
 
@@ -2327,7 +2327,7 @@ test(9) ->
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, _, _} = stem_verkle:get(Loc2, amoveo).
 
 garbage_collect() ->
-    tree2:quick_save(amoveo),
+    file_bytes:quick_save(amoveo),
     L = recent_blocks:read(),
     Blocks = lists:map(fun(H) -> block:get_by_hash(H) end, L),
     A = lists:map(fun(H) -> recent_blocks:pointer(H) end, L),
