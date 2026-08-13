@@ -1146,6 +1146,7 @@ restore_leaves_proof2([{I, 0}], T) ->
 %restore_leaves_proof2([{I, 1}], [L|T]) ->
 restore_leaves_proof2([{I, {T1 = <<_:256>>, V = <<_:256>>}}], [L|T]) ->
     %todo.
+    1=2, %unused
     case L of 
         {Tree, Key} ->
             {[{I, 0}], T};
@@ -1154,12 +1155,17 @@ restore_leaves_proof2([{I, {T1 = <<_:256>>, V = <<_:256>>}}], [L|T]) ->
             if
                 (T1 == KeyL) -> 
                     %restoring value
+		    %io:fwrite("restoring a value T1\n"),
                     {[{I, {KeyL, hash:doit(serialize(L))}}], T};
                 true ->
                     %value used to prove non-empty status of an element, to prove that a different element must be empty.
+		    %io:fwrite("proof of non-emptiness T1\n"),
                     {[{I, {T1, V}}], [L|T]}
             end
     end;
+restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], []) when is_binary(V) ->
+    %io:fwrite("proof of non-emptiness T2\n"),
+    {[{I, {T1, hash:doit(V)}}], []};
 restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], [L|T]) when is_binary(V) ->
     case L of 
         {Tree, Key} ->
@@ -1169,9 +1175,11 @@ restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], [L|T]) when is_binary(V) ->
             if
                 (T1 == KeyL) -> 
                     %restoring value
+		    %io:fwrite("restoring a value T2\n"),
                     {[{I, {KeyL, hash:doit(serialize(L))}}], T};
                 true ->
                     %value used to prove non-empty status of an element, to prove that a different element must be empty.
+		    %io:fwrite("proof of non-emptiness T2\n"),
                     {[{I, {T1, hash:doit(V)}}], [L|T]}
             end
     end;
@@ -1180,6 +1188,7 @@ restore_leaves_proof2([{I, {T1, V}}], [L|T]) ->
 restore_leaves_proof2(Proofs, [X = {_, _}|T]) ->
     %skip empty slot
     %io:fwrite("restore skip\n"),
+    %io:fwrite({Proofs, X, T}), %[{148, <<>>}, {21, {<<>>, <<>>}}], {accounts <<>>}, []
 %    io:fwrite({Proofs, X}),
     restore_leaves_proof2(Proofs, T);
 restore_leaves_proof2(Proofs, Leaves) 
@@ -1277,8 +1286,11 @@ verify_proof(Proof0, Things, Height) ->
             true -> Proof0
         end,
     %io:fwrite(" 1 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
+    %io:fwrite("trees2 before restore\n"),
+    %io:fwrite({Proof1, Things}),
     {Proof, []} = 
         restore_leaves_proof(Proof1, Things, Height-1),%breaks here...
+    %io:fwrite("trees2 aftere restore\n"),
     %io:fwrite(" 2 trees2 verify_proof binary memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
     {true, Leaves, ProofTree} = 
         verify_verkle:proof(Proof),

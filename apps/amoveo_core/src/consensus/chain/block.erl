@@ -923,11 +923,15 @@ check0(Block) ->
             ok
     end,
     Facts = Block#block.proofs,
+
+    %Header = block_to_header(Block),  %%
+
     {ok, Header} = headers:read(BlockHash),
     Roots = Block#block.roots,
     PrevStateHash = roots_hash(Roots),
     {ok, PrevHeader} = headers:read(Block#block.prev_hash),
     PrevStateHash = PrevHeader#header.trees_hash,
+
     %io:fwrite(" 2 block:check0 system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
 
     %block.roots == prev_block.trees_hash

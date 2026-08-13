@@ -104,7 +104,7 @@ test(1) ->
     io:fwrite(" create_account tx test \n"),
     %create account, spend, delete account
     restart_chain(),
-    mine_blocks(10),
+    mine_blocks(30),
     BP = block:get_by_height(block:height()),
     PH = block:hash(BP),
     %Trees = block_trees(BP),
