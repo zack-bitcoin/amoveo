@@ -1019,7 +1019,9 @@ check3(OldBlock, Block) ->
     %io:fwrite("block check3 1\n"),
     %io:fwrite(packer:pack(erlang:timestamp())),
     %io:fwrite("\n"),
-    {ok, Header} = headers:read(BlockHash),
+
+    {ok, Header} = headers:read(BlockHash), %%
+    %Header = block_to_header(Block), %%
     Height = Block#block.height,
     F52 = forks:get(52),
     if

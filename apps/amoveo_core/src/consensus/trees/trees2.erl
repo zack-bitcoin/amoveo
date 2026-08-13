@@ -134,6 +134,9 @@ update_proof(L, ProofTree) ->
     %io:fwrite({L, ProofTree}),
     %L is a list of accounts and contracts and whatever.
     Leaves = cs2v(L),
+    %Text = io_lib:format("~p.~n", [{ProofTree, Leaves}]),
+    %file:write_file("/home/zack/bad_proof", Text),
+    %io:fwrite({ProofTree, Leaves}),
     verify_verkle:update(
       ProofTree, Leaves).
 
