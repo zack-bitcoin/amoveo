@@ -1144,9 +1144,9 @@ restore_leaves_proof2([{I, 0}], T) ->
     %io:fwrite("restore 0\n"),
     {[{I, 0}], T};
 %restore_leaves_proof2([{I, 1}], [L|T]) ->
-restore_leaves_proof2([{I, {T1 = <<_:256>>, V = <<_:256>>}}], [L|T]) ->
+restore_leaves_proof2([{I, {T1 = <<_:256>>, V = <<_:256>>}}], [L|T]) when (1==2) ->
     %todo.
-    1=2, %unused
+    %1=2, %unused
     case L of 
         {Tree, Key} ->
             {[{I, 0}], T};
