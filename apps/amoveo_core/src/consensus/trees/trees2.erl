@@ -21,10 +21,11 @@
     
 
 root_hash(Loc) ->
-    io:fwrite("calculating root hash of " ++ integer_to_list(Loc) ++ "\n"),
-    stem_verkle:hash_point(
+    RH = stem_verkle:hash_point(
       stem_verkle:root(
-        stem_verkle:get(Loc, amoveo))).
+        stem_verkle:get(Loc, amoveo))),
+    %io:fwrite("calculating root hash of " ++ integer_to_list(Loc) ++ " " ++ binary_to_list(base64:encode(RH)) ++ "\n"),
+    RH.
 
 range(N, N) ->
     [N];
@@ -129,12 +130,14 @@ cs2v([A|T]) ->
 %            [Leaf|cs2v(T)]
 %    end.
     
-
+%also see store_things
 update_proof(L, ProofTree) ->
     %io:fwrite("trees2 update proof\n"),
     %io:fwrite({L, ProofTree}),
     %L is a list of accounts and contracts and whatever.
     Leaves = cs2v(L),
+
+    %amoveo_utils:write_term("/home/zack/verify_step", Leaves),
     %Text = io_lib:format("~p.~n", [{ProofTree, Leaves}]),
     %file:write_file("/home/zack/bad_proof", Text),
     %io:fwrite({ProofTree, Leaves}),
@@ -214,6 +217,8 @@ store_things(Things, Loc) ->
     %io:fwrite({Things}),
     false = is_record(hd(Things), consensus_state),
     V = cs2v(Things),
+    %amoveo_utils:write_term("/home/zack/store_step", V),
+    
     store_leaves(V, Loc).
 store_leaves(V, Loc) ->
     V2 = lists:sort(fun({leaf, <<A:256>>, _, _}, 

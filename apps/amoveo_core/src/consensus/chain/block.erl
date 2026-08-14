@@ -14,6 +14,7 @@
          header_by_height/1, 
          prev_hash/2,
          make_roots/1, sum_amounts_helper/5,
+	 verify_unmined/1,
          test/0]).
 %Read about why there are so many proofs in each block in docs/design/light_nodes.md
 -include("../../records.hrl").
@@ -320,11 +321,14 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     end,
     %io:fwrite({lists:map(fun(X) -> dict:find(X, NewDict4) end, ND4_Keys)}),
     %just governance 28, and a pubkey.
+    %amoveo_utils:write_term("/home/zack/dict1", NewDict4),
+    io:fwrite("inserting into tree\n"),
     NewTrees0 = 
         tree_data:dict_update_trie(
           Trees, 
           NewDict4, %maps 32 byte hash to #consensus_state objects
           HeightCheck, ProofTree, RootHash),
+    %amoveo_utils:write_term("/home/zack/new_trees", NewTrees0),
     F10 = forks:get(10),
     F32 = forks:get(32),
     F35 = forks:get(35),
@@ -498,6 +502,7 @@ make(Header, Txs0, Trees, Pub) ->
 
     HeightCheck = Height + 1,
     %io:fwrite("block make before tree maker\n"),
+    %amoveo_utils:write_term("/home/zack/dict", NewDict4),
     NewTrees = trees_maker(HeightCheck, Trees, NewDict4, unknown, unknown),
     %io:fwrite("block make after tree maker\n"),
 
@@ -787,6 +792,7 @@ proofs_roots_match({Proof, _Leaves}, R)
         end,
     T1 = ed:decompress_point(hd(Tree)),
     R2 = stem_verkle:hash_point(T1),
+    %io:fwrite("proofs roots match root hash is " ++ binary_to_list(base64:encode(R2)) ++ "n"),
     R2 == R;
 %io:fwrite({Proof, R}),
 %    1=2,
@@ -875,7 +881,42 @@ proofs_roots_match([P|T], R) when is_record(R, roots5)->
 proofs_roots_match(A, B) -> 
     io:fwrite({A, B}),
     1=2.
-                            
+       
+
+verify_unmined(Block) ->
+    %for testing Nurposes. does parts of verification, but on a block that doesn't have PoW
+    Txs = Block#block.txs,
+    Header = block_to_header(Block),
+    BlockHash = hash(Header),
+    Height = Block#block.height,
+    Facts = Block#block.proofs,
+    {Proof, Leaves} = Facts,
+    {true, ProofTree} = trees2:verify_proof(Proof, Leaves, Height),
+    Dict = proofs:facts_to_dict(Facts, dict:new()),
+    NewDict = txs:digest(Txs, Dict, Height),
+    X = {Dict, %consensus state proved by this block.
+     NewDict, %consensus state after processing this block.
+     ProofTree, %in verkle mode, this is the datastructure we can use to update the database. (maybe we use this to calculate the new root?)
+	 BlockHash},
+    B2 = Block#block{trees = X},
+    
+    NewDict2 = NewDict,
+    MinerAddress = element(2, hd(Txs)),
+    Txs0 = tl(Txs),
+    MinerReward = miner_fees(Txs0),
+    GovFees = gov_fees(Txs0, NewDict2, Height),
+    MinerAccount2 = accounts:dict_update_or_create(MinerAddress, NewDict2, MinerReward - GovFees, none),
+    NewDict3 = accounts:dict_write(MinerAccount2, NewDict2),
+    NewDict4 = remove_repeats(NewDict3, Dict, Height),
+    %NEwDict4, ProofTree from check3
+
+    OldTrees = recent_blocks:pointer(block:hash(block:top())),
+    TreesHash = Block#block.trees_hash,
+    HeightCheck = Height,
+    NewTrees3 = trees_maker(HeightCheck, OldTrees, NewDict4, ProofTree, TreesHash),
+    TreesHash2 = trees:root_hash(NewTrees3),
+    io:fwrite("new root: " ++ binary_to_list(base64:encode(TreesHash2)) ++ "\n").
+                     
 
 
 verify(Block) ->
@@ -959,6 +1000,7 @@ check0(Block) ->
                 {true, ProofTree0} = 
                     trees2:verify_proof(
                       Proof, Leaves, Height),
+		%io:fwrite("proof hd " ++ binary_to_list(base64:encode(stem_verkle:hash_point(hd(ProofTree0)))) ++ "\n"),
                 %io:fwrite(" 6 block:check0 system memory " ++ integer_to_list(erlang:memory(binary)) ++ " \n"),
                 false = is_integer(ProofTree0),
                 Dict2 = proofs:facts_to_dict(

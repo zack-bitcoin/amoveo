@@ -126,6 +126,7 @@ doit({block, N}) when (is_integer(N) and (N > -1))->
 doit({block, 2, H}) ->
     {ok, block:get_by_hash(H)};
 doit({blocks, Many, N}) -> 
+    true = Many < 1001,
     X = block_db3:read(N, Many+N),
     {ok, X};
 doit({blocks, -1, Many, Highest}) ->

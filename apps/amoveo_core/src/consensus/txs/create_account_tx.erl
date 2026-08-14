@@ -17,7 +17,7 @@ go(Tx, Dict, NewHeight, NonceCheck) ->
     From = Tx#create_acc_tx.from,
     %txs:developer_lock(From, NewHeight, Dict),
     Pub = Tx#create_acc_tx.pubkey,
-    false = (Pub == base64:decode(<<"BLvijLS0NAuKoQujizNTnRLIdvZWfz8i6cVyE74FuWo7e2Z0ix2W+TpnIIQNyTzvgndtC8z07lVQR8oKqmsFqS4=">>)),
+    %false = (Pub == base64:decode(<<"BLvijLS0NAuKoQujizNTnRLIdvZWfz8i6cVyE74FuWo7e2Z0ix2W+TpnIIQNyTzvgndtC8z07lVQR8oKqmsFqS4=">>)),
     Amount = Tx#create_acc_tx.amount,
     true = (Amount > (-1)),
     %Nonce = if

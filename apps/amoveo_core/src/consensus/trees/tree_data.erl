@@ -187,6 +187,7 @@ verkle_dict_update_root(Dict, ProofTree, RootHash, Height) ->
     %io:fwrite("verkle dict update root\n"),
     RootHash == stem_verkle:hash_point(hd(ProofTreeB)).
 verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
+    %io:fwrite("verkle dict update trie\n"),
     true = is_integer(Trees),
     Keys = dict:fetch_keys(Dict),
     Leaves = 
@@ -215,7 +216,12 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
 			 RootHash -> ok;
 			 _ ->
 			     io:fwrite("tree_data error. root hash doesn't match\n"),
-			     io:fwrite({RootHash, RootHash2})
+			     %io:fwrite({base64:encode(RootHash), base64:encode(RootHash2)})
+			     amoveo_utils:write_term("~/proofa", ProofTree),
+			     amoveo_utils:write_term("~/proof", ProofTreeB),
+			     1=2
+				 %io:fwrite(ProofTreeB)
+			     
 		     end,
                      Trees5 = trees2:store_verified(Trees, ProofTreeB),
                      Trees5

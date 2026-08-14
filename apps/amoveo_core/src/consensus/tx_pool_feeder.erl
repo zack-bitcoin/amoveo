@@ -479,6 +479,7 @@ absorb_internal2(SignedTx, PID) ->
                     %Facts = proofs:prove(Querys, F#tx_pool.block_trees),
                     %Facts = trees2:get_proof(Querys, F#tx_pool.block_trees, fast),
                                 Facts20 = trees2:get(Querys, F#tx_pool.block_trees),
+				%io:fwrite(Facts20),
                     %io:fwrite("tx_pool_feeder got proofs.\n"),
                     %io:fwrite(Facts20),
                     %Dict = proofs:facts_to_dict(Facts20, dict:new()),

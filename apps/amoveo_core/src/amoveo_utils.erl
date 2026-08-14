@@ -7,6 +7,7 @@
 	 push_txs/0, key_full_to_light/1, iterator/2,
          recent_miners/1, all_keys/0, scan_db_top/0,
          mining_pool_summary/1, flush_headers/0, checkpoint/0, checkpoint_cron/0,
+	 write_term/2,
 	 recent_create_account/0
 	]).
 -include("records.hrl").
@@ -399,4 +400,8 @@ flush_headers_loop(Height, Many) ->
     headers:absorb_with_block([H]),
     flush_headers_loop(Height + 1, Many - 1).
            
-    
+write_term(Filename, Term) ->
+    % Format each term with a trailing period and newline
+    X = io_lib:format("~tp.~n", [Term]),
+    Binary = unicode:characters_to_binary(X),
+    file:write_file(Filename, Binary).
