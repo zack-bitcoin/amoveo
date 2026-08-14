@@ -21,6 +21,7 @@
     
 
 root_hash(Loc) ->
+    io:fwrite("calculating root hash of " ++ integer_to_list(Loc) ++ "\n"),
     stem_verkle:hash_point(
       stem_verkle:root(
         stem_verkle:get(Loc, amoveo))).
@@ -1172,7 +1173,7 @@ restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], []) when is_binary(V) ->
 	     <<_:256>> -> V;
 	     _ -> hash:doit(V)
 	 end,
-    {[{I, {T1, hash:doit(V)}}], []};
+    {[{I, {T1, V2}}], []};
 restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], [L|T]) when is_binary(V) ->
     case L of 
         {Tree, Key} ->
@@ -1191,7 +1192,7 @@ restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], [L|T]) when is_binary(V) ->
 			     <<_:256>> -> V;
 			     _ -> hash:doit(V)
 			 end,
-                    {[{I, {T1, hash:doit(V)}}], [L|T]}
+                    {[{I, {T1, V2}}], [L|T]}
             end
     end;
 restore_leaves_proof2([{I, {T1, V}}], [L|T]) ->

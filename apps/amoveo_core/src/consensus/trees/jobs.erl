@@ -38,6 +38,8 @@ dict_write(Job, Meta, Dict) ->
     ID = Job#job.id,
     csc:update({jobs, ID}, Job, Dict).
 
+rat_exponent(_N, _D, 0) ->
+    {1, 1};
 rat_exponent(N, D, 1) ->
     {N, D};
 rat_exponent(N, D, E) when (E rem 2 == 0) ->

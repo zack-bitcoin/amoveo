@@ -6,7 +6,8 @@
 	 address_history/2,address_history/3,address_history/4,
 	 push_txs/0, key_full_to_light/1, iterator/2,
          recent_miners/1, all_keys/0, scan_db_top/0,
-         mining_pool_summary/1, flush_headers/0, checkpoint/0, checkpoint_cron/0
+         mining_pool_summary/1, flush_headers/0, checkpoint/0, checkpoint_cron/0,
+	 recent_create_account/0
 	]).
 -include("records.hrl").
 
@@ -122,6 +123,48 @@ tuples2lists([H|T]) ->
 tuples2lists(X) -> X.
 
 
+recent_create_account() ->
+    H = block:height(),
+    recent_create_account2(H).
+recent_create_account2(0) ->
+    io:fwrite("no create account tx found.\n");
+recent_create_account2(H) ->
+    io:fwrite("check height " ++ integer_to_list(H) ++ "\n"),
+    B = block:get_by_height(H),
+    Txs = tl(B#block.txs),
+    Bool = contains_create_account(Txs),
+    if
+	Bool -> io:fwrite("block height: " ++ integer_to_list(H) ++ " has a create-account tx.\n"),
+		ok;
+	true -> recent_create_account2(H-1)
+    end.
+contains_create_account([]) -> false;
+contains_create_account([Tx|T]) -> 
+    X = element(1, element(2, Tx)),
+    case X of
+	create_acc_tx -> true;
+	multi_tx ->
+	    Txs = element(5, element(2, Tx)),
+	    Bool2 = contains_create_account2(Txs),
+	    if
+		Bool2 -> io:fwrite("found in multitx\n"),
+			 true;
+		true -> contains_create_account(T)
+	    end;
+	_ -> 
+	    io:fwrite("was type " ++ atom_to_list(X) ++ "\n"),
+	    contains_create_account(T)
+    end.
+contains_create_account2([]) -> false;
+contains_create_account2([Tx|T]) -> 
+    X = element(1, Tx),
+    case X of
+	create_acc_tx -> true;
+	_ -> 
+	    io:fwrite("WAs type " ++ atom_to_list(X) ++ "\n"),
+	    contains_create_account2(T)
+    end.
+	    
 
 block_rewards(A) ->
     T = block:top(),
