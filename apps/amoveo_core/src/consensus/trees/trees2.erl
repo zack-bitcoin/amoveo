@@ -1168,7 +1168,11 @@ restore_leaves_proof2([{I, {T1 = <<_:256>>, V = <<_:256>>}}], [L|T]) when (1==2)
     end;
 restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], []) when is_binary(V) ->
     %io:fwrite("proof of non-emptiness T2\n"),
-    {[{I, {T1, hash:doit(V)}}], []};
+    V2 = case V of
+	     <<_:256>> -> V;
+	     _ -> hash:doit(V)
+	 end,
+    {[{I, {T1, V2}}], []};
 restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], [L|T]) when is_binary(V) ->
     case L of 
         {Tree, Key} ->
@@ -1183,7 +1187,11 @@ restore_leaves_proof2([{I, {T1 = <<_:256>>, V}}], [L|T]) when is_binary(V) ->
                 true ->
                     %value used to prove non-empty status of an element, to prove that a different element must be empty.
 		    %io:fwrite("proof of non-emptiness T2\n"),
-                    {[{I, {T1, hash:doit(V)}}], [L|T]}
+		    V2 = case V of
+			     <<_:256>> -> V;
+			     _ -> hash:doit(V)
+			 end,
+                    {[{I, {T1, V2}}], [L|T]}
             end
     end;
 restore_leaves_proof2([{I, {T1, V}}], [L|T]) ->
