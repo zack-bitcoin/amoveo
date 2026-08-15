@@ -322,7 +322,7 @@ trees_maker(HeightCheck, Trees, NewDict4, ProofTree, RootHash) ->
     %io:fwrite({lists:map(fun(X) -> dict:find(X, NewDict4) end, ND4_Keys)}),
     %just governance 28, and a pubkey.
     %amoveo_utils:write_term("/home/zack/dict1", NewDict4),
-    io:fwrite("inserting into tree\n"),
+    %io:fwrite("inserting into tree\n"),
     NewTrees0 = 
         tree_data:dict_update_trie(
           Trees, 

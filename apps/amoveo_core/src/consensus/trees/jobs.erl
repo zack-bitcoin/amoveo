@@ -43,11 +43,13 @@ rat_exponent(_N, _D, 0) ->
 rat_exponent(N, D, 1) ->
     {N, D};
 rat_exponent(N, D, E) when (E rem 2 == 0) ->
+    E>0,
     N2 = N*N,
     D2 = D*D,
     {N3, D3} = maybe_simplify(N2, D2),
     rat_exponent(N3, D3, E div 2);
 rat_exponent(N, D, E) ->
+    E>0,
     {N2, D2} = rat_exponent(N, D, E-1),
     N3 = N * N2,
     D3 = D * D2,
@@ -113,7 +115,6 @@ salary_update(Value,
     EC = curve(BlockHeight),
     %N64 = 18446744073709551616,
     Blocks = BlockHeight - OldHeight,
-    true = (Blocks > 0),
     %Salary2 = Value * Salary0 div N64,
     Salary2 = salary_per_block(Value, Salary0),
     %salary2 is how much you are paid per block.
@@ -138,7 +139,6 @@ salary_update(Value,
             S1 = Balance - MinReserve,
             Blocks1 = (S1 div Salary2) + 1,
             Blocks2 = Blocks - Blocks1,
-	    true = (Blocks2 > 0),
             R = rat_exponent(EC - 1, EC, Blocks2),
             Bal2 = apply_proportion(R, MinReserve),
             Payment = S1 + (MinReserve - Bal2),

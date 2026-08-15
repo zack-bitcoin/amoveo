@@ -316,6 +316,11 @@ write(Block, Hash) ->
     write2(Block, Hash, true).
 write2(Block, Hash, ForwardCheck) ->
     local_print("block db3 write 2\n"),
+    Txs = case application:get_env(amoveo_core, kind) of
+	      {ok, "production"} ->
+		  (tx_pool:get())#tx_pool.txs;
+	      _ -> []
+	  end,
 %    Bool = (is_integer(Block#block.trees)),
 %    Bool2 = is_record(Block#block.trees, trees),
 %    Bool3 = is_record(Block#block.trees, trees5),
@@ -349,7 +354,8 @@ write2(Block, Hash, ForwardCheck) ->
                   if
                       (Hash2 == Hash) ->
                           set_top(Hash),
-                          tx_pool_feeder:absorb_dump2(Block, []),
+                          tx_pool_feeder:absorb_dump2(Block, Txs),
+                          %tx_pool_feeder:absorb_dump2(Block, []),
                           %tx_reserver:restore(),
                           potential_block:new();
                       true -> ok

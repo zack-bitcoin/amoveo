@@ -1,4 +1,12 @@
 when we make a block
+it uses trees2:store_things
+it uses store_verkle:batch/3
+
+when we verify a block
+it uses trees2:update_proof
+it uses verify_verkle:update/2
+
+
 tree_data:verkle_dict_update_trie is using trees2:update_proof to get the new root.
 
 
