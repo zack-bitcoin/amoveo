@@ -4152,6 +4152,8 @@ test(68) ->
     {Proof, Leaves} = trees2:get_proof([{accounts, keys:pubkey()}], TP, fast),
     {true, _ProofTree} = trees2:verify_proof(Proof, Leaves, block:height()),
     success;
+
+
     
  
 test(unused) ->
@@ -5055,6 +5057,46 @@ test(80) ->
     %finally, lets make sure that tx_reserve:restore() works for this situation as well.
 
 
+    success;
+test(81) ->
+    %verifying that oracle_win txs don't print veo.
+    Question = <<>>,
+    Fee = constants:initial_fee() + 20,
+    restart_chain(),
+    mine_blocks(3),
+    Tx = oracle_new_tx:make_dict(constants:master_pub(), Fee, Question, block:height() + 1, 0, 0), %Fee, question, start, id gov, govamount
+    OID = oracle_new_tx:id(Tx),
+    Stx = keys:sign(Tx),
+    absorb(Stx),
+    potential_block:new(),
+    mine_blocks(1),
+    OIL_gov = trees:get(governance, oracle_initial_liquidity),
+    OIL = governance:value(OIL_gov),
+    Tx2 = oracle_bet_tx:make_dict(constants:master_pub(), Fee, OID, 1, OIL+1), 
+    Stx2 = keys:sign(Tx2),
+    absorb(Stx2),
+    mine_blocks(1),
+    Tx3 = oracle_close_tx:make_dict(constants:master_pub(),Fee, OID),
+    Stx3 = keys:sign(Tx3),
+    absorb(Stx3),
+    mine_blocks(1),
+    Oracle = trees:get(oracles, OID),
+    Tx4 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
+    Stx4 = keys:sign(Tx4),
+    absorb(Stx4),
+    Tx5 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),
+    Stx5 = keys:sign(Tx5),
+    absorb(Stx5),
+    mine_blocks(1),
+    Tx6 = oracle_unmatched_tx:make_dict(constants:master_pub(), Fee, OID),
+    Stx6 = keys:sign(Tx6),
+    absorb(Stx6),
+    Tx7 = oracle_winnings_tx:make_dict(constants:master_pub(), Fee, OID),
+    Stx7 = keys:sign(Tx7),
+    absorb(Stx7),
+    %mine_blocks(1),
+%15276181137
+%15275442275
     success;
 
 test(futarchy) ->

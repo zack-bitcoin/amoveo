@@ -43,13 +43,13 @@ rat_exponent(_N, _D, 0) ->
 rat_exponent(N, D, 1) ->
     {N, D};
 rat_exponent(N, D, E) when (E rem 2 == 0) ->
-    E>0,
+    true = (E>0),
     N2 = N*N,
     D2 = D*D,
     {N3, D3} = maybe_simplify(N2, D2),
     rat_exponent(N3, D3, E div 2);
 rat_exponent(N, D, E) ->
-    E>0,
+    true = (E>0),
     {N2, D2} = rat_exponent(N, D, E-1),
     N3 = N * N2,
     D3 = D * D2,

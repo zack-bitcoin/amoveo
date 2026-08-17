@@ -1,3 +1,6 @@
+Make block rewards unspendable for 100 blocks.
+
+
 when we make a block
 it uses trees2:store_things
 it uses store_verkle:batch/3
