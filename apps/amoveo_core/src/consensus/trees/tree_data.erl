@@ -199,7 +199,7 @@ verkle_dict_update_trie(Trees, Dict, ProofTree, RootHash, Height) ->
                       end,
                   V
           end, Keys),
-    io:fwrite(Leaves),
+    %io:fwrite(Leaves),
     Leaves2 = lists:filter(
                 fun(X) -> not(X == 0) end, Leaves),
     %we never delete from the verkle tree, so we can remove anything that seems empty.
