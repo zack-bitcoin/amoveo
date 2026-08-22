@@ -55,7 +55,12 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
 data_new() -> tx_pool:get().
-get() -> gen_server:call(?MODULE, data_new).
+get() -> 
+    case code:is_loaded(tx_pool) of
+	false -> [];
+	_ ->
+	    gen_server:call(?MODULE, data_new)
+    end.
 drop_txs() -> 
     gen_server:call(?MODULE, drop_txs).
 dump() -> 
