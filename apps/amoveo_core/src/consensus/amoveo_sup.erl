@@ -7,8 +7,8 @@
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 %-define(trees, [accounts, channels, existence, oracles, orders, governance, matched, unmatched]).
 -define(keys, [sync_kill, sync_mode, keys, recent_blocks, block_hashes, 
-               block_db3,
                headers, tx_pool, 
+               block_db3,
 	       peers, blacklist_peer, tx_pool_feeder, 
 	       mine, %channel_manager, channel_feeder,
 	       request_frequency, sync, secrets,

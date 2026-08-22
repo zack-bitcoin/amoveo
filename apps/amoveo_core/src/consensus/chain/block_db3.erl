@@ -3,7 +3,7 @@
 -module(block_db3).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
+read/1, read/2, read_compressed/2, write0/1, write/1, write/2, set_top/1, genesis/0, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
 compress/1, uncompress/1, compress/2, uncompress/2,
 compress2/1, absorb/1, write_in_reverse/2,
 update_pointer/2, exists/1, rewrite/1]).
@@ -307,17 +307,21 @@ update_pointer(Hash, Pointer) ->
     gen_server:cast(?MODULE, {update_pointer, Hash, Pointer}).
 write_in_reverse(Block, Hash) ->
     write2(Block, Hash, false).
+write0(Block) ->
+    write_helper(Block, startup).
 write(Block) ->
+    write_helper(Block, normal).
+write_helper(Block, Type) ->
     local_print("block db3 write\n"),
     Hash = block:hash(Block),
-    write(Block, Hash),
+    write(Block, Hash, Type),
     Hash.
-write(Block, Hash) ->
-    write2(Block, Hash, true).
-write2(Block, Hash, ForwardCheck) ->
+write(Block, Hash, Type) ->
+    write2(Block, Hash, Type, true).
+write2(Block, Hash, Type, ForwardCheck) ->
     local_print("block db3 write 2\n"),
-    Txs = case application:get_env(amoveo_core, kind) of
-	      {ok, "production"} ->
+    Txs = case {Type, application:get_env(amoveo_core, kind)} of
+	      {normal, {ok, "production"}} ->
 		  (tx_pool:get())#tx_pool.txs;
 	      _ -> []
 	  end,
