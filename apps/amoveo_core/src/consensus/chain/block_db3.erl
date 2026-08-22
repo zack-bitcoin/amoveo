@@ -6,7 +6,7 @@
 read/1, read/2, read_compressed/2, write/1, write/2, set_top/1, genesis/0, check/0, make_zlib_dictionary/0, get_pid/0, zlib_dictionary/0, zlib_reload/1,
 compress/1, uncompress/1, compress/2, uncompress/2,
 compress2/1, absorb/1, write_in_reverse/2,
-write2_0,
+write2_0/4,
 update_pointer/2, exists/1, rewrite/1]).
 -include("../../records.hrl").
 -define(LOC, constants:block_db3_dict()). %this file stores the #d record. The ram part of this gen server.
