@@ -1677,7 +1677,7 @@ initialize_chain() ->
     GH = block:hash(Header0),
     if
         Bool -> 
-            block_db3:write0(GB, GH);
+            block_db3:write(GB, GH);
         true -> ok
     end,
     gen_server:call(headers, {add, GH, Header0, 1}),

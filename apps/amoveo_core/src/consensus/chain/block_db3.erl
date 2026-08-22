@@ -290,8 +290,6 @@ read(Hash) ->
     local_print("block db3 read\n"),
     gen_server:call(?MODULE, {read, Hash}).
 read(Start, End) ->
-    local_print("block db3 read2\n"),
-    %1=2,
     gen_server:call(?MODULE, {read, Start, End, uncompressed}).
 read_compressed(Start, End) ->
     local_print("block db3 read compressed\n"),
@@ -426,7 +424,7 @@ absorb(Block2) ->
     Prev = block:top(),
     {true, Block3} = block:check2(Prev, Block2#block{trees = Trees}),
     headers:absorb_with_block([Header]),
-    block_db3:write(Block3, BH),
+    write(Block3, BH),
     potential_block:save(),
     ok.
     
